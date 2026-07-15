@@ -1,0 +1,208 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  domain    String   @unique
+  settings  Json?    // For custom branding, themes, etc.
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users       User[]
+  employees   Employee[]
+  attendances Attendance[]
+  leaves      Leave[]
+  projects    Project[]
+  tasks       Task[]
+  leads       Lead[]
+  invoices    Invoice[]
+  expenses    Expense[]
+  assets      Asset[]
+  auditLogs   AuditLog[]
+  activities  Activity[]
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   // e.g. "SUPER_ADMIN", "COMPANY_ADMIN", "CEO", "CTO", "HR", "FINANCE", "PROJECT_MANAGER", "DEVELOPER", "SUPPORT_AGENT", "EMPLOYEE"
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  employee   Employee?
+  auditLogs  AuditLog[]
+}
+
+model Employee {
+  id           String   @id @default(uuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId       String?  @unique
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  firstName    String
+  lastName     String
+  department   String   // e.g. "ENGINEERING", "SALES", "HR", "FINANCE", "SUPPORT"
+  position     String   // e.g. "Senior Developer", "VP HR", "Account Manager"
+  status       String   // e.g. "ACTIVE", "INACTIVE", "TERMINATED"
+  salary       Float
+  hireDate     DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  attendances Attendance[]
+  leaves      Leave[]
+  tasks       Task[]
+  assets      Asset[]
+}
+
+model Attendance {
+  id         String    @id @default(uuid())
+  tenantId   String
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId String
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date       DateTime  @db.Date
+  checkIn    DateTime?
+  checkOut   DateTime?
+  status     String    // e.g. "PRESENT", "LATE", "ABSENT", "LEAVE"
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@unique([employeeId, date])
+}
+
+model Leave {
+  id         String   @id @default(uuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  employeeId String
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  startDate  DateTime
+  endDate    DateTime
+  type       String   // e.g. "SICK", "CASUAL", "ANNUAL", "UNPAID"
+  status     String   // e.g. "PENDING", "APPROVED", "REJECTED"
+  reason     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Project {
+  id          String    @id @default(uuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name        String
+  description String
+  status      String    // e.g. "PLANNING", "ACTIVE", "COMPLETED", "ON_HOLD"
+  startDate   DateTime
+  endDate     DateTime?
+  budget      Float
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tasks       Task[]
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  tenantId    String
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  status      String    // e.g. "TODO", "IN_PROGRESS", "REVIEW", "DONE"
+  priority    String    // e.g. "LOW", "MEDIUM", "HIGH", "CRITICAL"
+  assigneeId  String?
+  assignee    Employee? @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  dueDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Lead {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String
+  company   String
+  email     String
+  status    String   // e.g. "NEW", "CONTACTED", "QUALIFIED", "LOST", "WON"
+  value     Float
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Invoice {
+  id           String   @id @default(uuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  invoiceNo    String
+  customerName String
+  amount       Float
+  status       String   // e.g. "DRAFT", "SENT", "PAID", "OVERDUE"
+  issueDate    DateTime @default(now())
+  dueDate      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category    String   // e.g. "TRAVEL", "SOFTWARE", "OFFICE", "MARKETING"
+  amount      Float
+  status      String   // e.g. "PENDING", "APPROVED", "REJECTED"
+  date        DateTime
+  description String
+  approvedBy  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Asset {
+  id           String    @id @default(uuid())
+  tenantId     String
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name         String
+  type         String    // e.g. "LAPTOP", "SERVER", "LICENSE", "FURNITURE"
+  serialNumber String
+  status       String    // e.g. "ACTIVE", "MAINTENANCE", "RETIRED"
+  assignedToId String?
+  assignedTo   Employee? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String   // e.g. "CREATE", "UPDATE", "DELETE", "LOGIN", "EXPORT"
+  resource  String   // e.g. "INVOICE", "USER", "PROJECT"
+  details   String
+  timestamp DateTime @default(now())
+}
+
+model Activity {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  message   String
+  type      String   // e.g. "PROJECT", "FINANCE", "HR", "LEAD"
+  timestamp DateTime @default(now())
+}
