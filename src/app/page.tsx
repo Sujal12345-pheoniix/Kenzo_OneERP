@@ -8,7 +8,7 @@ import { ShieldAlert, Loader2 } from "lucide-react";
 export default function Home() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("password123");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -74,7 +74,7 @@ export default function Home() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="admin@kenzo.com"
+              placeholder="enter work mail"
               className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 text-xs transition-all"
             />
           </div>
