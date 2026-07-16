@@ -58,8 +58,23 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  const getDashboardName = () => {
+    if (!user) return "Executive Hub";
+    switch (user.role) {
+      case "COMPANY_ADMIN":
+      case "SUPER_ADMIN":
+        return "Admin Control Hub";
+      case "CEO":
+        return "CEO Strategic Suite";
+      case "HR":
+        return "HR Insights Portal";
+      default:
+        return "Employee Workspace";
+    }
+  };
+
   const menuItems = [
-    { name: "Executive Hub", href: "/dashboard", icon: LayoutDashboard },
+    { name: getDashboardName(), href: "/dashboard", icon: LayoutDashboard },
     { name: "CRM & Customers", href: "/dashboard/crm", icon: Contact2 },
     { name: "Projects & Tasks", href: "/dashboard/projects", icon: FolderKanban },
     { name: "HRMS Operations", href: "/dashboard/hrms", icon: Users2 },
