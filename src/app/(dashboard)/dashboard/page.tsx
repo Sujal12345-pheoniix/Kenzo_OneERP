@@ -250,9 +250,9 @@ export default function ExecutiveHub() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
           <div>
             <div className="flex items-center gap-2 text-sky-600 font-bold text-xs uppercase tracking-widest">
-              <ShieldCheck className="h-4 w-4" /> SECURE CONTROL NODE
+              <ShieldCheck className="h-4 w-4" /> ADMIN CONTROL NODE
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">Synergy ERP Admin Hub</h1>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">Admin Control Hub</h1>
             <p className="text-slate-500 text-sm mt-0.5">Control corporate security, user permissions, monitor audit logs, and oversee global operations.</p>
           </div>
           <button
@@ -597,7 +597,7 @@ export default function ExecutiveHub() {
     );
   }
 
-  // Render CEO Dashboard (LeoMax inspired)
+  // Render CEO Dashboard
   if (role === "CEO") {
     // Generate dummy financial metrics charts
     const revenueTrendData = [
@@ -625,12 +625,12 @@ export default function ExecutiveHub() {
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">CEO Intelligence Dashboard</h1>
             <p className="text-slate-500 text-sm mt-0.5">High-level financial performance metrics, deals, and capital runway indices.</p>
           </div>
-          <div className="px-4 py-2 rounded-xl bg-indigo-50 border border-indigo-150 text-indigo-600 text-xs font-bold shadow-sm">
-            LeoMax Strategy Active
+          <div className="px-4 py-2 rounded-xl bg-indigo-50 border border-indigo-150 text-indigo-600 text-xs font-bold shadow-sm flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-indigo-500 animate-pulse" /> Strategic Mode
           </div>
         </div>
 
-        {/* LeoMax Soft Pastel Cards Grid */}
+        {/* CEO Strategic KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
           <div className="p-6 rounded-3xl bg-emerald-50/70 border border-emerald-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
@@ -806,7 +806,7 @@ export default function ExecutiveHub() {
     );
   }
 
-  // Render HR Dashboard (HR Insights inspired)
+  // Render HR Dashboard
   if (role === "HR") {
     const attendanceSummary = [
       { name: "Present", value: 92, color: "#10b981" },
@@ -832,8 +832,8 @@ export default function ExecutiveHub() {
             <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">HR Insights & Management</h1>
             <p className="text-slate-500 text-sm mt-0.5">Administer leaves, track attendance schedules, and view staff statistics.</p>
           </div>
-          <div className="px-4 py-2 rounded-xl bg-violet-50 border border-violet-150 text-violet-600 text-xs font-bold shadow-sm">
-            HR Portal Active
+          <div className="px-4 py-2 rounded-xl bg-violet-50 border border-violet-150 text-violet-600 text-xs font-bold shadow-sm flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 rounded-full bg-violet-500 animate-pulse" /> HR Mode
           </div>
         </div>
 
@@ -974,7 +974,7 @@ export default function ExecutiveHub() {
     );
   }
 
-  // Render Employee / PM / Developer Dashboard (Orbix Studio inspired)
+  // Render Employee / PM / Developer Dashboard
   const taskStatusSummary = [
     { name: "Stuck", value: 2, color: "#ef4444" },
     { name: "In Progress", value: 3, color: "#f59e0b" },
@@ -1013,12 +1013,12 @@ export default function ExecutiveHub() {
           <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">Workspace Portal & Projects</h1>
           <p className="text-slate-500 text-sm mt-0.5">Manage tasks, timelines, growth statistics, and project progress logs.</p>
         </div>
-        <div className="px-4 py-2 rounded-xl bg-sky-50 border border-sky-150 text-sky-600 text-xs font-bold shadow-sm">
-          Orbix Studio Active
+        <div className="px-4 py-2 rounded-xl bg-sky-50 border border-sky-150 text-sky-600 text-xs font-bold shadow-sm flex items-center gap-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-sky-500 animate-pulse" /> Workspace Mode
         </div>
       </div>
 
-      {/* Orbix Studio stats */}
+      {/* Employee Workspace stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="glass-panel p-5 flex flex-col justify-between">
           <span className="text-slate-450 text-[10px] font-bold uppercase tracking-wider block">Completed Tasks</span>
