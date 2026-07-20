@@ -76,11 +76,21 @@ export default function ExecutiveHub() {
 
   const fetchSessionAndData = async () => {
     try {
+      const sessRes = await fetch("/api/auth/session");
+      const sessJson = await sessRes.json();
+      
+      let currentUser = sessionUser;
+      if (sessJson && sessJson.authenticated && sessJson.user) {
+        currentUser = sessJson.user;
+        setSessionUser(sessJson.user);
+      }
+
       const dashRes = await fetch("/api/dashboard");
       const dashJson = await dashRes.json();
       setData(dashJson);
 
-      if (can("user:read") || hasRole("COMPANY_ADMIN") || hasRole("SUPER_ADMIN")) {
+      const userRole = currentUser?.role;
+      if (userRole === "COMPANY_ADMIN" || userRole === "SUPER_ADMIN" || can("user:read")) {
         fetchAdminUsers();
       }
       setLoading(false);

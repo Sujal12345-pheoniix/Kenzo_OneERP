@@ -619,8 +619,8 @@ export default function HRMSDashboard() {
   const { employees, leaves } = data;
   const payrollTotal = employees.reduce((sum: number, e: any) => sum + (e.salary || 0), 0);
 
-  const isPrivileged = can("employee:create") || can("employee:salary:view") || hasRole("HR") || hasRole("CEO");
-  const showCalendar = can("attendance:mark") && !hasRole("COMPANY_ADMIN") && !hasRole("CEO");
+  const isPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR"].includes(userRole) || can("employee:create") || can("employee:salary:view");
+  const showCalendar = !["COMPANY_ADMIN", "SUPER_ADMIN", "CEO"].includes(userRole) && userRole !== "";
 
   const currentEmployee = employees.find((emp: any) => emp.userId === sessionUser?.userId);
 
