@@ -82,7 +82,6 @@ export default function ExecutiveHub() {
       let currentUser = sessionUser;
       if (sessJson && sessJson.authenticated && sessJson.user) {
         currentUser = sessJson.user;
-        setSessionUser(sessJson.user);
       }
 
       const dashRes = await fetch("/api/dashboard");
