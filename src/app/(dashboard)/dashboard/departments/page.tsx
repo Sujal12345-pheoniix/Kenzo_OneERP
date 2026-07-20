@@ -4,12 +4,13 @@ import React, { useEffect, useState, useCallback } from "react";
 import {
   Loader2, Layers, X, Briefcase, CalendarDays, ClipboardList,
   CheckCircle2, Clock, AlertCircle, UserCheck, TrendingUp, DollarSign,
-  Mail, Building2, Calendar, ChevronLeft, ChevronRight, Award
+  Mail, Building2, Calendar, ChevronLeft, ChevronRight, Award, PlusCircle
 } from "lucide-react";
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
 /* ─── Department theming ───────────────────────────────────────── */
 const DEPT_THEME: Record<string, { icon: string; gradient: string; border: string; badge: string; accent: string }> = {
+  Employee:      { icon: "⚙️", gradient: "from-sky-50 to-blue-50",     border: "border-sky-100",    badge: "bg-sky-500",     accent: "text-sky-600" },
   ENGINEERING:   { icon: "⚙️", gradient: "from-sky-50 to-blue-50",     border: "border-sky-100",    badge: "bg-sky-500",     accent: "text-sky-600" },
   HR:            { icon: "👥", gradient: "from-violet-50 to-purple-50", border: "border-violet-100", badge: "bg-violet-500",  accent: "text-violet-600" },
   FINANCE:       { icon: "💰", gradient: "from-emerald-50 to-green-50", border: "border-emerald-100",badge: "bg-emerald-500", accent: "text-emerald-600" },
@@ -82,16 +83,46 @@ function AttendanceGrid({ attendances }: { attendances: any[] }) {
 }
 
 /* ─── Full-screen Employee Profile Modal ───────────────────────── */
-function EmployeeProfileModal({ empId, onClose }: { empId: string; onClose: () => void }) {
+function EmployeeProfileModal({ 
+  empId, 
+  onClose, 
+  projects, 
+  userRole 
+}: { 
+  empId: string; 
+  onClose: () => void; 
+  projects: any[]; 
+  userRole: string 
+}) {
   const [emp, setEmp] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  // Form states for assigning tasks
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDesc, setTaskDesc] = useState("");
+  const [taskPriority, setTaskPriority] = useState("MEDIUM");
+  const [taskProjId, setTaskProjId] = useState("");
+  const [taskDueDate, setTaskDueDate] = useState("");
+  const [assignLoading, setAssignLoading] = useState(false);
+  const [assignError, setAssignError] = useState("");
+  const [assignSuccess, setAssignSuccess] = useState("");
+
+  const fetchEmployee = useCallback(() => {
     fetch(`/api/employees/${empId}`)
       .then((r) => r.json())
       .then((d) => { setEmp(d.employee); setLoading(false); })
       .catch(() => setLoading(false));
   }, [empId]);
+
+  useEffect(() => {
+    fetchEmployee();
+  }, [fetchEmployee]);
+
+  useEffect(() => {
+    if (projects && projects.length > 0) {
+      setTaskProjId(projects[0].id);
+    }
+  }, [projects]);
 
   // Close on Escape
   useEffect(() => {
@@ -99,6 +130,45 @@ function EmployeeProfileModal({ empId, onClose }: { empId: string; onClose: () =
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  const handleAssignTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!taskProjId) {
+      setAssignError("Please select a project.");
+      return;
+    }
+    setAssignLoading(true);
+    setAssignError("");
+    setAssignSuccess("");
+    try {
+      const res = await fetch("/api/projects/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: taskTitle,
+          description: taskDesc,
+          status: "TODO",
+          priority: taskPriority,
+          projectId: taskProjId,
+          assigneeId: empId,
+          dueDate: taskDueDate || null
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to assign task");
+      
+      setAssignSuccess("Task successfully assigned to employee!");
+      setTaskTitle("");
+      setTaskDesc("");
+      setTaskDueDate("");
+      fetchEmployee();
+      setTimeout(() => setAssignSuccess(""), 3000);
+    } catch (err: any) {
+      setAssignError(err.message || "An error occurred");
+    } finally {
+      setAssignLoading(false);
+    }
+  };
 
   const tasks          = emp?.tasks || [];
   const pendingTasks   = tasks.filter((t: any) => t.status !== "DONE");
@@ -111,7 +181,8 @@ function EmployeeProfileModal({ empId, onClose }: { empId: string; onClose: () =
   const lateDays     = attendances.filter((a: any) => a.status === "LATE").length;
   const leaveDays    = attendances.filter((a: any) => a.status === "LEAVE").length;
 
-  const theme = DEPT_THEME[emp?.department] || {
+  const displayDept = emp?.department === "ENGINEERING" ? "Employee" : emp?.department;
+  const theme = DEPT_THEME[displayDept] || {
     icon: "🏢", gradient: "from-slate-50 to-slate-50", border: "border-slate-100",
     badge: "bg-slate-400", accent: "text-slate-600",
   };
@@ -123,6 +194,8 @@ function EmployeeProfileModal({ empId, onClose }: { empId: string; onClose: () =
            .map((t: any) => [t.project.id, t.project])
     ).values()
   ) as any[];
+
+  const canAssign = userRole === "COMPANY_ADMIN" || userRole === "SUPER_ADMIN" || userRole === "CEO";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
@@ -166,7 +239,7 @@ function EmployeeProfileModal({ empId, onClose }: { empId: string; onClose: () =
                 <div className="flex flex-wrap items-center gap-3 mt-2">
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border bg-white/80 ${theme.accent} border-current/20`}>
                     <span className={`h-2 w-2 rounded-full ${theme.badge}`} />
-                    {emp.department}
+                    {displayDept}
                   </span>
                   <span className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                     <Mail className="h-3.5 w-3.5" />
@@ -214,6 +287,76 @@ function EmployeeProfileModal({ empId, onClose }: { empId: string; onClose: () =
                 </div>
               ))}
             </div>
+
+            {/* ── Assign Task Option (Admin and CEO only) ── */}
+            {canAssign && (
+              <div className="bg-slate-50 border border-slate-150 rounded-2xl p-5 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <PlusCircle className="h-4 w-4 text-sky-600" />
+                  <h3 className="font-extrabold text-slate-800 text-sm uppercase tracking-wider">Assign Task to Employee</h3>
+                </div>
+                {assignError && <p className="text-xs text-red-650 font-semibold mb-3 bg-red-50 p-2.5 rounded-lg border border-red-150">{assignError}</p>}
+                {assignSuccess && <p className="text-xs text-emerald-600 font-semibold mb-3 bg-emerald-50 p-2.5 rounded-lg border border-emerald-150">{assignSuccess}</p>}
+                
+                <form onSubmit={handleAssignTask} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Task Title</label>
+                    <input
+                      type="text" required value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)}
+                      placeholder="e.g. Optimize Database Indexes"
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Description</label>
+                    <textarea
+                      value={taskDesc} onChange={(e) => setTaskDesc(e.target.value)}
+                      placeholder="Detail task instructions or constraints..."
+                      rows={2}
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Select Project</label>
+                    <select
+                      value={taskProjId} onChange={(e) => setTaskProjId(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
+                    >
+                      {projects.map((proj: any) => (
+                        <option key={proj.id} value={proj.id}>{proj.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Priority</label>
+                    <select
+                      value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
+                    >
+                      <option value="LOW">LOW</option>
+                      <option value="MEDIUM">MEDIUM</option>
+                      <option value="HIGH">HIGH</option>
+                      <option value="CRITICAL">CRITICAL</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Due Date</label>
+                    <input
+                      type="date" value={taskDueDate} onChange={(e) => setTaskDueDate(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <button
+                      type="submit" disabled={assignLoading}
+                      className="w-full py-2.5 rounded-xl bg-sky-655 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-md shadow-sky-600/10 cursor-pointer flex items-center justify-center gap-1.5"
+                    >
+                      {assignLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Confirm Assignment"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
 
             {/* ── Currently Working On ── */}
             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5">
@@ -277,7 +420,7 @@ function EmployeeProfileModal({ empId, onClose }: { empId: string; onClose: () =
                     );
                   })}
                   {tasks.length > 8 && (
-                    <div className="px-5 py-3 text-center text-xs text-slate-400 font-semibold">
+                    <div className="px-5 py-3 text-center text-xs text-slate-450 font-semibold">
                       +{tasks.length - 8} more tasks
                     </div>
                   )}
@@ -349,7 +492,7 @@ function EmployeeProfileModal({ empId, onClose }: { empId: string; onClose: () =
                     </div>
                   ))}
                   {leaves.length > 5 && (
-                    <div className="px-5 py-3 text-center text-xs text-slate-400 font-semibold">
+                    <div className="px-5 py-3 text-center text-xs text-slate-455 font-semibold">
                       +{leaves.length - 5} more
                     </div>
                   )}
@@ -400,7 +543,7 @@ export default function DepartmentsPage() {
     });
   }, []);
 
-  const isAdmin = userRole === "COMPANY_ADMIN" || userRole === "SUPER_ADMIN";
+  const canClickAvatars = userRole === "COMPANY_ADMIN" || userRole === "SUPER_ADMIN" || userRole === "CEO";
 
   if (loading) {
     return (
@@ -416,16 +559,25 @@ export default function DepartmentsPage() {
   }> = {};
 
   employees.forEach((emp) => {
-    if (!deptMap[emp.department]) {
-      deptMap[emp.department] = { count: 0, active: 0, totalSalary: 0, roles: [], members: [] };
+    let deptName = emp.department;
+    if (deptName === "ENGINEERING") {
+      deptName = "Employee";
     }
-    deptMap[emp.department].count++;
-    if (emp.status === "ACTIVE") deptMap[emp.department].active++;
-    deptMap[emp.department].totalSalary += emp.salary;
-    if (!deptMap[emp.department].roles.includes(emp.position)) {
-      deptMap[emp.department].roles.push(emp.position);
+    if (!deptMap[deptName]) {
+      deptMap[deptName] = { count: 0, active: 0, totalSalary: 0, roles: [], members: [] };
     }
-    deptMap[emp.department].members.push(emp);
+    deptMap[deptName].count++;
+    if (emp.status === "ACTIVE") deptMap[deptName].active++;
+    deptMap[deptName].totalSalary += emp.salary;
+    
+    if (deptName === "Employee") {
+      deptMap[deptName].roles = ["engineering", "project manager", "sales", "JAM"];
+    } else {
+      if (!deptMap[deptName].roles.includes(emp.position)) {
+        deptMap[deptName].roles.push(emp.position);
+      }
+    }
+    deptMap[deptName].members.push(emp);
   });
 
   const departments = Object.entries(deptMap).map(([name, data]) => ({
@@ -450,6 +602,8 @@ export default function DepartmentsPage() {
         <EmployeeProfileModal
           empId={selectedEmpId}
           onClose={() => setSelectedEmpId(null)}
+          projects={projects}
+          userRole={userRole}
         />
       )}
 
@@ -461,8 +615,8 @@ export default function DepartmentsPage() {
           </div>
           <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Departments</h1>
           <p className="text-slate-500 text-sm mt-0.5">
-            {isAdmin
-              ? "Click any team member avatar to view their full profile, tasks, attendance & leaves."
+            {canClickAvatars
+              ? "Click any team member avatar to view their profile or assign them tasks."
               : "Organizational hierarchy, headcount distribution, and compensation overview."}
           </p>
         </div>
@@ -531,12 +685,12 @@ export default function DepartmentsPage() {
               </div>
             </div>
 
-            {/* Member avatars — clickable for admin */}
+            {/* Member avatars — clickable for authorized roles */}
             <div className="mb-3">
               <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Team Members</span>
               <div className="flex flex-wrap gap-1.5">
                 {dept.members.slice(0, 6).map((m: any, i: number) => {
-                  const canClick = isAdmin;
+                  const canClick = canClickAvatars;
                   return (
                     <div
                       key={i}
@@ -558,9 +712,9 @@ export default function DepartmentsPage() {
                   </div>
                 )}
               </div>
-              {isAdmin && (
+              {canClickAvatars && (
                 <p className="text-[9px] text-slate-400 mt-1.5 font-medium">
-                  ↑ Click avatar to view profile
+                  ↑ Click avatar to view profile / assign tasks
                 </p>
               )}
             </div>
@@ -569,14 +723,14 @@ export default function DepartmentsPage() {
             <div>
               <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Roles</span>
               <div className="flex flex-wrap gap-1">
-                {dept.roles.slice(0, 3).map((role: string, i: number) => (
+                {dept.roles.slice(0, 4).map((role: string, i: number) => (
                   <span key={i} className="px-2 py-0.5 bg-white/70 rounded-full text-[9px] font-semibold text-slate-600 border border-white">
                     {role}
                   </span>
                 ))}
-                {dept.roles.length > 3 && (
+                {dept.roles.length > 4 && (
                   <span className="px-2 py-0.5 bg-white/50 rounded-full text-[9px] font-semibold text-slate-500">
-                    +{dept.roles.length - 3} more
+                    +{dept.roles.length - 4} more
                   </span>
                 )}
               </div>

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
   PlusCircle, Loader2, CalendarDays, CheckCircle2, Clock, X,
-  ChevronLeft, ChevronRight, UserCheck, AlertCircle, Sparkles
+  ChevronLeft, ChevronRight, UserCheck, AlertCircle, Sparkles, ClipboardList
 } from "lucide-react";
 
 /* ─── Attendance color map ───────────────────────────────────── */
@@ -287,11 +287,271 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
   );
 }
 
+/* ─── Employee To-Do List Component ─────────────────────────── */
+interface TodoListProps {
+  employeeId: string;
+}
+
+function EmployeeTodoList({ employeeId }: TodoListProps) {
+  const [tasks, setTasks] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Form state
+  const [newTitle, setNewTitle] = useState("");
+  const [newProjId, setNewProjId] = useState("");
+  const [newPriority, setNewPriority] = useState("MEDIUM");
+  const [newDueDate, setNewDueDate] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [error, setError] = useState("");
+
+  const fetchTasksAndProjects = useCallback(async () => {
+    try {
+      const [tasksRes, projRes] = await Promise.all([
+        fetch("/api/projects/tasks").then((r) => r.json()),
+        fetch("/api/projects").then((r) => r.json()),
+      ]);
+      // Filter tasks assigned to this employee
+      const myTasks = (tasksRes || []).filter((t: any) => t.assigneeId === employeeId);
+      setTasks(myTasks);
+      setProjects(projRes || []);
+      if (projRes && projRes.length > 0) {
+        setNewProjId(projRes[0].id);
+      }
+    } catch (err) {
+      console.error("Error loading tasks/projects:", err);
+    } finally {
+      setLoading(false);
+    }
+  }, [employeeId]);
+
+  useEffect(() => {
+    fetchTasksAndProjects();
+  }, [fetchTasksAndProjects]);
+
+  const handleToggleStatus = async (taskId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === "DONE" ? "IN_PROGRESS" : "DONE";
+    try {
+      const res = await fetch("/api/projects/tasks", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: taskId, status: nextStatus }),
+      });
+      if (res.ok) {
+        setTasks((prev) =>
+          prev.map((t) => (t.id === taskId ? { ...t, status: nextStatus } : t))
+        );
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCreateTodo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || !newProjId) {
+      setError("Please fill all required fields.");
+      return;
+    }
+    setAdding(true);
+    setError("");
+    try {
+      const res = await fetch("/api/projects/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: newTitle,
+          description: "Created from daily workspace checklist",
+          status: "TODO",
+          priority: newPriority,
+          projectId: newProjId,
+          assigneeId: employeeId,
+          dueDate: newDueDate || null,
+        }),
+      });
+      if (res.ok) {
+        setNewTitle("");
+        setNewDueDate("");
+        await fetchTasksAndProjects();
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to create task");
+      }
+    } catch (err) {
+      setError("Network error");
+    } finally {
+      setAdding(false);
+    }
+  };
+
+  const pending = tasks.filter((t) => t.status !== "DONE");
+  const completed = tasks.filter((t) => t.status === "DONE");
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Left panel: Lists */}
+      <div className="lg:col-span-2 flex flex-col gap-6">
+        
+        {/* Pending checklist */}
+        <div className="glass-panel p-6">
+          <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <ClipboardList className="h-4.5 w-4.5 text-sky-600" />
+            Active Tasks Checklist ({pending.length})
+          </h3>
+          {loading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-5 w-5 text-sky-600 animate-spin" />
+            </div>
+          ) : pending.length === 0 ? (
+            <p className="text-xs text-slate-500 italic py-4">No active tasks assigned to you. All clear!</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {pending.map((t) => (
+                <div key={t.id} className="flex items-center gap-3.5 p-3.5 bg-slate-50 border border-slate-100 rounded-xl hover:shadow-sm transition-all group">
+                  <input
+                    type="checkbox"
+                    checked={false}
+                    onChange={() => handleToggleStatus(t.id, t.status)}
+                    className="h-4.5 w-4.5 rounded border-slate-350 text-sky-600 focus:ring-sky-500 cursor-pointer"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-xs font-bold text-slate-800 truncate">{t.title}</span>
+                    <span className="block text-[10px] text-slate-450 truncate mt-0.5">{t.project?.name || "No Project"}</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                      t.priority === "CRITICAL" ? "bg-red-105 text-red-700" :
+                      t.priority === "HIGH" ? "bg-amber-100 text-amber-700" :
+                      t.priority === "MEDIUM" ? "bg-sky-100 text-sky-700" :
+                      "bg-slate-100 text-slate-600"
+                    }`}>
+                      {t.priority}
+                    </span>
+                    {t.dueDate && (
+                      <span className="text-[9px] text-slate-450 font-semibold">
+                        Due: {new Date(t.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Completed checklist */}
+        <div className="glass-panel p-6">
+          <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <CheckCircle2 className="h-4.5 w-4.5 text-emerald-600" />
+            Completed Tasks ({completed.length})
+          </h3>
+          {loading ? (
+            <div className="flex justify-center py-6">
+              <Loader2 className="h-5 w-5 text-sky-655 animate-spin" />
+            </div>
+          ) : completed.length === 0 ? (
+            <p className="text-xs text-slate-500 italic py-4">No completed tasks yet.</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {completed.map((t) => (
+                <div key={t.id} className="flex items-center gap-3.5 p-3.5 bg-slate-50/50 border border-slate-100/50 rounded-xl opacity-75 group">
+                  <input
+                    type="checkbox"
+                    checked={true}
+                    onChange={() => handleToggleStatus(t.id, t.status)}
+                    className="h-4.5 w-4.5 rounded border-slate-350 text-sky-600 focus:ring-sky-500 cursor-pointer"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-xs font-bold text-slate-500 line-through truncate">{t.title}</span>
+                    <span className="block text-[10px] text-slate-400 line-through truncate mt-0.5">{t.project?.name || "No Project"}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+        
+      </div>
+
+      {/* Right panel: Add Custom Todo */}
+      <div className="glass-panel p-6 flex flex-col gap-4 h-fit">
+        <div>
+          <h3 className="font-extrabold text-slate-900 text-sm">Add Personal Todo</h3>
+          <p className="text-slate-500 text-xs mt-0.5">Quickly track tasks on projects assigned to you.</p>
+        </div>
+        
+        {error && <p className="text-xs text-red-650 font-semibold bg-red-50 p-2 rounded-lg border border-red-150">{error}</p>}
+
+        <form onSubmit={handleCreateTodo} className="flex flex-col gap-4">
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Todo Title</label>
+            <input
+              type="text"
+              required
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              placeholder="e.g. Refactor API endpoints..."
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 text-xs transition-all"
+            />
+          </div>
+
+          <div>
+            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Project Context</label>
+            <select
+              value={newProjId}
+              onChange={(e) => setNewProjId(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 text-xs transition-all"
+            >
+              {projects.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Priority</label>
+              <select
+                value={newPriority}
+                onChange={(e) => setNewPriority(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 text-xs transition-all"
+              >
+                <option value="LOW">LOW</option>
+                <option value="MEDIUM">MEDIUM</option>
+                <option value="HIGH">HIGH</option>
+                <option value="CRITICAL">CRITICAL</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Due Date</label>
+              <input
+                type="date"
+                value={newDueDate}
+                onChange={(e) => setNewDueDate(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 text-xs transition-all"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={adding || !newProjId}
+            className="w-full mt-2 py-3 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md shadow-sky-600/10 hover:-translate-y-0.5"
+          >
+            {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create Todo"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main HRMS Dashboard ────────────────────────────────────── */
 export default function HRMSDashboard() {
   const [data, setData]       = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState("");
+  const [sessionUser, setSessionUser] = useState<any>(null);
 
   // Form states
   const [firstName, setFirstName] = useState("");
@@ -318,7 +578,10 @@ export default function HRMSDashboard() {
       fetch("/api/auth/session").then((r) => r.json()),
       fetch("/api/hrms").then((r) => r.json()),
     ]).then(([sess, hrms]) => {
-      if (sess.authenticated) setUserRole(sess.user.role);
+      if (sess.authenticated) {
+        setUserRole(sess.user.role);
+        setSessionUser(sess.user);
+      }
       setData(hrms);
       setLoading(false);
     });
@@ -355,118 +618,125 @@ export default function HRMSDashboard() {
   const { employees, leaves } = data;
   const payrollTotal = employees.reduce((sum: number, e: any) => sum + e.salary, 0);
 
-  const isAdminOrCEO = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO"].includes(userRole);
-  const showCalendar = !isAdminOrCEO && userRole !== "";
+  const isPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR"].includes(userRole);
+  const showCalendar = !["COMPANY_ADMIN", "SUPER_ADMIN", "CEO"].includes(userRole) && userRole !== "";
+
+  const currentEmployee = employees.find((emp: any) => emp.userId === sessionUser?.id);
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto text-slate-800">
       <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">HRMS Operations</h1>
-        <p className="text-slate-500 text-sm mt-1">Staff directory, leave tracker, payroll & attendance management.</p>
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+          {isPrivileged ? "HRMS Operations" : "My Personal Workspace"}
+        </h1>
+        <p className="text-slate-500 text-sm mt-1">
+          {isPrivileged 
+            ? "Staff directory, leave tracker, payroll & attendance management."
+            : "Keep track of your daily attendance and manage your task checklist."}
+        </p>
       </div>
 
-      {/* Stats row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="glass-panel p-6">
-          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Total Employees</span>
-          <div className="text-2xl font-extrabold text-slate-900 mb-1">{employees.length}</div>
-          <span className="text-slate-500 text-xs font-medium">Active directory personnel</span>
+      {/* Stats row — only for privileged roles */}
+      {isPrivileged && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="glass-panel p-6">
+            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Total Employees</span>
+            <div className="text-2xl font-extrabold text-slate-900 mb-1">{employees.length}</div>
+            <span className="text-slate-500 text-xs font-medium">Active directory personnel</span>
+          </div>
+          <div className="glass-panel p-6">
+            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Annual Payroll Commits</span>
+            <div className="text-2xl font-extrabold text-slate-900 mb-1">${payrollTotal.toLocaleString()}</div>
+            <span className="text-slate-500 text-xs font-medium">Base package expenditure</span>
+          </div>
+          <div className="glass-panel p-6">
+            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Pending Leaves</span>
+            <div className="text-2xl font-extrabold text-amber-600 mb-1">{leaves.filter((l: any) => l.status === "PENDING").length}</div>
+            <span className="text-slate-500 text-xs font-medium">Awaiting administrator action</span>
+          </div>
         </div>
-        <div className="glass-panel p-6">
-          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Annual Payroll Commits</span>
-          <div className="text-2xl font-extrabold text-slate-900 mb-1">${payrollTotal.toLocaleString()}</div>
-          <span className="text-slate-500 text-xs font-medium">Base package expenditure</span>
-        </div>
-        <div className="glass-panel p-6">
-          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Pending Leaves</span>
-          <div className="text-2xl font-extrabold text-amber-600 mb-1">{leaves.filter((l: any) => l.status === "PENDING").length}</div>
-          <span className="text-slate-500 text-xs font-medium">Awaiting administrator action</span>
-        </div>
-      </div>
+      )}
 
       {/* Attendance Calendar — only for non-admin/non-CEO roles */}
       {showCalendar && <AttendanceCalendar userRole={userRole} />}
 
-      {/* Lists & Creator grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-
-        {/* Left lists */}
-        <div className="lg:col-span-2 flex flex-col gap-8">
-
-          {/* Employee roster */}
-          <div className="glass-panel p-6">
-            <h3 className="text-base font-bold text-slate-900 mb-4">Organizational Roster</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-600">
-                <thead>
-                  <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                    <th className="pb-3">Name</th>
-                    <th className="pb-3">Role</th>
-                    <th className="pb-3">Email Address</th>
-                    <th className="pb-3 text-right">Base Salary</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {employees.map((emp: any) => (
-                    <tr key={emp.id} className="hover:bg-slate-50">
-                      <td className="py-3.5 font-semibold text-slate-900">{emp.firstName} {emp.lastName}</td>
-                      <td className="py-3.5">
-                        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                          {emp.user?.role || emp.role}
-                        </span>
-                      </td>
-                      <td className="py-3.5 text-slate-500">{emp.user?.email || emp.email}</td>
-                      <td className="py-3.5 text-right font-semibold text-slate-900">${emp.salary.toLocaleString()}</td>
+      {/* Roster views for HR/Admin/CEO, TodoList for regular employees */}
+      {isPrivileged ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left lists */}
+          <div className="lg:col-span-2 flex flex-col gap-8">
+            {/* Employee roster */}
+            <div className="glass-panel p-6">
+              <h3 className="text-base font-bold text-slate-900 mb-4">Organizational Roster</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-600">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                      <th className="pb-3">Name</th>
+                      <th className="pb-3">Role</th>
+                      <th className="pb-3">Email Address</th>
+                      <th className="pb-3 text-right">Base Salary</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {employees.map((emp: any) => (
+                      <tr key={emp.id} className="hover:bg-slate-50">
+                        <td className="py-3.5 font-semibold text-slate-900">{emp.firstName} {emp.lastName}</td>
+                        <td className="py-3.5">
+                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                            {emp.user?.role || emp.role}
+                          </span>
+                        </td>
+                        <td className="py-3.5 text-slate-500">{emp.user?.email || emp.email}</td>
+                        <td className="py-3.5 text-right font-semibold text-slate-900">${emp.salary.toLocaleString()}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Leave list */}
+            <div className="glass-panel p-6">
+              <h3 className="text-base font-bold text-slate-900 mb-4">Leave Administration</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm text-slate-600">
+                  <thead>
+                    <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
+                      <th className="pb-3">Team Member</th>
+                      <th className="pb-3">Type</th>
+                      <th className="pb-3">Period</th>
+                      <th className="pb-3 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {leaves.map((leave: any) => (
+                      <tr key={leave.id} className="hover:bg-slate-50">
+                        <td className="py-3.5 font-semibold text-slate-900">{leave.employee.firstName} {leave.employee.lastName}</td>
+                        <td className="py-3.5 text-slate-500">{leave.type}</td>
+                        <td className="py-3.5 text-slate-500">
+                          {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
+                        </td>
+                        <td className="py-3.5 text-center">
+                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                            leave.status === "APPROVED"
+                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                              : leave.status === "REJECTED"
+                              ? "bg-red-500/10 text-red-650 border-red-500/20"
+                              : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                          }`}>
+                            {leave.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
-          {/* Leave list */}
-          <div className="glass-panel p-6">
-            <h3 className="text-base font-bold text-slate-900 mb-4">Leave Administration</h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-600">
-                <thead>
-                  <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                    <th className="pb-3">Team Member</th>
-                    <th className="pb-3">Type</th>
-                    <th className="pb-3">Period</th>
-                    <th className="pb-3 text-center">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {leaves.map((leave: any) => (
-                    <tr key={leave.id} className="hover:bg-slate-50">
-                      <td className="py-3.5 font-semibold text-slate-900">{leave.employee.firstName} {leave.employee.lastName}</td>
-                      <td className="py-3.5 text-slate-500">{leave.type}</td>
-                      <td className="py-3.5 text-slate-500">
-                        {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
-                      </td>
-                      <td className="py-3.5 text-center">
-                        <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                          leave.status === "APPROVED"
-                            ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                            : leave.status === "REJECTED"
-                            ? "bg-red-500/10 text-red-600 border-red-500/20"
-                            : "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                        }`}>
-                          {leave.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-        </div>
-
-        {/* Right side form — only for admin */}
-        {isAdminOrCEO && (
+          {/* Right side form */}
           <div>
             <div className="glass-panel p-6">
               <h3 className="text-base font-bold text-slate-900 mb-4">Add Roster Member</h3>
@@ -525,9 +795,10 @@ export default function HRMSDashboard() {
               </form>
             </div>
           </div>
-        )}
-
-      </div>
+        </div>
+      ) : (
+        currentEmployee && <EmployeeTodoList employeeId={currentEmployee.id} />
+      )}
     </div>
   );
 }
