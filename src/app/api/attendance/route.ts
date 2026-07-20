@@ -1,15 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession, requirePermission } from "@/lib/auth";
 import db from "@/lib/db";
+import { PERMISSIONS } from "@/lib/rbac";
+import { AttendanceStatus, UserRoleType } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession(req);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const guard = requirePermission(session, PERMISSIONS.ATTENDANCE_READ);
+    if (guard) return guard;
 
-    const { tenantId, userId } = session;
+    const { tenantId, userId } = session!;
 
-    // Find the employee for the current user
     const employee = await db.employee.findFirst({
       where: { userId, tenantId },
     });
@@ -34,18 +36,17 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession(req);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const guard = requirePermission(session, PERMISSIONS.ATTENDANCE_MARK);
+    if (guard) return guard;
 
-    // Admin and CEO cannot mark own attendance via this route
-    if (session.role === "COMPANY_ADMIN" || session.role === "SUPER_ADMIN" || session.role === "CEO") {
-      return NextResponse.json({ error: "Admins and CEOs do not mark attendance via this route" }, { status: 403 });
+    if (session!.role === UserRoleType.COMPANY_ADMIN || session!.role === UserRoleType.SUPER_ADMIN || session!.role === UserRoleType.CEO) {
+      return NextResponse.json({ error: "Executive roles do not mark daily attendance" }, { status: 403 });
     }
 
-    const { tenantId, userId } = session;
+    const { tenantId, userId } = session!;
     const body = await req.json();
-    const { status } = body; // "PRESENT" | "LATE"
+    const { status } = body;
 
-    // Find the employee
     const employee = await db.employee.findFirst({
       where: { userId, tenantId },
     });
@@ -54,11 +55,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Employee record not found" }, { status: 404 });
     }
 
-    // Only allow marking today's date
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    // Check if already marked
     const existing = await db.attendance.findFirst({
       where: {
         employeeId: employee.id,
@@ -71,14 +70,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Attendance already marked for today" }, { status: 400 });
     }
 
+    const targetStatus = (status in AttendanceStatus ? status : AttendanceStatus.PRESENT) as AttendanceStatus;
     const now = new Date();
+
     const attendance = await db.attendance.create({
       data: {
         tenantId,
         employeeId: employee.id,
         date: today,
         checkIn: now,
-        status: status || "PRESENT",
+        status: targetStatus,
       },
     });
 

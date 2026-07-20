@@ -1,25 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession, requirePermission } from "@/lib/auth";
 import db from "@/lib/db";
+import { PERMISSIONS } from "@/lib/rbac";
+import { parseMoneyInput, toNumber } from "@/lib/money";
+import { LeadStatus, ActivityType } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession(req);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const guard = requirePermission(session, PERMISSIONS.LEAD_READ);
+    if (guard) return guard;
 
-    const { tenantId } = session;
+    const { tenantId } = session!;
 
-    const leads = await db.lead.findMany({
-      where: { tenantId },
-      orderBy: { createdAt: "desc" },
-    });
+    const [leads, invoices] = await Promise.all([
+      db.lead.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: "desc" },
+      }),
+      db.invoice.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
 
-    const invoices = await db.invoice.findMany({
-      where: { tenantId },
-      orderBy: { createdAt: "desc" },
-    });
+    const formattedLeads = leads.map((l) => ({
+      ...l,
+      value: toNumber(l.value),
+    }));
 
-    return NextResponse.json({ leads, invoices });
+    const formattedInvoices = invoices.map((inv) => ({
+      ...inv,
+      amount: toNumber(inv.amount),
+    }));
+
+    return NextResponse.json({ leads: formattedLeads, invoices: formattedInvoices });
   } catch (error) {
     console.error("CRM GET Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -29,9 +44,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession(req);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const guard = requirePermission(session, PERMISSIONS.LEAD_CREATE);
+    if (guard) return guard;
 
-    const { tenantId } = session;
+    const { tenantId } = session!;
     const body = await req.json();
     const { name, company, email, status, value, notes } = body;
 
@@ -39,28 +55,30 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    const targetStatus = (status in LeadStatus ? status : LeadStatus.NEW) as LeadStatus;
+    const decimalValue = parseMoneyInput(value);
+
     const lead = await db.lead.create({
       data: {
         tenantId,
         name,
         company,
         email,
-        status,
-        value: parseFloat(value),
+        status: targetStatus,
+        value: decimalValue,
         notes,
       },
     });
 
-    // Write activity log
     await db.activity.create({
       data: {
         tenantId,
-        message: `New Lead added: ${name} from ${company} (Value: $${value})`,
-        type: "LEAD",
+        message: `New Lead added: ${name} from ${company} (Value: $${decimalValue.toString()})`,
+        type: ActivityType.LEAD,
       },
     });
 
-    return NextResponse.json(lead);
+    return NextResponse.json({ ...lead, value: toNumber(lead.value) });
   } catch (error) {
     console.error("CRM POST Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

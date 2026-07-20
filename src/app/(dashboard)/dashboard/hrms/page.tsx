@@ -6,6 +6,8 @@ import {
   ChevronLeft, ChevronRight, UserCheck, AlertCircle, Sparkles, ClipboardList
 } from "lucide-react";
 
+import { usePermission } from "@/hooks/usePermission";
+
 /* ─── Attendance color map ───────────────────────────────────── */
 const ATTEND_STATUS_CONFIG: Record<string, {
   bg: string; dot: string; text: string; label: string;
@@ -548,10 +550,10 @@ function EmployeeTodoList({ employeeId }: TodoListProps) {
 
 /* ─── Main HRMS Dashboard ────────────────────────────────────── */
 export default function HRMSDashboard() {
+  const { user: sessionUser, can, hasRole, loading: permLoading } = usePermission();
   const [data, setData]       = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [userRole, setUserRole] = useState("");
-  const [sessionUser, setSessionUser] = useState<any>(null);
 
   // Form states
   const [firstName, setFirstName] = useState("");
@@ -580,7 +582,6 @@ export default function HRMSDashboard() {
     ]).then(([sess, hrms]) => {
       if (sess.authenticated) {
         setUserRole(sess.user.role);
-        setSessionUser(sess.user);
       }
       setData(hrms);
       setLoading(false);
@@ -607,7 +608,7 @@ export default function HRMSDashboard() {
     }
   };
 
-  if (loading) {
+  if (loading || permLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <Loader2 className="h-8 w-8 text-sky-600 animate-spin" />
@@ -616,12 +617,12 @@ export default function HRMSDashboard() {
   }
 
   const { employees, leaves } = data;
-  const payrollTotal = employees.reduce((sum: number, e: any) => sum + e.salary, 0);
+  const payrollTotal = employees.reduce((sum: number, e: any) => sum + (e.salary || 0), 0);
 
-  const isPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR"].includes(userRole);
-  const showCalendar = !["COMPANY_ADMIN", "SUPER_ADMIN", "CEO"].includes(userRole) && userRole !== "";
+  const isPrivileged = can("employee:create") || can("employee:salary:view") || hasRole("HR") || hasRole("CEO");
+  const showCalendar = can("attendance:mark") && !hasRole("COMPANY_ADMIN") && !hasRole("CEO");
 
-  const currentEmployee = employees.find((emp: any) => emp.userId === sessionUser?.id);
+  const currentEmployee = employees.find((emp: any) => emp.userId === sessionUser?.userId);
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto text-slate-800">

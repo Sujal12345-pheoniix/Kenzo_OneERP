@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
+import { toNumber } from "@/lib/money";
+import { ProjectStatus, LeadStatus, EmployeeStatus, InvoiceStatus, ExpenseStatus, LeaveStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,30 +15,30 @@ export async function GET(req: NextRequest) {
 
     // Active Projects Count
     const activeProjectsCount = await db.project.count({
-      where: { tenantId, status: "ACTIVE" },
+      where: { tenantId, status: ProjectStatus.ACTIVE },
     });
 
     // Pipeline Value
     const leads = await db.lead.findMany({
-      where: { tenantId, status: { in: ["NEW", "CONTACTED", "QUALIFIED"] } },
+      where: { tenantId, status: { in: [LeadStatus.NEW, LeadStatus.CONTACTED, LeadStatus.QUALIFIED] } },
     });
-    const pipelineValue = leads.reduce((sum, lead) => sum + lead.value, 0);
+    const pipelineValue = leads.reduce((sum, lead) => sum + toNumber(lead.value), 0);
 
     // Total Employees
     const totalEmployees = await db.employee.count({
-      where: { tenantId, status: "ACTIVE" },
+      where: { tenantId, status: EmployeeStatus.ACTIVE },
     });
 
-    // Invoices Cash Flow (Paid = Inflow, Expenses Approved = Outflow)
+    // Invoices Cash Flow
     const paidInvoices = await db.invoice.findMany({
-      where: { tenantId, status: "PAID" },
+      where: { tenantId, status: InvoiceStatus.PAID },
     });
-    const revenue = paidInvoices.reduce((sum, inv) => sum + inv.amount, 0);
+    const revenue = paidInvoices.reduce((sum, inv) => sum + toNumber(inv.amount), 0);
 
     const approvedExpenses = await db.expense.findMany({
-      where: { tenantId, status: "APPROVED" },
+      where: { tenantId, status: ExpenseStatus.APPROVED },
     });
-    const expensesValue = approvedExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+    const expensesValue = approvedExpenses.reduce((sum, exp) => sum + toNumber(exp.amount), 0);
 
     const profit = revenue - expensesValue;
 
@@ -59,17 +61,29 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Approval Queue (Pending leaves and pending expenses)
+    // Approval Queue
     const pendingLeaves = await db.leave.findMany({
-      where: { tenantId, status: "PENDING" },
+      where: { tenantId, status: LeaveStatus.PENDING },
       include: { employee: true },
     });
 
     const pendingExpenses = await db.expense.findMany({
-      where: { tenantId, status: "PENDING" },
+      where: { tenantId, status: ExpenseStatus.PENDING },
     });
 
-    // Dummy/Sample chart data for dashboard visualization
+    const formattedLeaves = pendingLeaves.map((l) => ({
+      ...l,
+      employee: {
+        ...l.employee,
+        salary: toNumber(l.employee.salary),
+      },
+    }));
+
+    const formattedExpenses = pendingExpenses.map((exp) => ({
+      ...exp,
+      amount: toNumber(exp.amount),
+    }));
+
     const salesPerformance = [
       { month: "Jan", revenue: revenue * 0.7, profit: profit * 0.65 },
       { month: "Feb", revenue: revenue * 0.8, profit: profit * 0.75 },
@@ -85,14 +99,14 @@ export async function GET(req: NextRequest) {
         revenue,
         expenses: expensesValue,
         profit,
-        mrr: revenue / 4, // Simulated monthly recurring revenue
+        mrr: revenue / 4,
         arr: (revenue / 4) * 12,
       },
       recentActivities,
       recentAuditLogs,
       approvalQueue: {
-        leaves: pendingLeaves,
-        expenses: pendingExpenses,
+        leaves: formattedLeaves,
+        expenses: formattedExpenses,
       },
       charts: {
         salesPerformance,

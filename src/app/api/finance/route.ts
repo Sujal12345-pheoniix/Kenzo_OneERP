@@ -1,25 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession, requirePermission } from "@/lib/auth";
 import db from "@/lib/db";
+import { PERMISSIONS } from "@/lib/rbac";
+import { toNumber } from "@/lib/money";
+import { ExpenseStatus, InvoiceStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession(req);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const guard = requirePermission(session, PERMISSIONS.INVOICE_READ);
+    if (guard) return guard;
 
-    const { tenantId } = session;
+    const { tenantId } = session!;
 
-    const invoices = await db.invoice.findMany({
-      where: { tenantId },
-      orderBy: { createdAt: "desc" },
-    });
+    const [invoices, expenses] = await Promise.all([
+      db.invoice.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: "desc" },
+      }),
+      db.expense.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: "desc" },
+      }),
+    ]);
 
-    const expenses = await db.expense.findMany({
-      where: { tenantId },
-      orderBy: { createdAt: "desc" },
-    });
+    const formattedInvoices = invoices.map((inv) => ({
+      ...inv,
+      amount: toNumber(inv.amount),
+    }));
 
-    return NextResponse.json({ invoices, expenses });
+    const formattedExpenses = expenses.map((exp) => ({
+      ...exp,
+      amount: toNumber(exp.amount),
+    }));
+
+    return NextResponse.json({ invoices: formattedInvoices, expenses: formattedExpenses });
   } catch (error) {
     console.error("Finance GET Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -29,9 +44,10 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const session = await getSession(req);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const guard = requirePermission(session, PERMISSIONS.EXPENSE_APPROVE);
+    if (guard) return guard;
 
-    const { tenantId } = session;
+    const { tenantId } = session!;
     const body = await req.json();
     const { expenseId, status } = body;
 
@@ -47,15 +63,17 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Expense not found" }, { status: 404 });
     }
 
+    const targetStatus = (status in ExpenseStatus ? status : ExpenseStatus.PENDING) as ExpenseStatus;
+
     const updatedExpense = await db.expense.update({
       where: { id: expenseId },
       data: {
-        status,
-        approvedBy: session.name,
+        status: targetStatus,
+        approvedBy: session!.name,
       },
     });
 
-    return NextResponse.json(updatedExpense);
+    return NextResponse.json({ ...updatedExpense, amount: toNumber(updatedExpense.amount) });
   } catch (error) {
     console.error("Finance PUT Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

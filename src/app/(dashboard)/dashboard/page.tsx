@@ -46,9 +46,10 @@ import {
   CartesianGrid,
   Legend
 } from "recharts";
+import { usePermission } from "@/hooks/usePermission";
 
 export default function ExecutiveHub() {
-  const [sessionUser, setSessionUser] = useState<any>(null);
+  const { user: sessionUser, can, hasRole, loading: permLoading } = usePermission();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -75,21 +76,12 @@ export default function ExecutiveHub() {
 
   const fetchSessionAndData = async () => {
     try {
-      // 1. Fetch Session
-      const sessionRes = await fetch("/api/auth/session");
-      const sessionJson = await sessionRes.json();
-      if (sessionJson.authenticated) {
-        setSessionUser(sessionJson.user);
-        
-        // 2. Fetch General Dashboard Stats
-        const dashRes = await fetch("/api/dashboard");
-        const dashJson = await dashRes.json();
-        setData(dashJson);
+      const dashRes = await fetch("/api/dashboard");
+      const dashJson = await dashRes.json();
+      setData(dashJson);
 
-        // 3. If Admin, fetch users
-        if (sessionJson.user.role === "COMPANY_ADMIN" || sessionJson.user.role === "SUPER_ADMIN") {
-          fetchAdminUsers();
-        }
+      if (can("user:read") || hasRole("COMPANY_ADMIN") || hasRole("SUPER_ADMIN")) {
+        fetchAdminUsers();
       }
       setLoading(false);
     } catch (err) {
@@ -349,7 +341,7 @@ export default function ExecutiveHub() {
                       >
                         <Key className="h-3.5 w-3.5" />
                       </button>
-                      {u.id !== sessionUser?.id && (
+                      {u.id !== sessionUser?.userId && (
                         <button
                           onClick={() => handleDeleteUser(u.id)}
                           title="Revoke Access"

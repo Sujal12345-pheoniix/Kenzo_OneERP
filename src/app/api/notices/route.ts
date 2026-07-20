@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession, requirePermission } from "@/lib/auth";
 import db from "@/lib/db";
-
-const CAN_WRITE = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR"];
-const CAN_DELETE = ["COMPANY_ADMIN", "SUPER_ADMIN"];
+import { PERMISSIONS } from "@/lib/rbac";
+import { ActivityType, AuditAction, AuditResource, UserRoleType } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,7 +12,7 @@ export async function GET(req: NextRequest) {
     const { tenantId } = session;
 
     const activities = await db.activity.findMany({
-      where: { tenantId, type: "NOTICE" },
+      where: { tenantId, type: ActivityType.NOTICE },
       orderBy: { timestamp: "desc" },
       take: 100,
     });
@@ -37,13 +36,10 @@ export async function GET(req: NextRequest) {
         }
       })
       .filter((n) => {
-        // Admins see everything
-        if (session.role === "COMPANY_ADMIN" || session.role === "SUPER_ADMIN") return true;
-        // Target-based filter
+        if (session.role === UserRoleType.COMPANY_ADMIN || session.role === UserRoleType.SUPER_ADMIN) return true;
         if (n.target === "ALL") return true;
         if (n.target === session.role) return true;
         if (n.target === session.userId) return true;
-        // HR + CEO can see their own role-targeted notices
         return false;
       });
 
@@ -57,12 +53,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession(req);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (!CAN_WRITE.includes(session.role)) {
-      return NextResponse.json({ error: "Forbidden: insufficient permissions" }, { status: 403 });
-    }
+    const guard = requirePermission(session, PERMISSIONS.USER_READ);
+    if (guard) return guard;
 
-    const { tenantId } = session;
+    const { tenantId } = session!;
     const body = await req.json();
     const { title, content, target, priority } = body;
 
@@ -75,20 +69,20 @@ export async function POST(req: NextRequest) {
       content: content.trim(),
       target: target || "ALL",
       priority: priority || "NORMAL",
-      senderName: session.name,
-      senderRole: session.role,
+      senderName: session!.name,
+      senderRole: session!.role,
     });
 
     const notice = await db.$transaction(async (tx) => {
       const n = await tx.activity.create({
-        data: { tenantId, message: noticePayload, type: "NOTICE" },
+        data: { tenantId, message: noticePayload, type: ActivityType.NOTICE },
       });
       await tx.auditLog.create({
         data: {
           tenantId,
-          userId: session.userId,
-          action: "CREATE",
-          resource: "NOTICE",
+          userId: session!.userId,
+          action: AuditAction.CREATE,
+          resource: AuditResource.NOTICES,
           details: `Published notice: "${title}" → Target: ${target || "ALL"}`,
         },
       });
@@ -105,18 +99,16 @@ export async function POST(req: NextRequest) {
 export async function DELETE(req: NextRequest) {
   try {
     const session = await getSession(req);
-    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (!CAN_DELETE.includes(session.role)) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const guard = requirePermission(session, PERMISSIONS.USER_DELETE);
+    if (guard) return guard;
 
-    const { tenantId } = session;
+    const { tenantId } = session!;
     const { searchParams } = new URL(req.url);
     const noticeId = searchParams.get("id");
     if (!noticeId) return NextResponse.json({ error: "Notice ID required" }, { status: 400 });
 
     await db.activity.deleteMany({
-      where: { id: noticeId, tenantId, type: "NOTICE" },
+      where: { id: noticeId, tenantId, type: ActivityType.NOTICE },
     });
 
     return NextResponse.json({ success: true });
