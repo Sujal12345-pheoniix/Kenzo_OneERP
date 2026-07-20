@@ -83,7 +83,9 @@ export default function CompaniesPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               <div className="flex items-center gap-2.5 text-xs text-slate-600 font-semibold">
                 <Globe className="h-4 w-4 text-sky-500 shrink-0" />
-                <span className="truncate">{tenant.domain || "kenzo.oneerp.io"}</span>
+                <a href="https://kenzoinfosystems.com/" target="_blank" rel="noopener noreferrer" className="hover:text-sky-600 hover:underline truncate">
+                  kenzoinfosystems.com
+                </a>
               </div>
               <div className="flex items-center gap-2.5 text-xs text-slate-600 font-semibold">
                 <Mail className="h-4 w-4 text-sky-500 shrink-0" />
@@ -95,7 +97,7 @@ export default function CompaniesPage() {
               </div>
               <div className="flex items-center gap-2.5 text-xs text-slate-600 font-semibold">
                 <Calendar className="h-4 w-4 text-sky-500 shrink-0" />
-                <span>Est. 2020</span>
+                <span>Est. 2026</span>
               </div>
               <div className="flex items-center gap-2.5 text-xs text-slate-600 font-semibold">
                 <Phone className="h-4 w-4 text-sky-500 shrink-0" />
