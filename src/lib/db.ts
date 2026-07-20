@@ -10,6 +10,17 @@ export const rawDb =
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = rawDb;
 
+const SOFT_DELETE_MODELS = [
+  "Tenant", "User", "Employee", "Attendance", "Leave",
+  "Project", "Task", "Lead", "Invoice", "Expense", "Asset"
+];
+
+function hasIsDeleted(modelName: string): boolean {
+  if (!modelName) return false;
+  const normalized = modelName.charAt(0).toUpperCase() + modelName.slice(1);
+  return SOFT_DELETE_MODELS.includes(normalized);
+}
+
 /**
  * Priority 04: Soft Delete Client Extension
  * Intercepts queries to filter out soft-deleted records (isDeleted: false) by default.
@@ -29,13 +40,12 @@ export const db = rawDb.$extends({
         }
         return query(args);
       },
-      async findUnique({ model, args, query }) {
-        if (hasIsDeleted(model)) {
-          // findUnique requires unique input, convert query behavior via findFirst
-          const whereWithFilter = { isDeleted: false, ...args.where };
-          return (rawDb as any)[model].findFirst({ ...args, where: whereWithFilter });
+      async findUnique({ args, query }) {
+        const result = await query(args);
+        if (result && (result as any).isDeleted === true) {
+          return null;
         }
-        return query(args);
+        return result;
       },
       async count({ model, args, query }) {
         if (hasIsDeleted(model)) {
@@ -46,13 +56,5 @@ export const db = rawDb.$extends({
     },
   },
 });
-
-function hasIsDeleted(modelName: string): boolean {
-  const modelsWithSoftDelete = [
-    "Tenant", "User", "Employee", "Attendance", "Leave", 
-    "Project", "Task", "Lead", "Invoice", "Expense", "Asset"
-  ];
-  return modelsWithSoftDelete.includes(modelName);
-}
 
 export default db;
