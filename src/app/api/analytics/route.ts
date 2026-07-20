@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession, requirePermission } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
-import { PERMISSIONS } from "@/lib/rbac";
-import { toNumber } from "@/lib/money";
-import { InvoiceStatus, LeadStatus, ExpenseStatus, EmployeeStatus } from "@prisma/client";
+
+const ALLOWED = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO"];
 
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession(req);
-    const guard = requirePermission(session, PERMISSIONS.AUDIT_READ);
-    if (guard) return guard;
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!ALLOWED.includes(session.role)) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
-    const { tenantId } = session!;
+    const { tenantId } = session;
 
     // --- Employees by dept ---
     const employees = await db.employee.findMany({
@@ -21,10 +22,9 @@ export async function GET(req: NextRequest) {
 
     const deptMap: Record<string, { count: number; salaryTotal: number }> = {};
     employees.forEach((e) => {
-      const sal = toNumber(e.salary);
       if (!deptMap[e.department]) deptMap[e.department] = { count: 0, salaryTotal: 0 };
       deptMap[e.department].count++;
-      deptMap[e.department].salaryTotal += sal;
+      deptMap[e.department].salaryTotal += Number(e.salary);
     });
 
     const departmentData = Object.entries(deptMap).map(([name, v]) => ({
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
 
     // --- Revenue: last 6 calendar months ---
     const allPaidInvoices = await db.invoice.findMany({
-      where: { tenantId, status: InvoiceStatus.PAID },
+      where: { tenantId, status: "PAID" },
       select: { amount: true, issueDate: true },
       orderBy: { issueDate: "asc" },
     });
@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
     allPaidInvoices.forEach((inv) => {
       const d = new Date(inv.issueDate);
       const key = d.toLocaleString("default", { month: "short", year: "2-digit" });
-      if (monthlyRevMap[key] !== undefined) monthlyRevMap[key] += toNumber(inv.amount);
+      if (monthlyRevMap[key] !== undefined) monthlyRevMap[key] += Number(inv.amount);
     });
     const revenueChartData = monthLabels.map((month) => ({
       month,
@@ -77,11 +77,11 @@ export async function GET(req: NextRequest) {
       select: { status: true, value: true },
     });
     const leadFunnel = [
-      { stage: "New", count: leads.filter((l) => l.status === LeadStatus.NEW).length, color: "#6366f1" },
-      { stage: "Contacted", count: leads.filter((l) => l.status === LeadStatus.CONTACTED).length, color: "#0284c7" },
-      { stage: "Qualified", count: leads.filter((l) => l.status === LeadStatus.QUALIFIED).length, color: "#f59e0b" },
-      { stage: "Won", count: leads.filter((l) => l.status === LeadStatus.WON).length, color: "#10b981" },
-      { stage: "Lost", count: leads.filter((l) => l.status === LeadStatus.LOST).length, color: "#ef4444" },
+      { stage: "New", count: leads.filter((l) => l.status === "NEW").length, color: "#6366f1" },
+      { stage: "Contacted", count: leads.filter((l) => l.status === "CONTACTED").length, color: "#0284c7" },
+      { stage: "Qualified", count: leads.filter((l) => l.status === "QUALIFIED").length, color: "#f59e0b" },
+      { stage: "Won", count: leads.filter((l) => l.status === "WON").length, color: "#10b981" },
+      { stage: "Lost", count: leads.filter((l) => l.status === "LOST").length, color: "#ef4444" },
     ];
 
     // --- Expenses by category ---
@@ -90,8 +90,8 @@ export async function GET(req: NextRequest) {
       select: { category: true, amount: true, status: true },
     });
     const expenseCatMap: Record<string, number> = {};
-    expenses.filter((e) => e.status === ExpenseStatus.APPROVED).forEach((e) => {
-      expenseCatMap[e.category] = (expenseCatMap[e.category] || 0) + toNumber(e.amount);
+    expenses.filter((e) => e.status === "APPROVED").forEach((e) => {
+      expenseCatMap[e.category] = (expenseCatMap[e.category] || 0) + Number(e.amount);
     });
     const expenseChartData = Object.entries(expenseCatMap).map(([name, value]) => ({ name, value }));
 
@@ -102,13 +102,13 @@ export async function GET(req: NextRequest) {
     });
     const invStatusMap: Record<string, number> = {};
     invoices.forEach((inv) => {
-      invStatusMap[inv.status] = (invStatusMap[inv.status] || 0) + toNumber(inv.amount);
+      invStatusMap[inv.status] = (invStatusMap[inv.status] || 0) + Number(inv.amount);
     });
     const invoiceStatusData = Object.entries(invStatusMap).map(([name, value]) => ({ name, value }));
 
     // --- Summary ---
-    const paidTotal = allPaidInvoices.reduce((s, i) => s + toNumber(i.amount), 0);
-    const expTotal = expenses.filter((e) => e.status === ExpenseStatus.APPROVED).reduce((s, e) => s + toNumber(e.amount), 0);
+    const paidTotal = allPaidInvoices.reduce((s, i) => s + Number(i.amount), 0);
+    const expTotal = expenses.filter((e) => e.status === "APPROVED").reduce((s, e) => s + Number(e.amount), 0);
 
     return NextResponse.json({
       departmentData,
@@ -119,15 +119,15 @@ export async function GET(req: NextRequest) {
       invoiceStatusData,
       summary: {
         totalEmployees: employees.length,
-        activeEmployees: employees.filter((e) => e.status === EmployeeStatus.ACTIVE).length,
+        activeEmployees: employees.filter((e) => e.status === "ACTIVE").length,
         totalProjects: projects.length,
         totalRevenue: paidTotal,
         totalExpenses: expTotal,
         netProfit: paidTotal - expTotal,
         totalLeads: leads.length,
-        wonLeads: leads.filter((l) => l.status === LeadStatus.WON).length,
+        wonLeads: leads.filter((l) => l.status === "WON").length,
         conversionRate: leads.length > 0
-          ? Math.round((leads.filter((l) => l.status === LeadStatus.WON).length / leads.length) * 100)
+          ? Math.round((leads.filter((l) => l.status === "WON").length / leads.length) * 100)
           : 0,
       },
     });

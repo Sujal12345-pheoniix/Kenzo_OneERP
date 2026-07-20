@@ -1,45 +1,34 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession, requirePermission } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
-import { PERMISSIONS, checkPermission } from "@/lib/rbac";
-import { toNumber } from "@/lib/money";
-import { LeaveStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
     const session = await getSession(req);
-    const guard = requirePermission(session, PERMISSIONS.EMPLOYEE_READ);
-    if (guard) return guard;
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { tenantId } = session!;
+    const { tenantId } = session;
 
-    const [employees, leaves, attendances] = await Promise.all([
-      db.employee.findMany({
-        where: { tenantId },
-        include: { user: true },
-        orderBy: { lastName: "asc" },
-      }),
-      db.leave.findMany({
-        where: { tenantId },
-        include: { employee: true },
-        orderBy: { createdAt: "desc" },
-      }),
-      db.attendance.findMany({
-        where: { tenantId },
-        include: { employee: true },
-        orderBy: { date: "desc" },
-        take: 50,
-      }),
-    ]);
+    const employees = await db.employee.findMany({
+      where: { tenantId },
+      include: { user: true },
+      orderBy: { lastName: "asc" },
+    });
 
-    const canViewSalary = checkPermission(session!.permissions || [], PERMISSIONS.EMPLOYEE_SALARY_VIEW);
+    const leaves = await db.leave.findMany({
+      where: { tenantId },
+      include: { employee: true },
+      orderBy: { createdAt: "desc" },
+    });
 
-    const formattedEmployees = employees.map((emp) => ({
-      ...emp,
-      salary: canViewSalary ? toNumber(emp.salary) : 0,
-    }));
+    const attendances = await db.attendance.findMany({
+      where: { tenantId },
+      include: { employee: true },
+      orderBy: { date: "desc" },
+      take: 50,
+    });
 
-    return NextResponse.json({ employees: formattedEmployees, leaves, attendances });
+    return NextResponse.json({ employees, leaves, attendances });
   } catch (error) {
     console.error("HRMS GET Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
@@ -49,10 +38,9 @@ export async function GET(req: NextRequest) {
 export async function PUT(req: NextRequest) {
   try {
     const session = await getSession(req);
-    const guard = requirePermission(session, PERMISSIONS.LEAVE_APPROVE);
-    if (guard) return guard;
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { tenantId } = session!;
+    const { tenantId } = session;
     const body = await req.json();
     const { leaveId, status } = body;
 
@@ -60,6 +48,7 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Missing leaveId or status" }, { status: 400 });
     }
 
+    // Tenant isolation verification
     const existingLeave = await db.leave.findFirst({
       where: { id: leaveId, tenantId },
     });
@@ -68,11 +57,9 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Leave request not found" }, { status: 404 });
     }
 
-    const targetStatus = (status in LeaveStatus ? status : LeaveStatus.PENDING) as LeaveStatus;
-
     const updatedLeave = await db.leave.update({
       where: { id: leaveId },
-      data: { status: targetStatus },
+      data: { status },
     });
 
     return NextResponse.json(updatedLeave);

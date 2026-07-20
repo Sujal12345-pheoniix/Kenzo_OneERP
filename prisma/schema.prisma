@@ -7,249 +7,15 @@ generator client {
   provider = "prisma-client-js"
 }
 
-// ==========================================
-// PRIORITY 02 — PRISMA ENUM DEFINITIONS
-// ==========================================
-
-enum UserRoleType {
-  SUPER_ADMIN
-  COMPANY_ADMIN
-  CEO
-  CTO
-  HR
-  FINANCE
-  PROJECT_MANAGER
-  DEVELOPER
-  SUPPORT_AGENT
-  EMPLOYEE
-}
-
-enum EmployeeDepartment {
-  ENGINEERING
-  SALES
-  HR
-  FINANCE
-  SUPPORT
-  MANAGEMENT
-  ADMINISTRATION
-  MARKETING
-  OPERATIONS
-}
-
-enum EmployeeStatus {
-  ACTIVE
-  ONBOARDING
-  ON_LEAVE
-  INACTIVE
-  TERMINATED
-}
-
-enum AttendanceStatus {
-  PRESENT
-  LATE
-  ABSENT
-  LEAVE
-}
-
-enum LeaveType {
-  SICK
-  CASUAL
-  ANNUAL
-  UNPAID
-  MATERNITY
-  PATERNITY
-}
-
-enum LeaveStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum ProjectStatus {
-  PLANNING
-  ACTIVE
-  ON_HOLD
-  COMPLETED
-  ARCHIVED
-}
-
-enum TaskStatus {
-  TODO
-  IN_PROGRESS
-  REVIEW
-  DONE
-}
-
-enum TaskPriority {
-  LOW
-  MEDIUM
-  HIGH
-  CRITICAL
-}
-
-enum LeadStatus {
-  NEW
-  CONTACTED
-  QUALIFIED
-  LOST
-  WON
-}
-
-enum InvoiceStatus {
-  DRAFT
-  SENT
-  PAID
-  OVERDUE
-  CANCELLED
-}
-
-enum ExpenseCategory {
-  TRAVEL
-  SOFTWARE
-  OFFICE
-  MARKETING
-  SALARY
-  UTILITIES
-  OTHER
-}
-
-enum ExpenseStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum AssetType {
-  LAPTOP
-  SERVER
-  LICENSE
-  FURNITURE
-  VEHICLE
-  EQUIPMENT
-}
-
-enum AssetStatus {
-  ACTIVE
-  MAINTENANCE
-  RETIRED
-}
-
-enum AuditAction {
-  CREATE
-  READ
-  UPDATE
-  DELETE
-  LOGIN
-  LOGOUT
-  EXPORT
-  APPROVE
-  REJECT
-}
-
-enum AuditResource {
-  TENANT
-  USER
-  ROLE
-  PERMISSION
-  EMPLOYEE
-  ATTENDANCE
-  LEAVE
-  PROJECT
-  TASK
-  LEAD
-  INVOICE
-  EXPENSE
-  ASSET
-  NOTICES
-}
-
-enum ActivityType {
-  PROJECT
-  FINANCE
-  HR
-  LEAD
-  SECURITY
-  SYSTEM
-  NOTICE
-}
-
-// ==========================================
-// PRIORITY 01 — ENTERPRISE RBAC MODELS
-// ==========================================
-
-model Role {
-  id          String       @id @default(uuid())
-  tenantId    String?
-  tenant      Tenant?      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  name        String
-  code        UserRoleType
-  description String?
-  isSystem    Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-
-  userRoles       UserRole[]
-  rolePermissions RolePermission[]
-
-  @@unique([tenantId, name])
-}
-
-model Permission {
-  id          String        @id @default(uuid())
-  code        String        @unique // e.g. "employee:create", "invoice:delete", "employee:salary:view"
-  module      String        // e.g. "HR", "FINANCE", "PROJECTS", "CRM", "ADMIN"
-  resource    AuditResource
-  action      AuditAction
-  description String
-  createdAt   DateTime      @default(now())
-
-  rolePermissions RolePermission[]
-}
-
-model RolePermission {
-  id           String     @id @default(uuid())
-  roleId       String
-  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  permissionId String
-  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
-  createdAt    DateTime   @default(now())
-
-  @@unique([roleId, permissionId])
-}
-
-model UserRole {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roleId    String
-  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-
-  @@unique([userId, roleId])
-}
-
-// ==========================================
-// CORE DOMAIN MODELS (DECIMAL & SOFT DELETE)
-// ==========================================
-
 model Tenant {
   id        String   @id @default(uuid())
   name      String
   domain    String   @unique
-  settings  Json?
-  
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
+  settings  Json?    // For custom branding, themes, etc.
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   users       User[]
-  roles       Role[]
   employees   Employee[]
   attendances Attendance[]
   leaves      Leave[]
@@ -264,48 +30,33 @@ model Tenant {
 }
 
 model User {
-  id           String       @id @default(uuid())
-  email        String       @unique
+  id           String   @id @default(uuid())
+  email        String   @unique
   passwordHash String
   name         String
-  role         UserRoleType @default(EMPLOYEE)
+  role         String   // e.g. "SUPER_ADMIN", "COMPANY_ADMIN", "CEO", "CTO", "HR", "FINANCE", "PROJECT_MANAGER", "DEVELOPER", "SUPPORT_AGENT", "EMPLOYEE"
   tenantId     String
-  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  userRoles  UserRole[]
   employee   Employee?
   auditLogs  AuditLog[]
 }
 
 model Employee {
-  id           String             @id @default(uuid())
+  id           String   @id @default(uuid())
   tenantId     String
-  tenant       Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  userId       String?            @unique
-  user         User?              @relation(fields: [userId], references: [id], onDelete: SetNull)
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  userId       String?  @unique
+  user         User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   firstName    String
   lastName     String
-  department   EmployeeDepartment @default(ENGINEERING)
-  position     String
-  status       EmployeeStatus     @default(ACTIVE)
-  salary       Decimal            @db.Decimal(12, 2) // Priority 03: Precision Money
-  hireDate     DateTime           @default(now())
-
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
+  department   String   // e.g. "ENGINEERING", "SALES", "HR", "FINANCE", "SUPPORT"
+  position     String   // e.g. "Senior Developer", "VP HR", "Account Manager"
+  status       String   // e.g. "ACTIVE", "INACTIVE", "TERMINATED"
+  salary       Float
+  hireDate     DateTime @default(now())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -316,22 +67,15 @@ model Employee {
 }
 
 model Attendance {
-  id         String           @id @default(uuid())
+  id         String    @id @default(uuid())
   tenantId   String
-  tenant     Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   employeeId String
-  employee   Employee         @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  date       DateTime         @db.Date
+  employee   Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  date       DateTime  @db.Date
   checkIn    DateTime?
   checkOut   DateTime?
-  status     AttendanceStatus @default(PRESENT)
-
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
+  status     String    // e.g. "PRESENT", "LATE", "ABSENT", "LEAVE"
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
 
@@ -339,44 +83,30 @@ model Attendance {
 }
 
 model Leave {
-  id         String      @id @default(uuid())
+  id         String   @id @default(uuid())
   tenantId   String
-  tenant     Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   employeeId String
-  employee   Employee    @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   startDate  DateTime
   endDate    DateTime
-  type       LeaveType   @default(CASUAL)
-  status     LeaveStatus @default(PENDING)
+  type       String   // e.g. "SICK", "CASUAL", "ANNUAL", "UNPAID"
+  status     String   // e.g. "PENDING", "APPROVED", "REJECTED"
   reason     String
-
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
 
 model Project {
-  id          String        @id @default(uuid())
+  id          String    @id @default(uuid())
   tenantId    String
-  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name        String
   description String
-  status      ProjectStatus @default(PLANNING)
+  status      String    // e.g. "PLANNING", "ACTIVE", "COMPLETED", "ON_HOLD"
   startDate   DateTime
   endDate     DateTime?
-  budget      Decimal       @db.Decimal(12, 2) // Priority 03: Precision Money
-
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
+  budget      Float
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -384,130 +114,95 @@ model Project {
 }
 
 model Task {
-  id          String       @id @default(uuid())
+  id          String    @id @default(uuid())
   tenantId    String
-  tenant      Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   projectId   String
-  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
   title       String
   description String
-  status      TaskStatus   @default(TODO)
-  priority    TaskPriority @default(MEDIUM)
+  status      String    // e.g. "TODO", "IN_PROGRESS", "REVIEW", "DONE"
+  priority    String    // e.g. "LOW", "MEDIUM", "HIGH", "CRITICAL"
   assigneeId  String?
-  assignee    Employee?    @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+  assignee    Employee? @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
   dueDate     DateTime?
-
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
 
 model Lead {
-  id        String     @id @default(uuid())
+  id        String   @id @default(uuid())
   tenantId  String
-  tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name      String
   company   String
   email     String
-  status    LeadStatus @default(NEW)
-  value     Decimal    @db.Decimal(12, 2) // Priority 03: Precision Money
+  status    String   // e.g. "NEW", "CONTACTED", "QUALIFIED", "LOST", "WON"
+  value     Float
   notes     String?
-
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Invoice {
-  id           String        @id @default(uuid())
+  id           String   @id @default(uuid())
   tenantId     String
-  tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   invoiceNo    String
   customerName String
-  amount       Decimal       @db.Decimal(12, 2) // Priority 03: Precision Money
-  status       InvoiceStatus @default(DRAFT)
-  issueDate    DateTime      @default(now())
+  amount       Float
+  status       String   // e.g. "DRAFT", "SENT", "PAID", "OVERDUE"
+  issueDate    DateTime @default(now())
   dueDate      DateTime
-
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
 
 model Expense {
-  id          String          @id @default(uuid())
+  id          String   @id @default(uuid())
   tenantId    String
-  tenant      Tenant          @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  category    ExpenseCategory @default(OTHER)
-  amount      Decimal         @db.Decimal(12, 2) // Priority 03: Precision Money
-  status      ExpenseStatus   @default(PENDING)
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  category    String   // e.g. "TRAVEL", "SOFTWARE", "OFFICE", "MARKETING"
+  amount      Float
+  status      String   // e.g. "PENDING", "APPROVED", "REJECTED"
   date        DateTime
   description String
   approvedBy  String?
-
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model Asset {
-  id           String      @id @default(uuid())
+  id           String    @id @default(uuid())
   tenantId     String
-  tenant       Tenant      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant       Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   name         String
-  type         AssetType   @default(LAPTOP)
+  type         String    // e.g. "LAPTOP", "SERVER", "LICENSE", "FURNITURE"
   serialNumber String
-  status       AssetStatus @default(ACTIVE)
+  status       String    // e.g. "ACTIVE", "MAINTENANCE", "RETIRED"
   assignedToId String?
-  assignedTo   Employee?   @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
-
-  // Priority 04: Soft Delete
-  isDeleted      Boolean   @default(false)
-  deletedAt      DateTime?
-  deletedBy      String?
-  deletionReason String?
-
+  assignedTo   Employee? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 }
 
 model AuditLog {
-  id        String        @id @default(uuid())
+  id        String   @id @default(uuid())
   tenantId  String
-  tenant    Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   userId    String?
-  user      User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  action    AuditAction   @default(READ)
-  resource  AuditResource @default(TENANT)
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String   // e.g. "CREATE", "UPDATE", "DELETE", "LOGIN", "EXPORT"
+  resource  String   // e.g. "INVOICE", "USER", "PROJECT"
   details   String
-  timestamp DateTime      @default(now())
+  timestamp DateTime @default(now())
 }
 
 model Activity {
-  id        String       @id @default(uuid())
+  id        String   @id @default(uuid())
   tenantId  String
-  tenant    Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   message   String
-  type      ActivityType @default(SYSTEM)
-  timestamp DateTime     @default(now())
+  type      String   // e.g. "PROJECT", "FINANCE", "HR", "LEAD"
+  timestamp DateTime @default(now())
 }

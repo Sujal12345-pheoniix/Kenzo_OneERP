@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
-import { toNumber } from "@/lib/money";
-import { InvoiceStatus, ExpenseStatus, ProjectStatus, TaskStatus } from "@prisma/client";
 
 export async function POST(req: NextRequest) {
   try {
@@ -23,9 +21,10 @@ export async function POST(req: NextRequest) {
       const invoices = await db.invoice.findMany({ where: { tenantId } });
       const expenses = await db.expense.findMany({ where: { tenantId } });
 
-      const paid = invoices.filter(i => i.status === InvoiceStatus.PAID).reduce((sum, inv) => sum + toNumber(inv.amount), 0);
-      const spent = expenses.filter(e => e.status === ExpenseStatus.APPROVED).reduce((sum, exp) => sum + toNumber(exp.amount), 0);
-      const pendingExpenses = expenses.filter(e => e.status === ExpenseStatus.PENDING).reduce((sum, exp) => sum + toNumber(exp.amount), 0);
+      const revenue = invoices.reduce((sum, inv) => sum + Number(inv.amount), 0);
+      const paid = invoices.filter(i => i.status === "PAID").reduce((sum, inv) => sum + Number(inv.amount), 0);
+      const spent = expenses.filter(e => e.status === "APPROVED").reduce((sum, exp) => sum + Number(exp.amount), 0);
+      const pendingExpenses = expenses.filter(e => e.status === "PENDING").reduce((sum, exp) => sum + Number(exp.amount), 0);
 
       const responseText = `Here is your **Kenzo AI Copilot Financial Report** for your company:\n\n` +
         `- **Total Inflow (Paid Invoices)**: $${paid.toLocaleString()}\n` +
@@ -33,16 +32,17 @@ export async function POST(req: NextRequest) {
         `- **Pending Approvals**: $${pendingExpenses.toLocaleString()} in pending expenses.\n` +
         `- **Net Profit (Cash Flow basis)**: $${(paid - spent).toLocaleString()}\n\n` +
         `**AI KPI Analysis**:\n` +
-        `Your operations are currently profitable with a solid net cash flow margin. However, you have $${pendingExpenses.toLocaleString()} in outstanding expenses that require review. Approving them will bring your profit down to $${(paid - spent - pendingExpenses).toLocaleString()}.`;
+        `Your operations are currently profitable with a solid net cash flow margin. However, you have $${pendingExpenses} in outstanding expenses that require review. Approving them will bring your profit down to $${(paid - spent - pendingExpenses).toLocaleString()}.`;
 
       return NextResponse.json({ reply: responseText });
     }
 
     if (lowercasePrompt.includes("proposal") || lowercasePrompt.includes("draft") || lowercasePrompt.includes("email")) {
+      // Find leads to customize draft
       const leads = await db.lead.findMany({ where: { tenantId }, take: 1 });
       const leadName = leads[0]?.name || "Prospect";
       const leadCompany = leads[0]?.company || "Client Corp";
-      const leadValue = leads[0] ? toNumber(leads[0].value) : 50000;
+      const leadValue = Number(leads[0]?.value) || 50000;
 
       const responseText = `Here is an AI-generated draft proposal tailored for your lead **${leadCompany}**:\n\n` +
         `**Subject**: Strategic Consulting Proposal - Kenzo ERP Systems\n\n` +
@@ -63,8 +63,8 @@ export async function POST(req: NextRequest) {
       const projects = await db.project.findMany({ where: { tenantId } });
       const tasks = await db.task.findMany({ where: { tenantId } });
 
-      const activeProjects = projects.filter(p => p.status === ProjectStatus.ACTIVE).length;
-      const completedTasks = tasks.filter(t => t.status === TaskStatus.DONE).length;
+      const activeProjects = projects.filter(p => p.status === "ACTIVE").length;
+      const completedTasks = tasks.filter(t => t.status === "DONE").length;
       const totalTasks = tasks.length;
       const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 

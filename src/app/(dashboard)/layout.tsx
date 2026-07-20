@@ -364,20 +364,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   /* ── Auth + initial notice check ── */
   useEffect(() => {
     fetch("/api/auth/session")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Not authenticated");
+        return res.json();
+      })
       .then((data) => {
-        if (data && data.authenticated && data.user) {
+        if (data.authenticated) {
           setUser(data.user);
-          checkUnread();
+          checkUnread(); // initial check after login
         } else {
           router.push("/");
         }
         setLoading(false);
       })
-      .catch(() => {
-        router.push("/");
-        setLoading(false);
-      });
+      .catch(() => { router.push("/"); });
   }, [router, checkUnread]);
 
   /* ── Poll for new notices every 60 seconds (live indicator) ── */

@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSession, requirePermission } from "@/lib/auth";
+import { getSession } from "@/lib/auth";
 import db from "@/lib/db";
-import { PERMISSIONS, checkPermission } from "@/lib/rbac";
-import { toNumber } from "@/lib/money";
 
 export async function GET(
   req: NextRequest,
@@ -10,10 +8,9 @@ export async function GET(
 ) {
   try {
     const session = await getSession(req);
-    const guard = requirePermission(session, PERMISSIONS.EMPLOYEE_READ);
-    if (guard) return guard;
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { tenantId } = session!;
+    const { tenantId } = session;
     const { id } = await params;
 
     const employee = await db.employee.findFirst({
@@ -38,14 +35,7 @@ export async function GET(
       return NextResponse.json({ error: "Employee not found" }, { status: 404 });
     }
 
-    const canViewSalary = checkPermission(session!.permissions || [], PERMISSIONS.EMPLOYEE_SALARY_VIEW);
-
-    const formattedEmployee = {
-      ...employee,
-      salary: canViewSalary ? toNumber(employee.salary) : 0,
-    };
-
-    return NextResponse.json({ employee: formattedEmployee });
+    return NextResponse.json({ employee });
   } catch (error) {
     console.error("Employee Profile GET Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

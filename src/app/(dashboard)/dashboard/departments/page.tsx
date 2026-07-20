@@ -7,7 +7,6 @@ import {
   Mail, Building2, Calendar, ChevronLeft, ChevronRight, Award, PlusCircle
 } from "lucide-react";
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
-import { usePermission } from "@/hooks/usePermission";
 
 /* ─── Department theming ───────────────────────────────────────── */
 const DEPT_THEME: Record<string, { icon: string; gradient: string; border: string; badge: string; accent: string }> = {
@@ -196,8 +195,7 @@ function EmployeeProfileModal({
     ).values()
   ) as any[];
 
-  const { can, hasRole } = usePermission();
-  const canAssign = can("task:assign") || hasRole("COMPANY_ADMIN") || hasRole("CEO");
+  const canAssign = userRole === "COMPANY_ADMIN" || userRole === "SUPER_ADMIN" || userRole === "CEO";
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true">
@@ -526,7 +524,6 @@ function EmployeeProfileModal({
 
 /* ─── Main Page ─────────────────────────────────────────────────── */
 export default function DepartmentsPage() {
-  const { can, hasRole } = usePermission();
   const [employees, setEmployees] = useState<any[]>([]);
   const [projects, setProjects]   = useState<any[]>([]);
   const [loading, setLoading]     = useState(true);
@@ -546,7 +543,7 @@ export default function DepartmentsPage() {
     });
   }, []);
 
-  const canClickAvatars = can("employee:read") || hasRole("COMPANY_ADMIN") || hasRole("CEO");
+  const canClickAvatars = userRole === "COMPANY_ADMIN" || userRole === "SUPER_ADMIN" || userRole === "CEO";
 
   if (loading) {
     return (

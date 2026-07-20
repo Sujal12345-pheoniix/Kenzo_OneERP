@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import db from "@/lib/db";
 import { comparePassword, signToken } from "@/lib/auth";
-import { getUserPermissions } from "@/lib/rbac";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,15 +24,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
     }
 
-    const permissions = await getUserPermissions(user.id);
-
     const payload = {
       userId: user.id,
       email: user.email,
       role: user.role,
       tenantId: user.tenantId,
       name: user.name,
-      permissions,
     };
 
     const token = signToken(payload);
