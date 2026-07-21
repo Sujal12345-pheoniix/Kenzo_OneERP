@@ -34,8 +34,9 @@ export default function ProjectsDashboard() {
   const [projects, setProjects]   = useState<any[]>([]);
   const [tasks, setTasks]         = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
-  const [userRole, setUserRole]   = useState("");
-  const [loading, setLoading]     = useState(true);
+  const [userRole, setUserRole]       = useState("");
+  const [sessionUser, setSessionUser] = useState<any>(null);
+  const [loading, setLoading]         = useState(true);
 
   // Task creation form
   const [title, setTitle]             = useState("");
@@ -86,7 +87,10 @@ export default function ProjectsDashboard() {
       const tasksData    = await resTasks.json();
       const hrmsData     = await resHrms.json();
 
-      if (sessData.authenticated) setUserRole(sessData.user.role);
+      if (sessData.authenticated) {
+        setUserRole(sessData.user.role);
+        setSessionUser(sessData.user);
+      }
 
       setProjects(Array.isArray(projectsData) ? projectsData : []);
       setTasks(Array.isArray(tasksData) ? tasksData : []);
@@ -108,6 +112,16 @@ export default function ProjectsDashboard() {
   useEffect(() => { loadData(); }, []);
 
   const canManageTasks = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "PROJECT_MANAGER"].includes(userRole);
+
+  const canChangeTaskState = (task: any) => {
+    if (["COMPANY_ADMIN", "SUPER_ADMIN", "CEO"].includes(userRole)) return true;
+    if (!sessionUser || !task.assignee) return false;
+    return (
+      task.assignee.userId === sessionUser.id ||
+      task.assignee.email === sessionUser.email ||
+      task.assignee.user?.email === sessionUser.email
+    );
+  };
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -422,8 +436,11 @@ export default function ProjectsDashboard() {
                               <label className="block text-[9px] font-bold uppercase mb-1" style={{ color: "var(--text-muted)" }}>Move to</label>
                               <select
                                 value={task.status}
+                                disabled={!canChangeTaskState(task)}
                                 onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value)}
-                                className="w-full rounded-lg px-2 py-1 text-xs font-semibold cursor-pointer"
+                                className={`w-full rounded-lg px-2 py-1 text-xs font-semibold ${
+                                  !canChangeTaskState(task) ? "opacity-60 cursor-not-allowed" : "cursor-pointer"
+                                }`}
                                 style={{
                                   background: "var(--bg-input)",
                                   color: "var(--text-primary)",

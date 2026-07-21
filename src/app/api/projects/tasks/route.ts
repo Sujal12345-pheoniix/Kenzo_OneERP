@@ -7,10 +7,39 @@ export async function GET(req: NextRequest) {
     const session = await getSession(req);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { tenantId } = session;
+    const { tenantId, role, userId } = session;
+    const isSuperPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO"].includes(role);
+
+    let taskWhere: any = { tenantId };
+
+    if (!isSuperPrivileged) {
+      // Find employee record for logged-in user
+      const emp = await db.employee.findFirst({
+        where: { userId, tenantId },
+      });
+
+      if (emp) {
+        // Strictly return tasks assigned to THIS employee only
+        taskWhere = {
+          tenantId,
+          assigneeId: emp.id,
+        };
+      } else {
+        // Fallback: match by email if userId wasn't linked yet
+        const userRec = await db.user.findUnique({ where: { id: userId } });
+        if (userRec) {
+          const empByEmail = await db.employee.findFirst({
+            where: { tenantId, user: { email: userRec.email } },
+          });
+          if (empByEmail) {
+            taskWhere = { tenantId, assigneeId: empByEmail.id };
+          }
+        }
+      }
+    }
 
     const tasks = await db.task.findMany({
-      where: { tenantId },
+      where: taskWhere,
       include: { assignee: true, project: true },
       orderBy: { createdAt: "desc" },
     });
@@ -61,7 +90,9 @@ export async function PUT(req: NextRequest) {
     const session = await getSession(req);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { tenantId, role } = session;
+    const { tenantId, role, userId } = session;
+    const isSuperPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO"].includes(role);
+
     const body = await req.json();
     const { id, title, description, status, priority, assigneeId, dueDate, projectId } = body;
 
@@ -71,10 +102,27 @@ export async function PUT(req: NextRequest) {
 
     const existingTask = await db.task.findFirst({
       where: { id, tenantId },
+      include: { assignee: true },
     });
 
     if (!existingTask) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    // Permission Check: Changing state & editing tasks is ONLY allowed for Admin, CEO, or the specific assigned employee
+    if (!isSuperPrivileged) {
+      const emp = await db.employee.findFirst({
+        where: { userId, tenantId },
+      });
+
+      const isTaskAssignee = emp && existingTask.assigneeId === emp.id;
+
+      if (!isTaskAssignee) {
+        return NextResponse.json(
+          { error: "Forbidden: Only Admin, CEO, or the assigned employee can change task state." },
+          { status: 403 }
+        );
+      }
     }
 
     // Prepare update payload
