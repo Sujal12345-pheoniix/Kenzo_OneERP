@@ -3,7 +3,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import {
   PlusCircle, Loader2, CalendarDays, CheckCircle2, Clock, X,
-  ChevronLeft, ChevronRight, UserCheck, AlertCircle, Sparkles, ClipboardList
+  ChevronLeft, ChevronRight, UserCheck, AlertCircle, Sparkles, ClipboardList,
+  Briefcase, FileText, UserPlus, Eye, Filter, Check, ShieldAlert, Award
 } from "lucide-react";
 
 /* ─── Attendance color map ───────────────────────────────────── */
@@ -39,7 +40,6 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
 
   useEffect(() => { fetchAttendance(); }, [fetchAttendance]);
 
-  // Build a map  dateString → status
   const attMap: Record<string, string> = {};
   attendances.forEach((a) => {
     const key = new Date(a.date).toDateString();
@@ -50,10 +50,9 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
   const todayKey   = today.toDateString();
   const markedToday = !!attMap[todayKey];
 
-  // Calendar helpers
   const firstOfMonth = new Date(calMonth.year, calMonth.month, 1);
   const lastOfMonth  = new Date(calMonth.year, calMonth.month + 1, 0);
-  const startPad     = firstOfMonth.getDay(); // 0 = Sun
+  const startPad     = firstOfMonth.getDay();
   const totalDays    = lastOfMonth.getDate();
 
   const prevMonth = () => setCalMonth(({ year, month }) =>
@@ -87,7 +86,6 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
     }
   };
 
-  // Summary stats (current month)
   const monthAttendances = attendances.filter((a) => {
     const d = new Date(a.date);
     return d.getFullYear() === calMonth.year && d.getMonth() === calMonth.month;
@@ -98,86 +96,62 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
 
   const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
   const MONTH_NAMES = [
-    "January","February","March","April","May","June",
-    "July","August","September","October","November","December",
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
   ];
 
   return (
     <div className="glass-panel p-6 flex flex-col gap-5">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <div className="h-9 w-9 rounded-xl bg-sky-100 flex items-center justify-center">
-          <CalendarDays className="h-5 w-5 text-sky-600" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-5 w-5" style={{ color: "var(--accent-primary)" }} />
+          <div>
+            <h3 className="font-extrabold text-base" style={{ color: "var(--text-primary)" }}>My Attendance Log</h3>
+            <p className="text-xs" style={{ color: "var(--text-muted)" }}>Monthly attendance tracker and daily check-in status.</p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-extrabold text-slate-900 text-base">My Attendance Calendar</h3>
-          <p className="text-slate-500 text-xs mt-0.5">
-            {canMark
-              ? "Mark your attendance for today only. Past and future dates are locked."
-              : "Attendance overview — Admin & CEO do not mark daily attendance."}
-          </p>
-        </div>
+        {toast && (
+          <div className={`text-xs font-bold px-3 py-1.5 rounded-full ${toast.ok ? "status-active" : "status-danger"}`}>
+            {toast.msg}
+          </div>
+        )}
       </div>
 
-      {/* Toast */}
-      {toast && (
-        <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-semibold border ${
-          toast.ok
-            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-            : "bg-red-50 text-red-700 border-red-200"
-        }`}>
-          {toast.ok ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
-          {toast.msg}
-        </div>
-      )}
-
-      {/* Mark Today button */}
       {canMark && (
         <button
+          disabled={markedToday || marking}
           onClick={markAttendance}
-          disabled={markedToday || marking || loading}
-          id="mark-attendance-btn"
-          className={`w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer
-            ${markedToday
-              ? "bg-emerald-100 text-emerald-700 border border-emerald-200 cursor-not-allowed"
-              : "bg-sky-600 hover:bg-sky-700 text-white shadow-lg shadow-sky-600/20 hover:-translate-y-0.5 active:translate-y-0"
-            }`}
+          className={`w-full flex items-center justify-center gap-2 py-3 px-5 rounded-xl font-bold text-sm transition-all duration-200 cursor-pointer ${
+            markedToday ? "status-active cursor-not-allowed" : "btn-primary"
+          }`}
         >
           {marking ? (
             <><Loader2 className="h-4 w-4 animate-spin" /> Marking…</>
           ) : markedToday ? (
             <><CheckCircle2 className="h-4 w-4" /> Attendance Marked for Today</>
           ) : (
-            <><Sparkles className="h-4 w-4" /> Mark Present — {today.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</>
+            <><Sparkles className="h-4 w-4 text-white" /> Mark Present — {today.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</>
           )}
         </button>
       )}
 
       {/* Month navigation */}
       <div className="flex items-center justify-between">
-        <button
-          onClick={prevMonth}
-          className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-          aria-label="Previous month"
-        >
-          <ChevronLeft className="h-4 w-4 text-slate-500" />
+        <button onClick={prevMonth} className="h-8 w-8 flex items-center justify-center rounded-lg cursor-pointer" style={{ background: "var(--bg-hover)", color: "var(--text-secondary)" }}>
+          <ChevronLeft className="h-4 w-4" />
         </button>
-        <span className="font-extrabold text-slate-800 text-sm">
+        <span className="font-extrabold text-sm" style={{ color: "var(--text-primary)" }}>
           {MONTH_NAMES[calMonth.month]} {calMonth.year}
         </span>
-        <button
-          onClick={nextMonth}
-          className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-          aria-label="Next month"
-        >
-          <ChevronRight className="h-4 w-4 text-slate-500" />
+        <button onClick={nextMonth} className="h-8 w-8 flex items-center justify-center rounded-lg cursor-pointer" style={{ background: "var(--bg-hover)", color: "var(--text-secondary)" }}>
+          <ChevronRight className="h-4 w-4" />
         </button>
       </div>
 
       {/* Day labels */}
       <div className="grid grid-cols-7 gap-1 text-center">
         {DAY_LABELS.map((d) => (
-          <div key={d} className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider py-1">
+          <div key={d} className="text-xs font-extrabold uppercase py-1" style={{ color: "var(--text-muted)" }}>
             {d}
           </div>
         ))}
@@ -186,29 +160,21 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
       {/* Calendar grid */}
       {loading ? (
         <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 text-sky-500 animate-spin" />
+          <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
         </div>
       ) : (
-        <div className="grid grid-cols-7 gap-1">
-          {/* Padding cells */}
+        <div className="grid grid-cols-7 gap-1.5">
           {Array.from({ length: startPad }).map((_, i) => (
             <div key={`pad-${i}`} />
           ))}
-
-          {/* Day cells */}
-          {Array.from({ length: totalDays }, (_, i) => {
+          {Array.from({ length: totalDays }).map((_, i) => {
             const dayNum  = i + 1;
             const cellDate = new Date(calMonth.year, calMonth.month, dayNum);
             const cellKey  = cellDate.toDateString();
             const status   = attMap[cellKey];
             const isToday  = cellKey === todayKey;
             const isFuture = cellDate > today;
-            const isPast   = cellDate < new Date(today.getFullYear(), today.getMonth(), today.getDate());
-            const isWeekend = cellDate.getDay() === 0 || cellDate.getDay() === 6;
-
-            // Only today is clickable for marking
             const isClickable = canMark && isToday && !markedToday && !marking;
-
             const cfg = status ? ATTEND_STATUS_CONFIG[status] : null;
 
             return (
@@ -216,31 +182,20 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
                 key={dayNum}
                 disabled={!isClickable}
                 onClick={isClickable ? markAttendance : undefined}
-                title={
+                className={`relative aspect-square flex flex-col items-center justify-center rounded-xl text-xs font-bold transition-all ${
                   isToday && !markedToday && canMark
-                    ? "Click to mark attendance"
-                    : status
-                    ? `${cellDate.toLocaleDateString("en-IN", { day: "numeric", month: "short" })} – ${cfg?.label}`
-                    : cellDate.toLocaleDateString("en-IN", { day: "numeric", month: "short" })
-                }
-                className={`relative aspect-square flex flex-col items-center justify-center rounded-xl text-xs font-bold transition-all duration-150
-                  ${isToday && !markedToday && canMark
-                    ? "bg-sky-600 text-white shadow-lg shadow-sky-600/30 hover:scale-105 cursor-pointer ring-2 ring-sky-300 ring-offset-1 animate-pulse"
+                    ? "btn-primary animate-pulse"
                     : isToday && markedToday
-                    ? "bg-emerald-500 text-white shadow-md shadow-emerald-500/20 ring-2 ring-emerald-300 ring-offset-1"
+                    ? "status-active"
                     : status
                     ? `${cfg?.bg} text-white`
                     : isFuture
-                    ? "bg-slate-50 text-slate-300 cursor-not-allowed"
-                    : isWeekend
-                    ? "bg-slate-50/60 text-slate-400"
-                    : "bg-slate-50 text-slate-500 cursor-not-allowed"
-                  }`}
+                    ? "opacity-40 cursor-not-allowed"
+                    : "cursor-default"
+                }`}
+                style={!status && !isToday ? { background: "var(--bg-input)", color: "var(--text-primary)", border: "1px solid var(--border-card)" } : undefined}
               >
                 {dayNum}
-                {isToday && (
-                  <span className="absolute bottom-1 left-1/2 -translate-x-1/2 h-1 w-1 rounded-full bg-white/80" />
-                )}
               </button>
             );
           })}
@@ -248,38 +203,18 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
       )}
 
       {/* Legend + Stats */}
-      <div className="border-t border-slate-100 pt-4">
+      <div className="pt-3" style={{ borderTop: "1px solid var(--border-card)" }}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
           {[
-            { label: "Present", count: presentCount, dot: "bg-emerald-500", text: "text-emerald-600" },
-            { label: "Late",    count: lateCount,    dot: "bg-amber-400",   text: "text-amber-600"  },
-            { label: "Leave",   count: leaveCount,   dot: "bg-violet-400",  text: "text-violet-600" },
-            { label: "Working Days", count: presentCount + lateCount, dot: "bg-sky-500", text: "text-sky-600" },
-          ].map(({ label, count, dot, text }) => (
-            <div key={label} className="bg-slate-50 rounded-xl p-2.5 text-center">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <span className={`h-2 w-2 rounded-full ${dot}`} />
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">{label}</span>
-              </div>
-              <span className={`text-base font-extrabold ${text}`}>{count}</span>
+            { label: "Present", count: presentCount, color: "var(--accent-success)" },
+            { label: "Late",    count: lateCount,    color: "var(--accent-warning)" },
+            { label: "Leave",   count: leaveCount,   color: "var(--accent-violet)"  },
+            { label: "Working Days", count: presentCount + lateCount, color: "var(--accent-primary)" },
+          ].map(({ label, count, color }) => (
+            <div key={label} className="rounded-xl p-2.5 text-center" style={{ background: "var(--bg-input)", border: "1px solid var(--border-card)" }}>
+              <span className="text-[10px] font-extrabold uppercase tracking-wider block" style={{ color: "var(--text-muted)" }}>{label}</span>
+              <span className="text-base font-black" style={{ color }}>{count}</span>
             </div>
-          ))}
-        </div>
-
-        {/* Color legend */}
-        <div className="flex flex-wrap gap-3">
-          {[
-            { color: "bg-sky-600",     label: "Today (Mark Now)" },
-            { color: "bg-emerald-500", label: "Present"          },
-            { color: "bg-amber-400",   label: "Late"             },
-            { color: "bg-red-400",     label: "Absent"           },
-            { color: "bg-violet-400",  label: "On Leave"         },
-            { color: "bg-slate-100",   label: "No Record"        },
-          ].map(({ color, label }) => (
-            <span key={label} className="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
-              <span className={`h-3 w-3 rounded-sm ${color}`} />
-              {label}
-            </span>
           ))}
         </div>
       </div>
@@ -287,273 +222,17 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
   );
 }
 
-/* ─── Employee To-Do List Component ─────────────────────────── */
-interface TodoListProps {
-  employeeId: string;
-}
-
-function EmployeeTodoList({ employeeId }: TodoListProps) {
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  // Form state
-  const [newTitle, setNewTitle] = useState("");
-  const [newProjId, setNewProjId] = useState("");
-  const [newPriority, setNewPriority] = useState("MEDIUM");
-  const [newDueDate, setNewDueDate] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [error, setError] = useState("");
-
-  const fetchTasksAndProjects = useCallback(async () => {
-    try {
-      const [tasksRes, projRes] = await Promise.all([
-        fetch("/api/projects/tasks").then((r) => r.json()),
-        fetch("/api/projects").then((r) => r.json()),
-      ]);
-      // Filter tasks assigned to this employee
-      const myTasks = (tasksRes || []).filter((t: any) => t.assigneeId === employeeId);
-      setTasks(myTasks);
-      setProjects(projRes || []);
-      if (projRes && projRes.length > 0) {
-        setNewProjId(projRes[0].id);
-      }
-    } catch (err) {
-      console.error("Error loading tasks/projects:", err);
-    } finally {
-      setLoading(false);
-    }
-  }, [employeeId]);
-
-  useEffect(() => {
-    fetchTasksAndProjects();
-  }, [fetchTasksAndProjects]);
-
-  const handleToggleStatus = async (taskId: string, currentStatus: string) => {
-    const nextStatus = currentStatus === "DONE" ? "IN_PROGRESS" : "DONE";
-    try {
-      const res = await fetch("/api/projects/tasks", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: taskId, status: nextStatus }),
-      });
-      if (res.ok) {
-        setTasks((prev) =>
-          prev.map((t) => (t.id === taskId ? { ...t, status: nextStatus } : t))
-        );
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleCreateTodo = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newTitle.trim() || !newProjId) {
-      setError("Please fill all required fields.");
-      return;
-    }
-    setAdding(true);
-    setError("");
-    try {
-      const res = await fetch("/api/projects/tasks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: newTitle,
-          description: "Created from daily workspace checklist",
-          status: "TODO",
-          priority: newPriority,
-          projectId: newProjId,
-          assigneeId: employeeId,
-          dueDate: newDueDate || null,
-        }),
-      });
-      if (res.ok) {
-        setNewTitle("");
-        setNewDueDate("");
-        await fetchTasksAndProjects();
-      } else {
-        const data = await res.json();
-        setError(data.error || "Failed to create task");
-      }
-    } catch (err) {
-      setError("Network error");
-    } finally {
-      setAdding(false);
-    }
-  };
-
-  const pending = tasks.filter((t) => t.status !== "DONE");
-  const completed = tasks.filter((t) => t.status === "DONE");
-
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Left panel: Lists */}
-      <div className="lg:col-span-2 flex flex-col gap-6">
-        
-        {/* Pending checklist */}
-        <div className="glass-panel p-6">
-          <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-            <ClipboardList className="h-4.5 w-4.5 text-sky-600" />
-            Active Tasks Checklist ({pending.length})
-          </h3>
-          {loading ? (
-            <div className="flex justify-center py-6">
-              <Loader2 className="h-5 w-5 text-sky-600 animate-spin" />
-            </div>
-          ) : pending.length === 0 ? (
-            <p className="text-xs text-slate-500 italic py-4">No active tasks assigned to you. All clear!</p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {pending.map((t) => (
-                <div key={t.id} className="flex items-center gap-3.5 p-3.5 bg-slate-50 border border-slate-100 rounded-xl hover:shadow-sm transition-all group">
-                  <input
-                    type="checkbox"
-                    checked={false}
-                    onChange={() => handleToggleStatus(t.id, t.status)}
-                    className="h-4.5 w-4.5 rounded border-slate-350 text-sky-600 focus:ring-sky-500 cursor-pointer"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <span className="block text-xs font-bold text-slate-800 truncate">{t.title}</span>
-                    <span className="block text-[10px] text-slate-450 truncate mt-0.5">{t.project?.name || "No Project"}</span>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                      t.priority === "CRITICAL" ? "bg-red-105 text-red-700" :
-                      t.priority === "HIGH" ? "bg-amber-100 text-amber-700" :
-                      t.priority === "MEDIUM" ? "bg-sky-100 text-sky-700" :
-                      "bg-slate-100 text-slate-600"
-                    }`}>
-                      {t.priority}
-                    </span>
-                    {t.dueDate && (
-                      <span className="text-[9px] text-slate-450 font-semibold">
-                        Due: {new Date(t.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Completed checklist */}
-        <div className="glass-panel p-6">
-          <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
-            <CheckCircle2 className="h-4.5 w-4.5 text-emerald-600" />
-            Completed Tasks ({completed.length})
-          </h3>
-          {loading ? (
-            <div className="flex justify-center py-6">
-              <Loader2 className="h-5 w-5 text-sky-655 animate-spin" />
-            </div>
-          ) : completed.length === 0 ? (
-            <p className="text-xs text-slate-500 italic py-4">No completed tasks yet.</p>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {completed.map((t) => (
-                <div key={t.id} className="flex items-center gap-3.5 p-3.5 bg-slate-50/50 border border-slate-100/50 rounded-xl opacity-75 group">
-                  <input
-                    type="checkbox"
-                    checked={true}
-                    onChange={() => handleToggleStatus(t.id, t.status)}
-                    className="h-4.5 w-4.5 rounded border-slate-350 text-sky-600 focus:ring-sky-500 cursor-pointer"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <span className="block text-xs font-bold text-slate-500 line-through truncate">{t.title}</span>
-                    <span className="block text-[10px] text-slate-400 line-through truncate mt-0.5">{t.project?.name || "No Project"}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        
-      </div>
-
-      {/* Right panel: Add Custom Todo */}
-      <div className="glass-panel p-6 flex flex-col gap-4 h-fit">
-        <div>
-          <h3 className="font-extrabold text-slate-900 text-sm">Add Personal Todo</h3>
-          <p className="text-slate-500 text-xs mt-0.5">Quickly track tasks on projects assigned to you.</p>
-        </div>
-        
-        {error && <p className="text-xs text-red-650 font-semibold bg-red-50 p-2 rounded-lg border border-red-150">{error}</p>}
-
-        <form onSubmit={handleCreateTodo} className="flex flex-col gap-4">
-          <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Todo Title</label>
-            <input
-              type="text"
-              required
-              value={newTitle}
-              onChange={(e) => setNewTitle(e.target.value)}
-              placeholder="e.g. Refactor API endpoints..."
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 text-xs transition-all"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Project Context</label>
-            <select
-              value={newProjId}
-              onChange={(e) => setNewProjId(e.target.value)}
-              className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 text-xs transition-all"
-            >
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>{p.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Priority</label>
-              <select
-                value={newPriority}
-                onChange={(e) => setNewPriority(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 text-xs transition-all"
-              >
-                <option value="LOW">LOW</option>
-                <option value="MEDIUM">MEDIUM</option>
-                <option value="HIGH">HIGH</option>
-                <option value="CRITICAL">CRITICAL</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Due Date</label>
-              <input
-                type="date"
-                value={newDueDate}
-                onChange={(e) => setNewDueDate(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 text-xs transition-all"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={adding || !newProjId}
-            className="w-full mt-2 py-3 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md shadow-sky-600/10 hover:-translate-y-0.5"
-          >
-            {adding ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create Todo"}
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-/* ─── Main HRMS Dashboard ────────────────────────────────────── */
+/* ─── Main HRMS & Recruitment Dashboard ───────────────────────── */
 export default function HRMSDashboard() {
-  const [data, setData]       = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [userRole, setUserRole] = useState("");
+  const [data, setData]               = useState<any>(null);
+  const [loading, setLoading]         = useState(true);
+  const [userRole, setUserRole]       = useState("");
   const [sessionUser, setSessionUser] = useState<any>(null);
 
-  // Form states
+  // Tab State
+  const [activeTab, setActiveTab]     = useState<"roster" | "projects" | "applications">("roster");
+
+  // Roster Employee Form
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName]   = useState("");
   const [email, setEmail]         = useState("");
@@ -561,30 +240,72 @@ export default function HRMSDashboard() {
   const [salary, setSalary]       = useState("");
   const [formLoading, setFormLoading] = useState(false);
 
+  // Projects & Task Assignment Form State
+  const [hrProjects, setHrProjects]   = useState<any[]>([]);
+  const [hrTasks, setHrTasks]         = useState<any[]>([]);
+  const [taskTitle, setTaskTitle]     = useState("");
+  const [taskDesc, setTaskDesc]       = useState("");
+  const [taskProjId, setTaskProjId]   = useState("");
+  const [taskAssigneeId, setTaskAssigneeId] = useState("");
+  const [taskPriority, setTaskPriority] = useState("MEDIUM");
+  const [taskDueDate, setTaskDueDate] = useState("");
+  const [taskLoading, setTaskLoading] = useState(false);
+  const [taskMsg, setTaskMsg]         = useState("");
+
+  // Job Applications State
+  const [applications, setApplications] = useState<any[]>([]);
+  const [appLoading, setAppLoading]     = useState(false);
+  const [showAddAppModal, setShowAddAppModal] = useState(false);
+  const [selectedApp, setSelectedApp]   = useState<any>(null);
+
+  // Add App Form State
+  const [candName, setCandName]   = useState("");
+  const [candEmail, setCandEmail] = useState("");
+  const [candPos, setCandPos]     = useState("Senior Full-Stack Engineer");
+  const [candExp, setCandExp]     = useState("4+ Years");
+  const [candSummary, setCandSummary] = useState("");
+  const [candCover, setCandCover] = useState("");
+  const [appSubmitting, setAppSubmitting] = useState(false);
+
   const fetchHRData = async () => {
     try {
-      const res  = await fetch("/api/hrms");
-      const json = await res.json();
-      setData(json);
+      const [resHrms, resProj, resTasks, resApps] = await Promise.all([
+        fetch("/api/hrms"),
+        fetch("/api/projects"),
+        fetch("/api/projects/tasks"),
+        fetch("/api/hrms/applications"),
+      ]);
+      const jsonHrms  = await resHrms.json();
+      const jsonProj  = await resProj.json();
+      const jsonTasks = await resTasks.json();
+      const jsonApps  = await resApps.json();
+
+      setData(jsonHrms);
+      const projList = Array.isArray(jsonProj) ? jsonProj : (jsonProj.projects || []);
+      setHrProjects(projList);
+      setHrTasks(Array.isArray(jsonTasks) ? jsonTasks : []);
+      setApplications(jsonApps.applications || []);
+
+      if (projList.length > 0) setTaskProjId(projList[0].id);
+      if (jsonHrms.employees?.length > 0) setTaskAssigneeId(jsonHrms.employees[0].id);
+
     } catch (err) {
-      console.error(err);
+      console.error("Fetch HR Data error:", err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    Promise.all([
-      fetch("/api/auth/session").then((r) => r.json()),
-      fetch("/api/hrms").then((r) => r.json()),
-    ]).then(([sess, hrms]) => {
-      if (sess.authenticated) {
-        setUserRole(sess.user.role);
-        setSessionUser(sess.user);
-      }
-      setData(hrms);
-      setLoading(false);
-    });
+    fetch("/api/auth/session")
+      .then((r) => r.json())
+      .then((sess) => {
+        if (sess.authenticated) {
+          setUserRole(sess.user.role);
+          setSessionUser(sess.user);
+        }
+      });
+    fetchHRData();
   }, []);
 
   const handleCreateEmployee = async (e: React.FormEvent) => {
@@ -607,88 +328,206 @@ export default function HRMSDashboard() {
     }
   };
 
+  const handleAssignTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setTaskLoading(true); setTaskMsg("");
+    try {
+      const res = await fetch("/api/projects/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: taskTitle,
+          description: taskDesc,
+          status: "TODO",
+          priority: taskPriority,
+          projectId: taskProjId,
+          assigneeId: taskAssigneeId || null,
+          dueDate: taskDueDate || null,
+        }),
+      });
+      if (res.ok) {
+        setTaskTitle(""); setTaskDesc(""); setTaskDueDate("");
+        setTaskMsg("Task successfully assigned & published!");
+        await fetchHRData();
+        setTimeout(() => setTaskMsg(""), 3000);
+      }
+    } catch (err) {
+      console.error("Assign task error:", err);
+    } finally {
+      setTaskLoading(false);
+    }
+  };
+
+  const handleAddApplication = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAppSubmitting(true);
+    try {
+      const res = await fetch("/api/hrms/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          candidateName: candName,
+          email: candEmail,
+          position: candPos,
+          experience: candExp,
+          resumeSummary: candSummary,
+          coverNote: candCover,
+        }),
+      });
+      if (res.ok) {
+        setCandName(""); setCandEmail(""); setCandSummary(""); setCandCover("");
+        setShowAddAppModal(false);
+        await fetchHRData();
+      }
+    } catch (err) {
+      console.error("Add application error:", err);
+    } finally {
+      setAppSubmitting(false);
+    }
+  };
+
+  const handleUpdateAppStatus = async (appId: string, newStatus: string) => {
+    try {
+      const res = await fetch("/api/hrms/applications", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: appId, status: newStatus }),
+      });
+      if (res.ok) {
+        await fetchHRData();
+        if (selectedApp && selectedApp.id === appId) {
+          setSelectedApp((prev: any) => ({ ...prev, status: newStatus }));
+        }
+      }
+    } catch (err) {
+      console.error("Update status error:", err);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 text-sky-600 animate-spin" />
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin mb-3 text-indigo-500" />
+        <span className="text-sm font-semibold text-slate-400">Loading HR &amp; Recruitment Operations...</span>
       </div>
     );
   }
 
-  const { employees, leaves } = data;
+  const employees = data?.employees || [];
+  const leaves    = data?.leaves || [];
   const payrollTotal = employees.reduce((sum: number, e: any) => sum + e.salary, 0);
 
   const isPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR"].includes(userRole);
   const showCalendar = !["COMPANY_ADMIN", "SUPER_ADMIN", "CEO"].includes(userRole) && userRole !== "";
 
-  const currentEmployee = employees.find((emp: any) => emp.userId === sessionUser?.id);
+  // Recruitment Stats
+  const totalApps    = applications.length;
+  const shortlisted  = applications.filter((a) => a.status === "SHORTLISTED").length;
+  const interviews   = applications.filter((a) => a.status === "INTERVIEW_SCHEDULED").length;
+  const hired        = applications.filter((a) => a.status === "HIRED").length;
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto text-slate-800">
-      <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-          {isPrivileged ? "HRMS Operations" : "My Personal Workspace"}
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">
-          {isPrivileged 
-            ? "Staff directory, leave tracker, payroll & attendance management."
-            : "Keep track of your daily attendance and manage your task checklist."}
-        </p>
+    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto pb-12 animate-fade-in-up" style={{ color: "var(--text-primary)" }}>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4" style={{ borderBottom: "1px solid var(--border-base)" }}>
+        <div>
+          <div className="section-eyebrow"><UserCheck className="h-4 w-4" /> Human Resource Capital</div>
+          <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
+            {isPrivileged ? "HR & Talent Operations" : "My Personal Workspace"}
+          </h1>
+          <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
+            {isPrivileged
+              ? "Staff directory, payroll, project assignments, and recruitment applicant portal."
+              : "Keep track of your daily attendance and manage your task checklist."}
+          </p>
+        </div>
+
+        {isPrivileged && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveTab("roster")}
+              className={`chart-pill ${activeTab === "roster" ? "chart-pill-active" : ""}`}
+            >
+              Overview &amp; Roster
+            </button>
+            <button
+              onClick={() => setActiveTab("projects")}
+              className={`chart-pill ${activeTab === "projects" ? "chart-pill-active" : ""}`}
+            >
+              HR Projects &amp; Tasks
+            </button>
+            <button
+              onClick={() => setActiveTab("applications")}
+              className={`chart-pill ${activeTab === "applications" ? "chart-pill-active" : ""}`}
+            >
+              Job Applications ({applications.length})
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Stats row — only for privileged roles */}
+      {/* KPI Stats Bar */}
       {isPrivileged && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="glass-panel p-6">
-            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Total Employees</span>
-            <div className="text-2xl font-extrabold text-slate-900 mb-1">{employees.length}</div>
-            <span className="text-slate-500 text-xs font-medium">Active directory personnel</span>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+          <div className="stat-card">
+            <span className="form-label mb-1">Total Employees</span>
+            <div className="text-2xl font-black mb-1" style={{ color: "var(--text-primary)" }}>{employees.length}</div>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Active directory staff</span>
           </div>
-          <div className="glass-panel p-6">
-            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Annual Payroll Commits</span>
-            <div className="text-2xl font-extrabold text-slate-900 mb-1">Rs. {payrollTotal.toLocaleString()}</div>
-            <span className="text-slate-500 text-xs font-medium">Base package expenditure</span>
+          <div className="stat-card">
+            <span className="form-label mb-1">Annual Payroll</span>
+            <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-success)" }}>Rs. {payrollTotal.toLocaleString()}</div>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Base package commitment</span>
           </div>
-          <div className="glass-panel p-6">
-            <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Pending Leaves</span>
-            <div className="text-2xl font-extrabold text-amber-600 mb-1">{leaves.filter((l: any) => l.status === "PENDING").length}</div>
-            <span className="text-slate-500 text-xs font-medium">Awaiting administrator action</span>
+          <div className="stat-card">
+            <span className="form-label mb-1">Pending Leaves</span>
+            <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-warning)" }}>
+              {leaves.filter((l: any) => l.status === "PENDING").length}
+            </div>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Awaiting action</span>
+          </div>
+          <div className="stat-card">
+            <span className="form-label mb-1">Job Applications</span>
+            <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-secondary)" }}>{totalApps}</div>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Active candidate pool</span>
           </div>
         </div>
       )}
 
-      {/* Attendance Calendar — only for non-admin/non-CEO roles */}
       {showCalendar && <AttendanceCalendar userRole={userRole} />}
 
-      {/* Roster views for HR/Admin/CEO, TodoList for regular employees */}
-      {isPrivileged ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left lists */}
-          <div className="lg:col-span-2 flex flex-col gap-8">
+      {/* TAB 1: OVERVIEW & ROSTER */}
+      {activeTab === "roster" && isPrivileged && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            
             {/* Employee roster */}
             <div className="glass-panel p-6">
-              <h3 className="text-base font-bold text-slate-900 mb-4">Organizational Roster</h3>
+              <h3 className="text-base font-black mb-4" style={{ color: "var(--text-primary)" }}>Organizational Roster</h3>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-600">
+                <table className="premium-table">
                   <thead>
-                    <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                      <th className="pb-3">Name</th>
-                      <th className="pb-3">Role</th>
-                      <th className="pb-3">Email Address</th>
-                      <th className="pb-3 text-right">Base Salary</th>
+                    <tr>
+                      <th>Name &amp; Position</th>
+                      <th>Role</th>
+                      <th>Email Address</th>
+                      <th className="text-right">Base Salary</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
+                  <tbody>
                     {employees.map((emp: any) => (
-                      <tr key={emp.id} className="hover:bg-slate-50">
-                        <td className="py-3.5 font-semibold text-slate-900">{emp.firstName} {emp.lastName}</td>
-                        <td className="py-3.5">
-                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                      <tr key={emp.id}>
+                        <td>
+                          <span className="font-bold block">{emp.firstName} {emp.lastName}</span>
+                          <span className="text-xs font-semibold" style={{ color: "var(--accent-primary)" }}>{emp.position}</span>
+                        </td>
+                        <td>
+                          <span className="badge status-info">
                             {emp.user?.role || emp.role}
                           </span>
                         </td>
-                        <td className="py-3.5 text-slate-500">{emp.user?.email || emp.email}</td>
-                        <td className="py-3.5 text-right font-semibold text-slate-900">Rs. {emp.salary.toLocaleString()}</td>
+                        <td style={{ color: "var(--text-muted)" }}>{emp.user?.email || emp.email}</td>
+                        <td className="text-right font-black" style={{ color: "var(--accent-success)" }}>Rs. {emp.salary.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -698,79 +537,66 @@ export default function HRMSDashboard() {
 
             {/* Leave list */}
             <div className="glass-panel p-6">
-              <h3 className="text-base font-bold text-slate-900 mb-4">Leave Administration</h3>
+              <h3 className="text-base font-black mb-4" style={{ color: "var(--text-primary)" }}>Leave Administration</h3>
               <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm text-slate-600">
+                <table className="premium-table">
                   <thead>
-                    <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                      <th className="pb-3">Team Member</th>
-                      <th className="pb-3">Type</th>
-                      <th className="pb-3">Period</th>
-                      <th className="pb-3 text-center">Status</th>
+                    <tr>
+                      <th>Team Member</th>
+                      <th>Type</th>
+                      <th>Period</th>
+                      <th className="text-center">Status</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {leaves.map((leave: any) => (
-                      <tr key={leave.id} className="hover:bg-slate-50">
-                        <td className="py-3.5 font-semibold text-slate-900">{leave.employee.firstName} {leave.employee.lastName}</td>
-                        <td className="py-3.5 text-slate-500">{leave.type}</td>
-                        <td className="py-3.5 text-slate-500">
-                          {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
-                        </td>
-                        <td className="py-3.5 text-center">
-                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                            leave.status === "APPROVED"
-                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                              : leave.status === "REJECTED"
-                              ? "bg-red-500/10 text-red-650 border-red-500/20"
-                              : "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                          }`}>
-                            {leave.status}
-                          </span>
-                        </td>
+                  <tbody>
+                    {leaves.length === 0 ? (
+                      <tr>
+                        <td colSpan={4} className="text-center py-6" style={{ color: "var(--text-muted)" }}>No leave requests pending.</td>
                       </tr>
-                    ))}
+                    ) : (
+                      leaves.map((leave: any) => (
+                        <tr key={leave.id}>
+                          <td className="font-bold">{leave.employee?.firstName} {leave.employee?.lastName}</td>
+                          <td><span className="badge status-info">{leave.type}</span></td>
+                          <td style={{ color: "var(--text-muted)" }}>
+                            {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
+                          </td>
+                          <td className="text-center">
+                            <span className={`badge ${
+                              leave.status === "APPROVED" ? "status-active" : leave.status === "REJECTED" ? "status-danger" : "status-pending"
+                            }`}>
+                              {leave.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
                   </tbody>
                 </table>
               </div>
             </div>
           </div>
 
-          {/* Right side form */}
-          <div>
-            <div className="glass-panel p-6">
-              <h3 className="text-base font-bold text-slate-900 mb-4">Add Roster Member</h3>
+          {/* Add Roster Member */}
+          <div className="lg:col-span-1">
+            <div className="glass-panel p-6 sticky top-6">
+              <h3 className="text-base font-black mb-4" style={{ color: "var(--text-primary)" }}>Add Roster Member</h3>
               <form onSubmit={handleCreateEmployee} className="flex flex-col gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">First Name</label>
-                  <input
-                    type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)}
-                    placeholder="e.g. Sujal"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 text-sm transition-all"
-                  />
+                  <label className="form-label">First Name</label>
+                  <input type="text" required value={firstName} onChange={(e) => setFirstName(e.target.value)} placeholder="e.g. Sujal" className="form-input" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Last Name</label>
-                  <input
-                    type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)}
-                    placeholder="e.g. Kumar"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 text-sm transition-all"
-                  />
+                  <label className="form-label">Last Name</label>
+                  <input type="text" required value={lastName} onChange={(e) => setLastName(e.target.value)} placeholder="e.g. Kumar" className="form-input" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Email Address</label>
-                  <input
-                    type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                    placeholder="e.g. dev@kenzo.com"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 text-sm transition-all"
-                  />
+                  <label className="form-label">Email Address</label>
+                  <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="e.g. dev@kenzo.com" className="form-input" />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Role Group</label>
-                  <select
-                    value={role} onChange={(e) => setRole(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 text-sm transition-all"
-                  >
+                  <label className="form-label">Role Group</label>
+                  <select value={role} onChange={(e) => setRole(e.target.value)} className="form-select font-semibold">
                     <option value="DEVELOPER">Developer</option>
                     <option value="PROJECT_MANAGER">Project Manager</option>
                     <option value="HR_MANAGER">HR Manager</option>
@@ -779,25 +605,334 @@ export default function HRMSDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Annual Salary (Rs.)</label>
-                  <input
-                    type="number" required value={salary} onChange={(e) => setSalary(e.target.value)}
-                    placeholder="e.g. 120000"
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 text-sm transition-all"
-                  />
+                  <label className="form-label">Annual Salary (Rs.)</label>
+                  <input type="number" required value={salary} onChange={(e) => setSalary(e.target.value)} placeholder="e.g. 120000" className="form-input" />
                 </div>
-                <button
-                  type="submit" disabled={formLoading}
-                  className="w-full mt-2 py-3 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md shadow-sky-600/10 hover:-translate-y-0.5"
-                >
+                <button type="submit" disabled={formLoading} className="btn-primary w-full mt-2" style={{ padding: "0.85rem" }}>
                   {formLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><PlusCircle className="h-4 w-4" /> Save Roster Record</>}
                 </button>
               </form>
             </div>
           </div>
         </div>
-      ) : (
-        currentEmployee && <EmployeeTodoList employeeId={currentEmployee.id} />
+      )}
+
+      {/* TAB 2: HR PROJECTS & TASK ASSIGNMENTS */}
+      {activeTab === "projects" && isPrivileged && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up">
+          
+          {/* Active Tasks Board */}
+          <div className="lg:col-span-2 flex flex-col gap-6">
+            <div className="glass-panel p-6">
+              <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
+                <div>
+                  <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>HR &amp; Corporate Task Directory</h3>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>Assigned work lanes across all operational projects</p>
+                </div>
+                <span className="badge status-info">{hrTasks.length} Total Tasks</span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="premium-table">
+                  <thead>
+                    <tr>
+                      <th>Task Title</th>
+                      <th>Project Context</th>
+                      <th>Assigned To</th>
+                      <th>Priority</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {hrTasks.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="text-center py-8" style={{ color: "var(--text-muted)" }}>No tasks published yet.</td>
+                      </tr>
+                    ) : (
+                      hrTasks.map((t: any) => (
+                        <tr key={t.id}>
+                          <td className="font-bold">{t.title}</td>
+                          <td className="font-semibold" style={{ color: "var(--accent-primary)" }}>{t.project?.name || "Corporate"}</td>
+                          <td>
+                            {t.assignee ? (
+                              <span className="font-bold text-xs" style={{ color: "var(--text-primary)" }}>
+                                {t.assignee.firstName} {t.assignee.lastName}
+                              </span>
+                            ) : (
+                              <span className="text-xs italic" style={{ color: "var(--text-muted)" }}>Unassigned</span>
+                            )}
+                          </td>
+                          <td><span className="badge status-warning">{t.priority}</span></td>
+                          <td>
+                            <span className={`badge ${t.status === "DONE" ? "status-active" : "status-pending"}`}>
+                              {t.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Assign Task Sidebar */}
+          <div className="lg:col-span-1">
+            <div className="glass-panel p-6 sticky top-6">
+              <div className="flex items-center gap-2 mb-4">
+                <ClipboardList className="h-5 w-5" style={{ color: "var(--accent-primary)" }} />
+                <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Assign Task to Staff</h3>
+              </div>
+
+              {taskMsg && <div className="alert-success mb-4">{taskMsg}</div>}
+
+              <form onSubmit={handleAssignTask} className="flex flex-col gap-4">
+                <div>
+                  <label className="form-label">Task Title</label>
+                  <input type="text" required value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} placeholder="e.g. Conduct Q3 Staff Performance Review" className="form-input" />
+                </div>
+
+                <div>
+                  <label className="form-label">Description</label>
+                  <textarea value={taskDesc} onChange={(e) => setTaskDesc(e.target.value)} placeholder="Task instructions & scope..." rows={2} className="form-input" style={{ resize: "none" }} />
+                </div>
+
+                <div>
+                  <label className="form-label">Select Project</label>
+                  <select value={taskProjId} onChange={(e) => setTaskProjId(e.target.value)} className="form-select font-semibold">
+                    {hrProjects.length === 0 ? (
+                      <option value="">General Corporate Operations</option>
+                    ) : (
+                      hrProjects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)
+                    )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="form-label">Assignee</label>
+                  <select value={taskAssigneeId} onChange={(e) => setTaskAssigneeId(e.target.value)} className="form-select font-semibold">
+                    {employees.map((e: any) => (
+                      <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.position})</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="form-label">Priority</label>
+                  <select value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)} className="form-select font-semibold">
+                    <option value="NEW">NEW</option>
+                    <option value="UPDATING">UPDATING</option>
+                    <option value="URGENT">URGENT</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="form-label">Due Date</label>
+                  <input type="date" value={taskDueDate} onChange={(e) => setTaskDueDate(e.target.value)} className="form-input" />
+                </div>
+
+                <button type="submit" disabled={taskLoading} className="btn-primary w-full mt-2" style={{ padding: "0.85rem" }}>
+                  {taskLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Publish &amp; Confirm Assignment"}
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: JOB APPLICATIONS & RECRUITMENT PORTAL */}
+      {activeTab === "applications" && isPrivileged && (
+        <div className="flex flex-col gap-6 animate-fade-in-up">
+          
+          {/* Recruitment Header & Add App Button */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h3 className="text-xl font-black" style={{ color: "var(--text-primary)" }}>Recruitment &amp; Candidate Portal</h3>
+              <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>Review resumes, schedule interviews, and manage candidate shortlist pipeline.</p>
+            </div>
+            <button onClick={() => setShowAddAppModal(true)} className="btn-primary">
+              <UserPlus className="h-4 w-4" /> Add Candidate Application
+            </button>
+          </div>
+
+          {/* Applications Table */}
+          <div className="glass-panel p-6">
+            <div className="overflow-x-auto">
+              <table className="premium-table">
+                <thead>
+                  <tr>
+                    <th>Candidate Name</th>
+                    <th>Position Applied</th>
+                    <th>Experience</th>
+                    <th>Applied Date</th>
+                    <th>Status</th>
+                    <th className="text-center">Actions &amp; Resume</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {applications.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="text-center py-8" style={{ color: "var(--text-muted)" }}>No candidate applications recorded.</td>
+                    </tr>
+                  ) : (
+                    applications.map((app: any) => (
+                      <tr key={app.id}>
+                        <td>
+                          <span className="font-bold block" style={{ color: "var(--text-primary)" }}>{app.candidateName}</span>
+                          <span className="text-xs" style={{ color: "var(--text-muted)" }}>{app.email}</span>
+                        </td>
+                        <td className="font-semibold" style={{ color: "var(--accent-primary)" }}>{app.position}</td>
+                        <td style={{ color: "var(--text-secondary)" }}>{app.experience}</td>
+                        <td style={{ color: "var(--text-muted)" }}>{app.appliedDate}</td>
+                        <td>
+                          <span className={`badge ${
+                            app.status === "HIRED" ? "status-active" : app.status === "INTERVIEW_SCHEDULED" ? "status-info" : app.status === "SHORTLISTED" ? "status-warning" : app.status === "REJECTED" ? "status-danger" : "status-muted"
+                          }`}>
+                            {app.status}
+                          </span>
+                        </td>
+                        <td>
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => setSelectedApp(app)}
+                              className="btn-secondary py-1.5 px-3 text-xs"
+                            >
+                              <Eye className="h-3.5 w-3.5" /> Review Resume
+                            </button>
+                            <select
+                              value={app.status}
+                              onChange={(e) => handleUpdateAppStatus(app.id, e.target.value)}
+                              className="rounded-lg px-2 py-1 text-xs font-semibold"
+                              style={{ background: "var(--bg-input)", color: "var(--text-primary)", border: "1px solid var(--border-card)" }}
+                            >
+                              <option value="NEW">NEW</option>
+                              <option value="SHORTLISTED">SHORTLISTED</option>
+                              <option value="INTERVIEW_SCHEDULED">INTERVIEW</option>
+                              <option value="HIRED">HIRED</option>
+                              <option value="REJECTED">REJECTED</option>
+                            </select>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Candidate Resume Review Modal */}
+      {selectedApp && (
+        <div className="modal-overlay flex items-center justify-center p-4">
+          <div className="modal-content p-7 w-full max-w-xl">
+            <div className="flex justify-between items-start mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
+              <div>
+                <span className="section-eyebrow"><Award className="h-4 w-4" /> Candidate Resume Review</span>
+                <h2 className="text-xl font-black" style={{ color: "var(--text-primary)" }}>{selectedApp.candidateName}</h2>
+                <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)" }}>{selectedApp.position} • {selectedApp.email}</p>
+              </div>
+              <button onClick={() => setSelectedApp(null)} className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: "var(--bg-hover)", color: "var(--text-muted)" }}>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-4 mb-6">
+              <div className="p-4 rounded-xl" style={{ background: "var(--bg-card-alt)", border: "1px solid var(--border-card)" }}>
+                <span className="form-label mb-1">Executive Summary</span>
+                <p className="text-sm leading-relaxed" style={{ color: "var(--text-primary)" }}>{selectedApp.resumeSummary}</p>
+              </div>
+
+              <div>
+                <span className="form-label mb-1.5">Key Skills &amp; Qualifications</span>
+                <div className="flex flex-wrap gap-2">
+                  {(selectedApp.skills || ["React", "B2B Sales", "Management"]).map((s: string) => (
+                    <span key={s} className="badge status-info">{s}</span>
+                  ))}
+                </div>
+              </div>
+
+              {selectedApp.coverNote && (
+                <div className="p-4 rounded-xl" style={{ background: "var(--bg-input)", border: "1px solid var(--border-card)" }}>
+                  <span className="form-label mb-1">Cover Note / Candidate Pitch</span>
+                  <p className="text-xs italic leading-relaxed" style={{ color: "var(--text-muted)" }}>"{selectedApp.coverNote}"</p>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-3 pt-3" style={{ borderTop: "1px solid var(--border-card)" }}>
+              <span className="form-label mb-0">Update Candidate Decision Status</span>
+              <div className="grid grid-cols-4 gap-2">
+                <button onClick={() => handleUpdateAppStatus(selectedApp.id, "SHORTLISTED")} className="btn-secondary text-xs py-2">
+                  Shortlist
+                </button>
+                <button onClick={() => handleUpdateAppStatus(selectedApp.id, "INTERVIEW_SCHEDULED")} className="btn-secondary text-xs py-2">
+                  Interview
+                </button>
+                <button onClick={() => handleUpdateAppStatus(selectedApp.id, "HIRED")} className="btn-primary text-xs py-2">
+                  Hire Candidate
+                </button>
+                <button onClick={() => handleUpdateAppStatus(selectedApp.id, "REJECTED")} className="btn-secondary text-xs py-2" style={{ color: "var(--accent-danger)" }}>
+                  Reject
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Job Application Modal */}
+      {showAddAppModal && (
+        <div className="modal-overlay flex items-center justify-center p-4">
+          <div className="modal-content p-6 w-full max-w-md">
+            <div className="flex justify-between items-start mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
+              <div>
+                <h3 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>Add Job Application</h3>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Submit new candidate resume into HR pipeline</p>
+              </div>
+              <button onClick={() => setShowAddAppModal(false)} className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: "var(--bg-hover)", color: "var(--text-muted)" }}>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddApplication} className="flex flex-col gap-4">
+              <div>
+                <label className="form-label">Candidate Full Name</label>
+                <input type="text" required value={candName} onChange={(e) => setCandName(e.target.value)} placeholder="e.g. Rohan Verma" className="form-input" />
+              </div>
+              <div>
+                <label className="form-label">Email Address</label>
+                <input type="email" required value={candEmail} onChange={(e) => setCandEmail(e.target.value)} placeholder="e.g. rohan@example.com" className="form-input" />
+              </div>
+              <div>
+                <label className="form-label">Position Applied</label>
+                <input type="text" required value={candPos} onChange={(e) => setCandPos(e.target.value)} placeholder="e.g. Senior Software Engineer" className="form-input" />
+              </div>
+              <div>
+                <label className="form-label">Total Experience</label>
+                <input type="text" required value={candExp} onChange={(e) => setCandExp(e.target.value)} placeholder="e.g. 5+ Years" className="form-input" />
+              </div>
+              <div>
+                <label className="form-label">Resume Executive Summary</label>
+                <textarea required rows={3} value={candSummary} onChange={(e) => setCandSummary(e.target.value)} placeholder="Brief summary of candidate's technical skills & background..." className="form-input" style={{ resize: "none" }} />
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowAddAppModal(false)} className="btn-secondary flex-1">Cancel</button>
+                <button type="submit" disabled={appSubmitting} className="btn-primary flex-1">
+                  {appSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Application"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

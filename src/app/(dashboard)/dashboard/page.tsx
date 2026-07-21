@@ -93,14 +93,32 @@ export default function ExecutiveHub() {
         const dashJson = await dashRes.json();
         setData(dashJson);
 
-        // 3. Fetch Assigned Tasks for Notification Popup
+        // 3. Fetch Assigned Tasks for Notification Popup — STRICTLY FILTERED TO LOGGED IN USER
         try {
           const tasksRes = await fetch("/api/projects/tasks");
           if (tasksRes.ok) {
             const tasksList = await tasksRes.json();
             if (Array.isArray(tasksList) && tasksList.length > 0) {
-              setLatestTask(tasksList[0]);
-              setShowTaskPopup(true);
+              const currentUserId = sessionJson.user.id;
+              const currentUserEmail = sessionJson.user.email;
+              const currentUserName = (sessionJson.user.name || "").trim().toLowerCase();
+
+              const myAssignedTask = tasksList.find((t: any) => {
+                if (!t || t.status === "DONE" || !t.assignee) return false;
+                const matchUserId = t.assignee.userId === currentUserId;
+                const matchEmail = t.assignee.email === currentUserEmail || t.assignee.user?.email === currentUserEmail;
+                const empFullName = `${t.assignee.firstName || ''} ${t.assignee.lastName || ''}`.trim().toLowerCase();
+                const matchName = empFullName === currentUserName;
+                return matchUserId || matchEmail || matchName;
+              });
+
+              if (myAssignedTask) {
+                setLatestTask(myAssignedTask);
+                setShowTaskPopup(true);
+              } else {
+                setLatestTask(null);
+                setShowTaskPopup(false);
+              }
             }
           }
         } catch (e) {
