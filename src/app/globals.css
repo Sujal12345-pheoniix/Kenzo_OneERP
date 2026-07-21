@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /* =========================================================
-   KENZO ONE ERP — PREMIUM DESIGN SYSTEM v2.0
+   KENZO ONE ERP — PREMIUM DESIGN SYSTEM v3.0 (THEME ENGINE)
    ========================================================= */
 
 /* ── Google Fonts ── */
@@ -57,6 +57,7 @@
 
 /* ── Dark Mode Variables ── */
 [data-theme="dark"] {
+  color-scheme: dark;
   --bg-base:        #060b17;
   --bg-elevated:    #0c1425;
   --bg-card:        #0f1929;
@@ -65,8 +66,8 @@
   --bg-input:       #131f35;
   --bg-hover:       rgba(99, 102, 241, 0.1);
 
-  --text-primary:   #f1f5f9;
-  --text-secondary: #cbd5e1;
+  --text-primary:   #f8fafc;
+  --text-secondary: #e2e8f0;
   --text-muted:     #94a3b8;
   --text-inverse:   #0f172a;
 
@@ -136,70 +137,182 @@ body {
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Exclude transforms from transition (avoids overriding hover animations) */
 button, a, [role="button"] {
   transition-property: background-color, border-color, color, fill, stroke, box-shadow, transform, opacity;
 }
 
 /* =========================================================
-   GLOBAL SELECT / OPTION OVERRIDE — Dark Mode Fix
+   DARK MODE — TEXT COLOR REPLACEMENT ENGINE
+   Applies ONLY when [data-theme="dark"] is active
    ========================================================= */
-select {
+
+/* Replace dark text colors (text-slate-900, 800, 700, text-black) with BRIGHT WHITE */
+[data-theme="dark"] .text-slate-900,
+[data-theme="dark"] .text-slate-800,
+[data-theme="dark"] .text-slate-700,
+[data-theme="dark"] .text-slate-950,
+[data-theme="dark"] .text-black,
+[data-theme="dark"] .text-gray-900,
+[data-theme="dark"] .text-gray-800,
+[data-theme="dark"] .text-gray-700 {
+  color: #f8fafc !important;
+}
+
+/* Replace mid-slate text colors (text-slate-600, 500) with CRISP LIGHT SLATE */
+[data-theme="dark"] .text-slate-600,
+[data-theme="dark"] .text-slate-500,
+[data-theme="dark"] .text-gray-600,
+[data-theme="dark"] .text-gray-500 {
+  color: #e2e8f0 !important;
+}
+
+/* Replace text-slate-400 with MUTED LIGHT SLATE */
+[data-theme="dark"] .text-slate-400,
+[data-theme="dark"] .text-gray-400 {
+  color: #94a3b8 !important;
+}
+
+/* All headings in dark mode */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] h4,
+[data-theme="dark"] h5,
+[data-theme="dark"] h6 {
+  color: #f8fafc !important;
+}
+
+/* Table rows, headers & cells in dark mode */
+[data-theme="dark"] table {
+  color: #f8fafc;
+}
+
+[data-theme="dark"] thead tr,
+[data-theme="dark"] thead tr th {
+  background-color: #0a1020 !important;
+  color: #cbd5e1 !important;
+  border-bottom-color: rgba(129, 140, 248, 0.15) !important;
+}
+
+[data-theme="dark"] tbody tr {
+  border-bottom-color: rgba(129, 140, 248, 0.08) !important;
+}
+
+[data-theme="dark"] tbody tr:hover,
+[data-theme="dark"] tr.hover\:bg-slate-50\/50:hover,
+[data-theme="dark"] tr.hover\:bg-slate-50:hover {
+  background-color: rgba(99, 102, 241, 0.08) !important;
+}
+
+/* Recharts labels, legend text, axis values in dark mode */
+[data-theme="dark"] .recharts-text,
+[data-theme="dark"] .recharts-cartesian-axis-tick-value,
+[data-theme="dark"] .recharts-legend-item-text,
+[data-theme="dark"] .recharts-label,
+[data-theme="dark"] .recharts-default-legend {
+  fill: #cbd5e1 !important;
+  color: #cbd5e1 !important;
+}
+
+/* Avatar backgrounds with light gradient in dark mode */
+[data-theme="dark"] .bg-gradient-to-br.from-slate-100 {
+  background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+/* Calendar grid in dark mode (HRMS Operations & Attendance & Leave) */
+[data-theme="dark"] .bg-slate-50,
+[data-theme="dark"] .bg-slate-50\/60,
+[data-theme="dark"] .bg-slate-100 {
+  background-color: #131f35 !important;
+  color: #f8fafc !important;
+  border-color: rgba(129, 140, 248, 0.12) !important;
+}
+
+/* =========================================================
+   EXCEPTIONS FOR WHITE & LIGHT PASTEL CONTAINERS / PLACEHOLDERS
+   "and in white placeholders keep text colour black"
+   ========================================================= */
+
+/* Pure white containers, badges, cards, buttons in dark mode */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] [class*="bg-white"] {
+  color: #0f172a !important;
+}
+
+[data-theme="dark"] .bg-white *,
+[data-theme="dark"] [class*="bg-white"] * {
+  color: #0f172a !important;
+}
+
+/* Light pastel badges (bg-emerald-50, bg-sky-50, bg-violet-50, bg-amber-50, bg-indigo-50, bg-rose-50, bg-teal-50) */
+[data-theme="dark"] [class*="bg-emerald-50"],
+[data-theme="dark"] [class*="bg-sky-50"],
+[data-theme="dark"] [class*="bg-violet-50"],
+[data-theme="dark"] [class*="bg-amber-50"],
+[data-theme="dark"] [class*="bg-indigo-50"],
+[data-theme="dark"] [class*="bg-rose-50"],
+[data-theme="dark"] [class*="bg-teal-50"] {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+[data-theme="dark"] [class*="bg-emerald-50"] *,
+[data-theme="dark"] [class*="bg-sky-50"] *,
+[data-theme="dark"] [class*="bg-violet-50"] *,
+[data-theme="dark"] [class*="bg-amber-50"] *,
+[data-theme="dark"] [class*="bg-indigo-50"] *,
+[data-theme="dark"] [class*="bg-rose-50"] *,
+[data-theme="dark"] [class*="bg-teal-50"] * {
+  color: #0f172a !important;
+}
+
+/* Input fields with white background (white placeholders/inputs):
+   Keep background white, text color black, placeholder text dark slate */
+[data-theme="dark"] input.bg-white,
+[data-theme="dark"] textarea.bg-white,
+[data-theme="dark"] select.bg-white,
+[data-theme="dark"] .bg-white input,
+[data-theme="dark"] .bg-white textarea,
+[data-theme="dark"] .bg-white select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+[data-theme="dark"] input.bg-white::placeholder,
+[data-theme="dark"] textarea.bg-white::placeholder,
+[data-theme="dark"] .bg-white input::placeholder,
+[data-theme="dark"] .bg-white textarea::placeholder {
+  color: #475569 !important;
+}
+
+/* Dark mode inputs (using var(--bg-input)): text bright white, placeholder light slate */
+[data-theme="dark"] input:not(.bg-white),
+[data-theme="dark"] textarea:not(.bg-white),
+[data-theme="dark"] select:not(.bg-white) {
   background-color: var(--bg-input) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-card) !important;
-  appearance: none;
-  -webkit-appearance: none;
-  background-image: var(--select-arrow);
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  background-size: 14px;
-  padding-right: 2.25rem !important;
+  color: #f8fafc !important;
 }
 
-select:focus {
-  outline: none;
-  border-color: var(--border-focus) !important;
-  box-shadow: 0 0 0 3px var(--glow-primary);
+[data-theme="dark"] input:not(.bg-white)::placeholder,
+[data-theme="dark"] textarea:not(.bg-white)::placeholder {
+  color: #94a3b8 !important;
 }
 
+/* Select options dropdown list */
 select option {
   background-color: var(--bg-card) !important;
   color: var(--text-primary) !important;
-  font-family: 'Outfit', sans-serif;
+}
+
+[data-theme="dark"] select option {
+  background-color: #0f1929 !important;
+  color: #f8fafc !important;
 }
 
 /* =========================================================
-   GLOBAL INPUT / TEXTAREA OVERRIDE — Dark Mode Fix
-   ========================================================= */
-input,
-textarea {
-  background-color: var(--bg-input) !important;
-  color: var(--text-primary) !important;
-  border-color: var(--border-card) !important;
-}
-
-input::placeholder,
-textarea::placeholder {
-  color: var(--text-muted) !important;
-}
-
-input:focus,
-textarea:focus {
-  outline: none;
-  border-color: var(--border-focus) !important;
-  box-shadow: 0 0 0 3px var(--glow-primary);
-}
-
-/* Date/time picker icon fix in dark mode */
-[data-theme="dark"] input[type="date"],
-[data-theme="dark"] input[type="datetime-local"],
-[data-theme="dark"] input[type="time"] {
-  color-scheme: dark;
-}
-
-/* =========================================================
-   GLASS PANEL — Primary Card Component
+   GLASS PANEL & CARDS
    ========================================================= */
 .glass-panel {
   background: var(--bg-card);
@@ -219,7 +332,6 @@ textarea:focus {
   transform: translateY(-2px);
 }
 
-/* Top shimmer line on hover */
 .glass-panel::before {
   content: '';
   position: absolute;
@@ -238,38 +350,7 @@ textarea:focus {
 }
 
 /* =========================================================
-   GLASS CARD GLOW — Enhanced card with glow sweep
-   ========================================================= */
-.glass-card-glow {
-  position: relative;
-  overflow: hidden;
-}
-
-.glass-card-glow::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle at center, var(--glow-primary) 0%, transparent 60%);
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.glass-card-glow:hover::after {
-  opacity: 1;
-}
-
-.glass-card-glow > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* =========================================================
-   SIDEBAR
+   SIDEBAR & STAT CARDS
    ========================================================= */
 .sidebar-glass {
   background: var(--bg-sidebar);
@@ -282,9 +363,6 @@ textarea:focus {
   box-shadow: 4px 0 32px rgba(0, 0, 0, 0.5), 1px 0 0 rgba(129, 140, 248, 0.12);
 }
 
-/* =========================================================
-   PREMIUM STAT CARD
-   ========================================================= */
 .stat-card {
   background: var(--gradient-card);
   border: 1px solid var(--border-card);
@@ -316,27 +394,6 @@ textarea:focus {
 }
 
 /* =========================================================
-   ACCENT ICON CONTAINERS
-   ========================================================= */
-.icon-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  padding: 0.5rem;
-  position: relative;
-  overflow: hidden;
-}
-
-.icon-badge::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  opacity: 0.12;
-}
-
-/* =========================================================
    BUTTONS
    ========================================================= */
 .btn-primary {
@@ -348,7 +405,7 @@ textarea:focus {
   border-radius: 12px;
   font-size: 0.875rem;
   font-weight: 700;
-  color: #ffffff;
+  color: #ffffff !important;
   background: var(--gradient-brand);
   border: none;
   cursor: pointer;
@@ -362,10 +419,6 @@ textarea:focus {
   transform: translateY(-2px);
   filter: brightness(1.1);
   box-shadow: 0 8px 24px var(--glow-primary);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
 }
 
 .btn-primary:disabled {
@@ -396,30 +449,8 @@ textarea:focus {
   transform: translateY(-1px);
 }
 
-.btn-danger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.7rem 1.375rem;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 700;
-  color: #ffffff;
-  background: linear-gradient(135deg, #ef4444, #f87171);
-  border: none;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.25);
-}
-
-.btn-danger:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.35);
-}
-
 /* =========================================================
-   FORM INPUTS — Fully theme-aware
+   FORM INPUTS
    ========================================================= */
 .form-input {
   width: 100%;
@@ -444,7 +475,6 @@ textarea:focus {
   color: var(--text-muted);
 }
 
-/* Form select extending form-input */
 .form-select {
   width: 100%;
   padding: 0.7rem 1rem;
@@ -466,12 +496,6 @@ textarea:focus {
   cursor: pointer;
 }
 
-.form-select:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px var(--glow-primary);
-}
-
-/* Form label */
 .form-label {
   display: block;
   font-size: 0.75rem;
@@ -483,7 +507,7 @@ textarea:focus {
 }
 
 /* =========================================================
-   TABS
+   TABS & PILLS
    ========================================================= */
 .tab-bar {
   display: flex;
@@ -524,9 +548,6 @@ textarea:focus {
   box-shadow: 0 2px 12px var(--glow-primary);
 }
 
-/* =========================================================
-   CHART TYPE PILLS
-   ========================================================= */
 .chart-pill {
   display: inline-flex;
   align-items: center;
@@ -585,35 +606,14 @@ textarea:focus {
   box-shadow: 0 0 18px var(--glow-primary);
 }
 
-.theme-toggle-icon {
-  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.2s ease;
-}
-
 /* =========================================================
-   SCROLLBAR
+   SCROLLBAR & ANIMATIONS
    ========================================================= */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--scrollbar-bg); border-radius: 999px; }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
 
-::-webkit-scrollbar-track {
-  background: var(--scrollbar-bg);
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--scrollbar-thumb);
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent-primary);
-}
-
-/* =========================================================
-   ANIMATIONS
-   ========================================================= */
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -629,138 +629,12 @@ textarea:focus {
   to   { opacity: 1; transform: scale(1); }
 }
 
-@keyframes shimmer {
-  0%   { background-position: -200% center; }
-  100% { background-position: 200% center; }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50%       { transform: translateY(-8px); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 var(--glow-primary); }
-  50%       { box-shadow: 0 0 24px 6px var(--glow-primary); }
-}
-
-@keyframes spin-smooth {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
-
-@keyframes slide-in-right {
-  from { opacity: 0; transform: translateX(24px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-@keyframes slide-in-up {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes gradient-shift {
-  0%   { background-position: 0% 50%; }
-  50%  { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes ping-dot {
-  75%, 100% { transform: scale(2); opacity: 0; }
-}
-
-/* Animation utility classes */
 .animate-fade-in-up  { animation: fadeInUp 0.45s cubic-bezier(0.4, 0, 0.2, 1) both; }
 .animate-fade-in     { animation: fadeIn 0.3s ease both; }
 .animate-scale-in    { animation: scaleIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
-.animate-slide-right { animation: slide-in-right 0.35s cubic-bezier(0.4, 0, 0.2, 1) both; }
-.animate-slide-up    { animation: slide-in-up 0.35s cubic-bezier(0.4, 0, 0.2, 1) both; }
-.animate-float       { animation: float 4s ease-in-out infinite; }
-.animate-pulse-glow  { animation: pulse-glow 2s ease-in-out infinite; }
-.animate-gradient    {
-  background-size: 200% 200%;
-  animation: gradient-shift 4s ease infinite;
-}
-
-/* Stagger delays */
-.delay-75  { animation-delay: 0.075s; }
-.delay-100 { animation-delay: 0.1s; }
-.delay-150 { animation-delay: 0.15s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-250 { animation-delay: 0.25s; }
-.delay-300 { animation-delay: 0.3s; }
-.delay-400 { animation-delay: 0.4s; }
-.delay-500 { animation-delay: 0.5s; }
 
 /* =========================================================
-   GRADIENT TEXT
-   ========================================================= */
-.gradient-text {
-  background: var(--gradient-brand);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-/* =========================================================
-   BADGE / PILL STYLES
-   ========================================================= */
-.badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.7rem;
-  border-radius: 999px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-/* =========================================================
-   AMBIENT BACKGROUND BLOBS
-   ========================================================= */
-.ambient-blob {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  opacity: 0.6;
-}
-
-[data-theme="dark"] .ambient-blob {
-  opacity: 0.25;
-}
-
-/* =========================================================
-   NOTIFICATION / POPUP
-   ========================================================= */
-.popup-card {
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-base);
-  border-radius: 20px;
-  box-shadow: var(--shadow-elevated), 0 0 0 1px var(--glow-primary);
-  animation: slide-in-right 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-/* =========================================================
-   RECHARTS OVERRIDES FOR THEME
-   ========================================================= */
-.recharts-cartesian-grid-horizontal line,
-.recharts-cartesian-grid-vertical line {
-  stroke: var(--border-card) !important;
-}
-
-.recharts-tooltip-wrapper .recharts-default-tooltip {
-  background: var(--bg-elevated) !important;
-  border: 1px solid var(--border-base) !important;
-  border-radius: 12px !important;
-  color: var(--text-primary) !important;
-  box-shadow: var(--shadow-elevated) !important;
-}
-
-/* =========================================================
-   MODAL / OVERLAY
+   MODAL & TABLES
    ========================================================= */
 .modal-overlay {
   position: fixed;
@@ -781,9 +655,6 @@ textarea:focus {
   overflow-y: auto;
 }
 
-/* =========================================================
-   TABLE STYLES
-   ========================================================= */
 .premium-table {
   width: 100%;
   border-collapse: separate;
@@ -815,13 +686,6 @@ textarea:focus {
   background: var(--bg-hover);
 }
 
-.premium-table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-/* =========================================================
-   SECTION HEADERS
-   ========================================================= */
 .section-eyebrow {
   display: flex;
   align-items: center;
@@ -834,181 +698,20 @@ textarea:focus {
   margin-bottom: 0.4rem;
 }
 
-/* =========================================================
-   KANBAN / STATUS LANES
-   ========================================================= */
-.kanban-lane {
-  background: var(--bg-card-alt);
-  border: 1.5px solid var(--border-card);
-  border-radius: 16px;
-  padding: 1rem;
-  min-height: 280px;
-  transition: border-color 0.2s ease;
-}
-
-.kanban-lane:hover {
-  border-color: var(--border-base);
-}
-
-[data-theme="dark"] .kanban-lane {
-  background: rgba(12, 20, 37, 0.8);
-}
-
-.kanban-card {
-  background: var(--bg-card);
-  border: 1.5px solid var(--border-card);
-  border-radius: 12px;
-  padding: 0.875rem;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.kanban-card:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-elevated);
-  border-color: var(--accent-primary);
-}
-
-/* =========================================================
-   ALERT / INFO BOXES
-   ========================================================= */
-.alert-success {
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: var(--accent-success);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  animation: slide-in-up 0.3s ease;
-}
-
-.alert-danger {
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  color: var(--accent-danger);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  animation: slide-in-up 0.3s ease;
-}
-
-.alert-warning {
-  background: rgba(245, 158, 11, 0.1);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  color: var(--accent-warning);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.alert-info {
-  background: rgba(99, 102, 241, 0.08);
-  border: 1px solid rgba(99, 102, 241, 0.2);
-  color: var(--accent-primary);
-  border-radius: 12px;
-  padding: 0.75rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-/* =========================================================
-   PING NOTIFICATION DOT
-   ========================================================= */
-.ping-dot {
-  position: relative;
+.badge {
   display: inline-flex;
-}
-
-.ping-dot::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background: var(--accent-danger);
-  animation: ping-dot 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
-}
-
-/* =========================================================
-   PROGRESS BAR
-   ========================================================= */
-.progress-track {
-  width: 100%;
-  height: 8px;
-  background: var(--bg-input);
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem 0.7rem;
   border-radius: 999px;
-  overflow: hidden;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
-.progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--gradient-brand);
-  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-.progress-fill::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-  animation: shimmer 2s linear infinite;
-}
-
-/* =========================================================
-   STATUS PILL PRESETS
-   ========================================================= */
 .status-active    { background: rgba(16,185,129,0.12); color: var(--accent-success); }
 .status-pending   { background: rgba(245,158,11,0.12); color: var(--accent-warning); }
 .status-danger    { background: rgba(239,68,68,0.12);  color: var(--accent-danger); }
 .status-info      { background: rgba(99,102,241,0.12); color: var(--accent-primary); }
 .status-muted     { background: var(--bg-hover);       color: var(--text-muted); }
-
-/* =========================================================
-   SIDEBAR NAV ITEM
-   ========================================================= */
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.625rem 0.875rem;
-  border-radius: 12px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  text-decoration: none;
-}
-
-.nav-item:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
-}
-
-.nav-item.active {
-  background: var(--sidebar-active-bg);
-  color: var(--sidebar-active-text);
-  font-weight: 700;
-  box-shadow: 0 4px 14px var(--glow-primary);
-}
