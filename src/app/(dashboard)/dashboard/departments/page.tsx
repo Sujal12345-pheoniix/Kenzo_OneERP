@@ -137,10 +137,33 @@ function EmployeeProfileModal({
 
   const handleAssignTask = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!taskProjId) {
-      setAssignError("Please select a project.");
+    let targetProjId = taskProjId || (projects && projects.length > 0 ? projects[0].id : "");
+
+    if (!targetProjId) {
+      try {
+        const createRes = await fetch("/api/projects", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "General Corporate Operations",
+            description: "Core operational scope & assigned task lane",
+            budget: 100000,
+          }),
+        });
+        if (createRes.ok) {
+          const newP = await createRes.json();
+          targetProjId = newP.id;
+        }
+      } catch (e) {
+        console.error("Auto project creation error:", e);
+      }
+    }
+
+    if (!targetProjId) {
+      setAssignError("Please select a valid project.");
       return;
     }
+
     setAssignLoading(true);
     setAssignError("");
     setAssignSuccess("");
@@ -153,7 +176,7 @@ function EmployeeProfileModal({
           description: taskDesc,
           status: "TODO",
           priority: taskPriority,
-          projectId: taskProjId,
+          projectId: targetProjId,
           assigneeId: empId,
           dueDate: taskDueDate || null
         })
@@ -294,48 +317,55 @@ function EmployeeProfileModal({
 
             {/* ── Assign Task Option (Admin and CEO only) ── */}
             {canAssign && (
-              <div className="bg-slate-50 border border-slate-150 rounded-2xl p-5 shadow-sm">
+              <div className="glass-panel p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <PlusCircle className="h-4 w-4 text-sky-600" />
-                  <h3 className="font-extrabold text-slate-800 text-sm uppercase tracking-wider">Assign Task to Employee</h3>
+                  <PlusCircle className="h-4 w-4" style={{ color: "var(--accent-primary)" }} />
+                  <h3 className="font-extrabold text-sm uppercase tracking-wider" style={{ color: "var(--text-primary)" }}>Assign Task to Employee</h3>
                 </div>
-                {assignError && <p className="text-xs text-red-650 font-semibold mb-3 bg-red-50 p-2.5 rounded-lg border border-red-150">{assignError}</p>}
-                {assignSuccess && <p className="text-xs text-emerald-600 font-semibold mb-3 bg-emerald-50 p-2.5 rounded-lg border border-emerald-150">{assignSuccess}</p>}
+                {assignError   && <div className="alert-danger mb-3">{assignError}</div>}
+                {assignSuccess && <div className="alert-success mb-3">{assignSuccess}</div>}
                 
                 <form onSubmit={handleAssignTask} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Task Title</label>
+                    <label className="form-label">Task Title</label>
                     <input
                       type="text" required value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)}
                       placeholder="e.g. Optimize Database Indexes"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
+                      className="form-input"
                     />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Description</label>
+                    <label className="form-label">Description</label>
                     <textarea
                       value={taskDesc} onChange={(e) => setTaskDesc(e.target.value)}
                       placeholder="Detail task instructions or constraints..."
                       rows={2}
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
+                      className="form-input"
+                      style={{ resize: "none" }}
                     />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Select Project</label>
+                    <label className="form-label">Select Project</label>
                     <select
                       value={taskProjId} onChange={(e) => setTaskProjId(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
+                      className="form-select font-semibold"
                     >
-                      {projects.map((proj: any) => (
-                        <option key={proj.id} value={proj.id}>{proj.name}</option>
-                      ))}
+                      {projects.length === 0 ? (
+                        <option value="">General Corporate Operations (Default)</option>
+                      ) : (
+                        projects.map((proj: any) => (
+                          <option key={proj.id} value={proj.id}>
+                            {proj.name}
+                          </option>
+                        ))
+                      )}
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Priority</label>
+                    <label className="form-label">Priority</label>
                     <select
                       value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
+                      className="form-select font-semibold"
                     >
                       <option value="NEW">NEW</option>
                       <option value="UPDATING">UPDATING</option>
@@ -348,18 +378,18 @@ function EmployeeProfileModal({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold text-slate-500 uppercase mb-1">Due Date</label>
+                    <label className="form-label">Due Date</label>
                     <input
                       type="date" value={taskDueDate} onChange={(e) => setTaskDueDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
+                      className="form-input"
                     />
                   </div>
                   <div className="flex items-end">
                     <button
                       type="submit" disabled={assignLoading}
-                      className="w-full py-2.5 rounded-xl bg-sky-655 hover:bg-sky-700 text-white text-xs font-bold transition-all shadow-md shadow-sky-600/10 cursor-pointer flex items-center justify-center gap-1.5"
+                      className="btn-primary w-full py-2.5"
                     >
-                      {assignLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : "Confirm Assignment"}
+                      {assignLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirm Assignment"}
                     </button>
                   </div>
                 </form>
@@ -543,10 +573,30 @@ export default function DepartmentsPage() {
       fetch("/api/auth/session").then((r) => r.json()),
       fetch("/api/hrms").then((r) => r.json()),
       fetch("/api/projects").then((r) => r.json()),
-    ]).then(([sess, hrms, proj]) => {
+    ]).then(async ([sess, hrms, proj]) => {
       if (sess.authenticated) setUserRole(sess.user.role);
       setEmployees(hrms.employees || []);
-      setProjects(proj.projects || []);
+      let projList = Array.isArray(proj) ? proj : (proj?.projects || []);
+      if (projList.length === 0) {
+        try {
+          const createRes = await fetch("/api/projects", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: "General Corporate Operations",
+              description: "Core operational scope & assigned task lane",
+              budget: 100000,
+            }),
+          });
+          if (createRes.ok) {
+            const newP = await createRes.json();
+            projList = [newP];
+          }
+        } catch (e) {
+          console.error("Auto project creation error:", e);
+        }
+      }
+      setProjects(projList);
       setLoading(false);
     });
   }, []);
