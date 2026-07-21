@@ -715,3 +715,66 @@ select option {
 .status-danger    { background: rgba(239,68,68,0.12);  color: var(--accent-danger); }
 .status-info      { background: rgba(99,102,241,0.12); color: var(--accent-primary); }
 .status-muted     { background: var(--bg-hover);       color: var(--text-muted); }
+
+/* =========================================================
+   MOBILE & CROSS-DEVICE RESPONSIVENESS (iOS, iPhone, Android, PC)
+   ========================================================= */
+
+/* Mobile touch targets & tap highlights */
+button, a, input, select, textarea {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Touch scrolling momentum for mobile devices */
+.overflow-x-auto, .overflow-y-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent horizontal body overflow bug on mobile */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Mobile viewport adjustments */
+@media (max-width: 640px) {
+  .modal-content {
+    width: 95% !important;
+    max-width: 100% !important;
+    padding: 1.25rem !important;
+    max-height: 92vh !important;
+    border-radius: 16px !important;
+  }
+
+  .form-input, .form-select {
+    font-size: 16px !important; /* Prevents auto-zoom on iOS Safari */
+    padding: 0.65rem 0.85rem !important;
+  }
+
+  .premium-table {
+    font-size: 0.8rem !important;
+  }
+
+  .premium-table thead tr th,
+  .premium-table tbody tr td {
+    padding: 0.6rem 0.75rem !important;
+    white-space: nowrap !important;
+  }
+
+  .glass-panel {
+    padding: 1rem !important;
+    border-radius: 16px !important;
+  }
+
+  .stat-card {
+    padding: 1rem !important;
+  }
+}
+
+/* Responsive Table Wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}

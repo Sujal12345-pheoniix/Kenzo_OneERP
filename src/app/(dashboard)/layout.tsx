@@ -585,16 +585,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {user && <SidebarContent {...sidebarProps} />}
       </aside>
 
-      {/* Mobile menu button */}
-      <div className="md:hidden absolute top-4 left-4 z-30">
+      {/* Mobile Fixed Top Bar (iOS & Android) */}
+      <div
+        className="md:hidden fixed top-0 left-0 right-0 h-14 z-30 flex items-center justify-between px-4"
+        style={{
+          background: "var(--bg-card)",
+          borderBottom: "1px solid var(--border-base)",
+          backdropFilter: "blur(12px)",
+        }}
+      >
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="relative p-2.5 rounded-xl cursor-pointer transition-all shadow-lg"
+          className="relative p-2 rounded-xl cursor-pointer transition-all flex items-center justify-center"
           style={{
-            background: "var(--bg-card)",
-            border: "1px solid var(--border-base)",
+            background: "var(--bg-input)",
             color: "var(--text-primary)",
+            border: "1px solid var(--border-card)",
           }}
+          aria-label="Toggle navigation menu"
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           {hasUnread && !sidebarOpen && (
@@ -604,18 +612,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </span>
           )}
         </button>
+
+        <img src="/logo.png" alt="Kenzo OneERP" className="h-7 w-auto object-contain" />
+
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+        </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Sidebar Drawer */}
       {sidebarOpen && (
-        <div className="md:hidden fixed inset-0 z-20 flex">
+        <div className="md:hidden fixed inset-0 z-40 flex">
           <div
-            className="fixed inset-0 backdrop-blur-sm"
-            style={{ background: "rgba(0,0,0,0.5)" }}
+            className="fixed inset-0 backdrop-blur-md transition-opacity"
+            style={{ background: "rgba(0,0,0,0.6)" }}
             onClick={() => setSidebarOpen(false)}
           />
           <aside
-            className="relative flex flex-col w-60 h-full z-30 overflow-hidden"
+            className="relative flex flex-col w-72 h-full z-50 overflow-hidden shadow-2xl animate-fade-in-up"
             style={{
               background: "var(--bg-sidebar)",
               borderRight: "1px solid var(--border-base)",
@@ -632,18 +646,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
 
       {/* Main content */}
-      <main className="flex-1 flex flex-col h-full overflow-y-auto relative z-10">
-        {/* Top bar with theme toggle (mobile visible) */}
-        <div
-          className="hidden md:flex items-center justify-end px-8 py-3 shrink-0 md:hidden"
-          style={{
-            borderBottom: "1px solid var(--border-base)",
-            background: "var(--bg-card)",
-          }}
-        >
-          <ThemeToggle />
-        </div>
-        <div className="flex-1 px-5 py-6 md:px-8 md:py-8">{children}</div>
+      <main className="flex-1 flex flex-col h-full overflow-y-auto relative z-10 pt-16 md:pt-0">
+        <div className="flex-1 px-4 py-5 md:px-8 md:py-8">{children}</div>
       </main>
     </div>
   );
