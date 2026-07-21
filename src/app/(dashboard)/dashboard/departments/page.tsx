@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import {
   Loader2, Layers, X, Briefcase, CalendarDays, ClipboardList,
   CheckCircle2, Clock, AlertCircle, UserCheck, TrendingUp, DollarSign,
-  Mail, Building2, Calendar, ChevronLeft, ChevronRight, Award, PlusCircle
+  Mail, Building2, Calendar, ChevronLeft, ChevronRight, Award, PlusCircle, Trash2, Pencil
 } from "lucide-react";
 import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from "recharts";
 
@@ -448,6 +448,20 @@ function EmployeeProfileModal({
                         <div className="flex items-center gap-2 shrink-0">
                           <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold border ${ts.cls}`}>{ts.label}</span>
                           <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${PRIORITY_BADGE[task.priority] || ""}`}>{task.priority}</span>
+                          {canAssign && (
+                            <button
+                              onClick={async () => {
+                                if (confirm("Are you sure you want to delete this assigned task?")) {
+                                  await fetch(`/api/projects/tasks?id=${task.id}`, { method: "DELETE" });
+                                  fetchEmployee();
+                                }
+                              }}
+                              title="Delete Assigned Task"
+                              className="p-1 rounded hover:bg-red-100 text-slate-400 hover:text-red-600 transition-all cursor-pointer"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          )}
                           {task.dueDate && (
                             <span className="text-[9px] text-slate-400 font-medium">
                               {new Date(task.dueDate).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}

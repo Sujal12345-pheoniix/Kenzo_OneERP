@@ -46,6 +46,7 @@ export async function POST(req: NextRequest) {
         assigneeId: assigneeId || null,
         dueDate: dueDate ? new Date(dueDate) : null,
       },
+      include: { assignee: true, project: true },
     });
 
     return NextResponse.json(task);
@@ -60,15 +61,14 @@ export async function PUT(req: NextRequest) {
     const session = await getSession(req);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { tenantId } = session;
+    const { tenantId, role } = session;
     const body = await req.json();
-    const { id, status } = body;
+    const { id, title, description, status, priority, assigneeId, dueDate, projectId } = body;
 
-    if (!id || !status) {
-      return NextResponse.json({ error: "Missing task ID or status" }, { status: 400 });
+    if (!id) {
+      return NextResponse.json({ error: "Missing task ID" }, { status: 400 });
     }
 
-    // Ensure the task belongs to the user's tenant (strict isolation)
     const existingTask = await db.task.findFirst({
       where: { id, tenantId },
     });
@@ -77,14 +77,62 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "Task not found" }, { status: 404 });
     }
 
+    // Prepare update payload
+    const updateData: any = {};
+    if (status !== undefined) updateData.status = status;
+    if (title !== undefined) updateData.title = title;
+    if (description !== undefined) updateData.description = description;
+    if (priority !== undefined) updateData.priority = priority;
+    if (assigneeId !== undefined) updateData.assigneeId = assigneeId || null;
+    if (projectId !== undefined) updateData.projectId = projectId;
+    if (dueDate !== undefined) updateData.dueDate = dueDate ? new Date(dueDate) : null;
+
     const updatedTask = await db.task.update({
       where: { id },
-      data: { status },
+      data: updateData,
+      include: { assignee: true, project: true },
     });
 
     return NextResponse.json(updatedTask);
   } catch (error) {
     console.error("Task PUT Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { tenantId, role } = session;
+    const isPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "PROJECT_MANAGER"].includes(role);
+    if (!isPrivileged) {
+      return NextResponse.json({ error: "Forbidden. Admin or CEO privileges required to delete tasks." }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+
+    if (!id) {
+      return NextResponse.json({ error: "Missing task ID" }, { status: 400 });
+    }
+
+    const existingTask = await db.task.findFirst({
+      where: { id, tenantId },
+    });
+
+    if (!existingTask) {
+      return NextResponse.json({ error: "Task not found" }, { status: 404 });
+    }
+
+    await db.task.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true, message: "Task deleted successfully" });
+  } catch (error) {
+    console.error("Task DELETE Error:", error);
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }

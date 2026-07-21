@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import {
   PlusCircle, Loader2, FolderPlus, CheckCircle2, AlertCircle,
-  Calendar, X, Zap, Target, Clock, User, ChevronRight
+  Calendar, X, Zap, Target, Clock, User, ChevronRight, Pencil, Trash2
 } from "lucide-react";
 
 const PRIORITY_COLORS: Record<string, { bg: string; text: string; label: string }> = {
@@ -31,44 +31,62 @@ const STATUS_TEXT: Record<string, string> = {
 };
 
 export default function ProjectsDashboard() {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [tasks, setTasks]       = useState<any[]>([]);
+  const [projects, setProjects]   = useState<any[]>([]);
+  const [tasks, setTasks]         = useState<any[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [userRole, setUserRole]   = useState("");
+  const [loading, setLoading]     = useState(true);
 
-  // Task form
-  const [title, setTitle]           = useState("");
+  // Task creation form
+  const [title, setTitle]             = useState("");
   const [description, setDescription] = useState("");
-  const [projectId, setProjectId]   = useState("");
-  const [taskType, setTaskType]     = useState("CURRENT");   // NEW field
-  const [priority, setPriority]     = useState("MEDIUM");
-  const [assigneeId, setAssigneeId] = useState("");
-  const [dueDate, setDueDate]       = useState("");
+  const [projectId, setProjectId]     = useState("");
+  const [taskType, setTaskType]       = useState("CURRENT");
+  const [priority, setPriority]       = useState("MEDIUM");
+  const [assigneeId, setAssigneeId]   = useState("");
+  const [dueDate, setDueDate]         = useState("");
   const [taskFormLoading, setTaskFormLoading] = useState(false);
   const [taskActionLoading, setTaskActionLoading] = useState<string | null>(null);
   const [taskSuccess, setTaskSuccess] = useState("");
-  const [taskError, setTaskError]   = useState("");
+  const [taskError, setTaskError]     = useState("");
 
-  // Project modal
+  // Edit Task Modal State
+  const [editingTask, setEditingTask]       = useState<any>(null);
+  const [editTitle, setEditTitle]           = useState("");
+  const [editDesc, setEditDesc]             = useState("");
+  const [editPriority, setEditPriority]     = useState("MEDIUM");
+  const [editAssigneeId, setEditAssigneeId] = useState("");
+  const [editProjId, setEditProjId]         = useState("");
+  const [editDueDate, setEditDueDate]       = useState("");
+  const [editLoading, setEditLoading]       = useState(false);
+
+  // Delete Task Modal State
+  const [deleteConfirmTaskId, setDeleteConfirmTaskId] = useState<string | null>(null);
+
+  // Project creation modal
   const [showProjectModal, setShowProjectModal] = useState(false);
-  const [projName, setProjName]       = useState("");
-  const [projDesc, setProjDesc]       = useState("");
-  const [projBudget, setProjBudget]   = useState("");
-  const [projStartDate, setProjStartDate] = useState("");
-  const [projLoading, setProjLoading]   = useState(false);
-  const [projSuccess, setProjSuccess]   = useState("");
-  const [projError, setProjError]       = useState("");
+  const [projName, setProjName]                 = useState("");
+  const [projDesc, setProjDesc]                 = useState("");
+  const [projBudget, setProjBudget]             = useState("");
+  const [projStartDate, setProjStartDate]       = useState("");
+  const [projLoading, setProjLoading]             = useState(false);
+  const [projSuccess, setProjSuccess]             = useState("");
+  const [projError, setProjError]                 = useState("");
 
   const loadData = async () => {
     try {
-      const [resProjects, resTasks, resHrms] = await Promise.all([
+      const [resSess, resProjects, resTasks, resHrms] = await Promise.all([
+        fetch("/api/auth/session"),
         fetch("/api/projects"),
         fetch("/api/projects/tasks"),
         fetch("/api/hrms"),
       ]);
+      const sessData     = await resSess.json();
       const projectsData = await resProjects.json();
       const tasksData    = await resTasks.json();
       const hrmsData     = await resHrms.json();
+
+      if (sessData.authenticated) setUserRole(sessData.user.role);
 
       setProjects(Array.isArray(projectsData) ? projectsData : []);
       setTasks(Array.isArray(tasksData) ? tasksData : []);
@@ -88,6 +106,8 @@ export default function ProjectsDashboard() {
   };
 
   useEffect(() => { loadData(); }, []);
+
+  const canManageTasks = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "PROJECT_MANAGER"].includes(userRole);
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,7 +131,7 @@ export default function ProjectsDashboard() {
       const resJson = await res.json();
       if (!res.ok) throw new Error(resJson.error || "Failed to create task");
       setTitle(""); setDescription(""); setDueDate("");
-      setTaskSuccess("Task created and added to the board!");
+      setTaskSuccess("Task created and published!");
       await loadData();
       setTimeout(() => setTaskSuccess(""), 3500);
     } catch (err: any) {
@@ -160,6 +180,62 @@ export default function ProjectsDashboard() {
     }
   };
 
+  const openEditModal = (task: any) => {
+    setEditingTask(task);
+    setEditTitle(task.title || "");
+    setEditDesc(task.description || "");
+    setEditPriority(task.priority || "MEDIUM");
+    setEditAssigneeId(task.assigneeId || "");
+    setEditProjId(task.projectId || "");
+    setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "");
+  };
+
+  const handleSaveTaskEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask) return;
+    setEditLoading(true);
+    try {
+      const res = await fetch("/api/projects/tasks", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingTask.id,
+          title: editTitle,
+          description: editDesc,
+          priority: editPriority,
+          assigneeId: editAssigneeId || null,
+          projectId: editProjId,
+          dueDate: editDueDate || null,
+        }),
+      });
+      if (res.ok) {
+        setEditingTask(null);
+        await loadData();
+      }
+    } catch (err) {
+      console.error("Save task edit error:", err);
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    setTaskActionLoading(taskId);
+    try {
+      const res = await fetch(`/api/projects/tasks?id=${taskId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setDeleteConfirmTaskId(null);
+        await loadData();
+      }
+    } catch (err) {
+      console.error("Delete task error:", err);
+    } finally {
+      setTaskActionLoading(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]" style={{ color: "var(--text-primary)" }}>
@@ -182,135 +258,105 @@ export default function ProjectsDashboard() {
   ];
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto pb-12 animate-fade-in-up" style={{ color: "var(--text-primary)" }}>
-
-      {/* ── Header ── */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5" style={{ borderBottom: "1px solid var(--border-base)" }}>
+    <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto pb-12 animate-fade-in-up" style={{ color: "var(--text-primary)" }}>
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4" style={{ borderBottom: "1px solid var(--border-base)" }}>
         <div>
-          <div className="section-eyebrow"><Target className="h-4 w-4" /> Project Execution</div>
-          <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>Projects &amp; Delivery</h1>
-          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Manage schedules, track task lanes, and monitor resource assignments.</p>
+          <div className="section-eyebrow">
+            <Zap className="h-4 w-4" /> Enterprise Project Hub
+          </div>
+          <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
+            Projects &amp; Delivery Management
+          </h1>
+          <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+            Manage schedules, track task lanes, and monitor resource assignments.
+          </p>
         </div>
-        <button type="button" onClick={() => setShowProjectModal(true)} className="btn-primary shrink-0">
-          <FolderPlus className="h-4 w-4" /> Create New Project
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={() => setShowProjectModal(true)} className="btn-primary py-2.5 px-4 text-xs">
+            <FolderPlus className="h-4 w-4" /> + New Project Scope
+          </button>
+        </div>
       </div>
 
-      {/* ── New Project Modal ── */}
-      {showProjectModal && (
-        <div className="modal-overlay flex items-center justify-center p-4">
-          <div className="modal-content p-7 w-full max-w-md" style={{ color: "var(--text-primary)" }}>
-            <div className="flex items-center justify-between mb-5 pb-4" style={{ borderBottom: "1px solid var(--border-card)" }}>
-              <h3 className="font-black text-lg flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                <FolderPlus className="h-5 w-5" style={{ color: "var(--accent-primary)" }} /> Create Project
-              </h3>
-              <button type="button" onClick={() => setShowProjectModal(false)}
-                className="h-8 w-8 rounded-lg flex items-center justify-center cursor-pointer transition-all"
-                style={{ background: "var(--bg-hover)", color: "var(--text-muted)" }}>
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            {projSuccess && <div className="alert-success mb-4"><CheckCircle2 className="h-4 w-4 shrink-0" />{projSuccess}</div>}
-            {projError   && <div className="alert-danger mb-4"><AlertCircle  className="h-4 w-4 shrink-0" />{projError}</div>}
-
-            <form onSubmit={handleCreateProject} className="flex flex-col gap-4">
-              <div>
-                <label className="form-label">Project Name</label>
-                <input type="text" required value={projName} onChange={(e) => setProjName(e.target.value)}
-                  placeholder="e.g. ERP Cloud Migration" className="form-input" />
-              </div>
-              <div>
-                <label className="form-label">Description</label>
-                <textarea required value={projDesc} onChange={(e) => setProjDesc(e.target.value)}
-                  placeholder="Project goals and deliverables..." rows={3} className="form-input" style={{ resize: "none" }} />
-              </div>
-              <div>
-                <label className="form-label">Budget (Rs.)</label>
-                <input type="number" required value={projBudget} onChange={(e) => setProjBudget(e.target.value)}
-                  placeholder="e.g. 250000" className="form-input" />
-              </div>
-              <div>
-                <label className="form-label">Start Date</label>
-                <input type="date" value={projStartDate} onChange={(e) => setProjStartDate(e.target.value)} className="form-input" />
-              </div>
-              <div className="flex justify-end gap-3 mt-2">
-                <button type="button" onClick={() => setShowProjectModal(false)} className="btn-secondary">Cancel</button>
-                <button type="submit" disabled={projLoading} className="btn-primary">
-                  {projLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Project"}
-                </button>
-              </div>
-            </form>
-          </div>
+      {/* Projects Overview Cards */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>Active Projects Roster</h2>
+          <span className="badge status-info">{projects.length} Active Scope</span>
         </div>
-      )}
 
-      {/* ── Project Cards ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         {projects.length === 0 ? (
-          <div className="md:col-span-3 glass-panel p-8 text-center">
-            <FolderPlus className="h-10 w-10 mx-auto mb-3" style={{ color: "var(--text-muted)" }} />
-            <p className="font-semibold mb-1" style={{ color: "var(--text-muted)" }}>No active projects found</p>
-            <p className="text-sm" style={{ color: "var(--text-muted)" }}>Click <strong>"Create New Project"</strong> to get started.</p>
+          <div className="glass-panel p-8 text-center">
+            <p className="text-sm" style={{ color: "var(--text-muted)" }}>No projects defined yet. Create your first project scope to begin assigning tasks.</p>
           </div>
         ) : (
-          projects.map((proj: any, i: number) => {
-            const totalProjTasks = tasks.filter((t) => t.projectId === proj.id).length;
-            const completedProjTasks = tasks.filter((t) => t.projectId === proj.id && t.status === "DONE").length;
-            const pct = totalProjTasks > 0 ? Math.round((completedProjTasks / totalProjTasks) * 100) : 0;
-            const sColor = STATUS_TEXT[proj.status] || "var(--accent-primary)";
-            const sBg = STATUS_COLORS[proj.status] || "var(--bg-hover)";
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {projects.map((proj) => {
+              const statusBg   = STATUS_COLORS[proj.status] || STATUS_COLORS.ACTIVE;
+              const statusText = STATUS_TEXT[proj.status] || STATUS_TEXT.ACTIVE;
+              const totalProjTasks = tasks.filter((t) => t.projectId === proj.id).length;
+              const completedProjTasks = tasks.filter((t) => t.projectId === proj.id && t.status === "DONE").length;
+              const progressPct = totalProjTasks > 0 ? Math.round((completedProjTasks / totalProjTasks) * 100) : 0;
 
-            return (
-              <div key={proj.id} className="glass-panel p-5 animate-fade-in-up" style={{ animationDelay: `${i * 80}ms` }}>
-                <div className="flex justify-between items-start mb-3">
-                  <h3 className="font-black text-base" style={{ color: "var(--text-primary)" }}>{proj.name}</h3>
-                  <span className="badge" style={{ background: sBg, color: sColor }}>{proj.status}</span>
-                </div>
-                <p className="text-sm mb-4 line-clamp-2" style={{ color: "var(--text-muted)" }}>{proj.description}</p>
-
-                <div className="mb-3">
-                  <div className="flex justify-between text-xs font-semibold mb-1.5" style={{ color: "var(--text-muted)" }}>
-                    <span>Progress</span>
-                    <span style={{ color: "var(--accent-success)" }}>{pct}% ({completedProjTasks}/{totalProjTasks})</span>
+              return (
+                <div key={proj.id} className="glass-panel p-5 flex flex-col justify-between hover:scale-[1.01] transition-all">
+                  <div>
+                    <div className="flex items-start justify-between gap-2 mb-2">
+                      <h3 className="font-extrabold text-base leading-snug" style={{ color: "var(--text-primary)" }}>{proj.name}</h3>
+                      <span className="badge shrink-0" style={{ background: statusBg, color: statusText }}>
+                        {proj.status}
+                      </span>
+                    </div>
+                    <p className="text-xs mb-4 line-clamp-2" style={{ color: "var(--text-muted)" }}>{proj.description || "No description provided."}</p>
                   </div>
-                  <div className="progress-track">
-                    <div className="progress-fill" style={{ width: `${pct}%` }} />
+
+                  <div className="space-y-3 pt-3" style={{ borderTop: "1px solid var(--border-card)" }}>
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <span style={{ color: "var(--text-muted)" }}>Completion Progress</span>
+                      <span style={{ color: "var(--accent-primary)" }}>{progressPct}% ({completedProjTasks}/{totalProjTasks})</span>
+                    </div>
+
+                    <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: "var(--bg-input)" }}>
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${progressPct}%`, background: "var(--gradient-brand)" }} />
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] pt-1 font-medium" style={{ color: "var(--text-muted)" }}>
+                      <span>Budget: Rs. {(proj.budget || 0).toLocaleString()}</span>
+                      <span>Start: {proj.startDate ? new Date(proj.startDate).toLocaleDateString() : "Immediate"}</span>
+                    </div>
                   </div>
                 </div>
-
-                <div className="flex justify-between items-center text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-                  <span>Budget: <span style={{ color: "var(--accent-success)" }}>Rs. {(proj.budget || 0).toLocaleString()}</span></span>
-                  <span style={{ color: "var(--text-secondary)" }}>{proj.startDate ? new Date(proj.startDate).toLocaleDateString() : "N/A"}</span>
-                </div>
-              </div>
-            );
-          })
+              );
+            })}
+          </div>
         )}
       </div>
 
-      {/* ── Kanban + Task Creator ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+      {/* Task Kanban & Creation Board */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Kanban Columns */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>Task Execution Board</h2>
+            <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>Drag or update status below</span>
+          </div>
 
-        {/* Kanban Board */}
-        <div className="lg:col-span-3">
-          <div className="glass-panel p-6">
-            <h3 className="text-lg font-black mb-5" style={{ color: "var(--text-primary)" }}>Task Execution Board</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {columns.map((col) => {
-                const colTasks = tasks.filter((t) => t.status === col.value);
-                return (
-                  <div key={col.value} className="kanban-lane flex flex-col gap-3">
-                    <div className="flex items-center gap-2 mb-1">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {columns.map((col) => {
+              const colTasks = tasks.filter((t) => t.status === col.value);
+              return (
+                <div key={col.value} className="glass-panel p-4 flex flex-col gap-3 min-h-[220px]">
+                  <div className="flex items-center justify-between pb-2" style={{ borderBottom: "1px solid var(--border-card)" }}>
+                    <div className="flex items-center gap-2">
                       <div className="h-2.5 w-2.5 rounded-full" style={{ background: col.color }} />
-                      <span className="text-xs font-black uppercase tracking-widest" style={{ color: col.color }}>
-                        {col.label}
-                      </span>
-                      <span className="ml-auto text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--bg-hover)", color: "var(--text-muted)" }}>
-                        {colTasks.length}
-                      </span>
+                      <span className="font-extrabold text-xs tracking-wide uppercase" style={{ color: "var(--text-primary)" }}>{col.label}</span>
                     </div>
+                    <span className="badge text-[10px]" style={{ background: "var(--bg-input)", color: "var(--text-muted)" }}>{colTasks.length}</span>
+                  </div>
 
+                  <div className="flex-1 flex flex-col gap-3">
                     {colTasks.length === 0 ? (
                       <div className="flex-1 flex items-center justify-center py-8 rounded-xl border-2 border-dashed" style={{ borderColor: "var(--border-card)" }}>
                         <p className="text-xs italic" style={{ color: "var(--text-muted)" }}>Empty lane</p>
@@ -319,46 +365,69 @@ export default function ProjectsDashboard() {
                       colTasks.map((task: any) => {
                         const pc = PRIORITY_COLORS[task.priority] || PRIORITY_COLORS.MEDIUM;
                         return (
-                          <div key={task.id} className="kanban-card relative">
+                          <div key={task.id} className="kanban-card relative p-3.5 rounded-xl border" style={{ background: "var(--bg-card-alt)", borderColor: "var(--border-card)" }}>
                             {taskActionLoading === task.id && (
-                              <div className="absolute inset-0 rounded-xl flex items-center justify-center" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}>
+                              <div className="absolute inset-0 rounded-xl flex items-center justify-center z-10" style={{ background: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)" }}>
                                 <Loader2 className="h-5 w-5 animate-spin" style={{ color: "var(--accent-primary)" }} />
                               </div>
                             )}
-                            <p className="text-sm font-bold leading-snug mb-1" style={{ color: "var(--text-primary)" }}>{task.title}</p>
-                            <p className="text-xs mb-2 font-medium" style={{ color: "var(--accent-primary)" }}>{task.project?.name || "—"}</p>
+
+                            <div className="flex items-start justify-between gap-2 mb-1">
+                              <p className="text-xs font-bold leading-snug" style={{ color: "var(--text-primary)" }}>{task.title}</p>
+                              
+                              {canManageTasks && (
+                                <div className="flex items-center gap-1 shrink-0">
+                                  <button
+                                    onClick={() => openEditModal(task)}
+                                    title="Edit Task"
+                                    className="p-1 rounded hover:bg-slate-500/20 text-slate-400 hover:text-sky-400 cursor-pointer transition-all"
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteTask(task.id)}
+                                    title="Delete Task"
+                                    className="p-1 rounded hover:bg-red-500/20 text-slate-400 hover:text-red-400 cursor-pointer transition-all"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            <p className="text-[11px] mb-1.5 font-semibold" style={{ color: "var(--accent-primary)" }}>{task.project?.name || "—"}</p>
 
                             {task.description && (
-                              <p className="text-xs mb-3 line-clamp-2" style={{ color: "var(--text-muted)" }}>{task.description}</p>
+                              <p className="text-[11px] mb-2.5 line-clamp-2" style={{ color: "var(--text-muted)" }}>{task.description}</p>
                             )}
 
-                            <div className="flex items-center justify-between mb-3">
-                              <span className="badge" style={{ background: pc.bg, color: pc.text }}>
+                            <div className="flex items-center justify-between mb-2 text-[10px]">
+                              <span className="badge px-2 py-0.5" style={{ background: pc.bg, color: pc.text }}>
                                 {task.priority}
                               </span>
-                              <div className="flex items-center gap-1 text-xs" style={{ color: "var(--text-muted)" }}>
+                              <div className="flex items-center gap-1 font-semibold" style={{ color: "var(--text-muted)" }}>
                                 <User className="h-3 w-3" />
                                 <span>{task.assignee ? `${task.assignee.firstName} ${task.assignee.lastName.slice(0, 1)}.` : "Unassigned"}</span>
                               </div>
                             </div>
 
                             {task.dueDate && (
-                              <div className="flex items-center gap-1 text-xs mb-3" style={{ color: "var(--text-muted)" }}>
+                              <div className="flex items-center gap-1 text-[10px] mb-2 font-medium" style={{ color: "var(--text-muted)" }}>
                                 <Clock className="h-3 w-3" />
-                                {new Date(task.dueDate).toLocaleDateString()}
+                                Due: {new Date(task.dueDate).toLocaleDateString()}
                               </div>
                             )}
 
-                            <div className="pt-2.5" style={{ borderTop: "1px solid var(--border-card)" }}>
-                              <label className="block text-[10px] font-bold uppercase mb-1" style={{ color: "var(--text-muted)" }}>Move to</label>
+                            <div className="pt-2" style={{ borderTop: "1px solid var(--border-card)" }}>
+                              <label className="block text-[9px] font-bold uppercase mb-1" style={{ color: "var(--text-muted)" }}>Move to</label>
                               <select
                                 value={task.status}
                                 onChange={(e) => handleUpdateTaskStatus(task.id, e.target.value)}
-                                className="w-full rounded-lg px-2.5 py-1.5 text-xs font-semibold cursor-pointer"
+                                className="w-full rounded-lg px-2 py-1 text-xs font-semibold cursor-pointer"
                                 style={{
                                   background: "var(--bg-input)",
                                   color: "var(--text-primary)",
-                                  border: "1.5px solid var(--border-card)",
+                                  border: "1px solid var(--border-card)",
                                   outline: "none",
                                 }}
                               >
@@ -373,124 +442,260 @@ export default function ProjectsDashboard() {
                       })
                     )}
                   </div>
-                );
-              })}
-            </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Task Creator Sidebar */}
+        {/* Task Form Panel */}
         <div className="lg:col-span-1">
           <div className="glass-panel p-6 sticky top-6">
-            <div className="flex items-center gap-2 mb-5">
-              <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: "var(--gradient-brand)" }}>
-                <Zap className="h-4 w-4 text-white" />
-              </div>
-              <div>
-                <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Add Task</h3>
-                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Assign to project &amp; team</p>
-              </div>
+            <div className="flex items-center gap-2 mb-4">
+              <PlusCircle className="h-5 w-5" style={{ color: "var(--accent-primary)" }} />
+              <h2 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Assign Task to Employee</h2>
             </div>
 
             {taskSuccess && <div className="alert-success mb-4"><CheckCircle2 className="h-4 w-4 shrink-0" />{taskSuccess}</div>}
             {taskError   && <div className="alert-danger  mb-4"><AlertCircle  className="h-4 w-4 shrink-0" />{taskError}</div>}
 
-            <form onSubmit={handleCreateTask} className="flex flex-col gap-4">
-
-              {/* Task Title */}
+            <form onSubmit={handleCreateTask} className="space-y-4">
               <div>
                 <label className="form-label">Task Title</label>
-                <input type="text" required value={title} onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Task title..." className="form-input" />
+                <input
+                  type="text"
+                  required
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Implement OAuth logic"
+                  className="form-input"
+                />
               </div>
 
-              {/* Task Type */}
               <div>
-                <label className="form-label">Task Type</label>
-                <select value={taskType} onChange={(e) => setTaskType(e.target.value)}
-                  className="form-select font-semibold">
-                  <option value="CURRENT">Current</option>
-                  <option value="NEW">New</option>
-                  <option value="UPDATION">Updation</option>
+                <label className="form-label">Task Type / Scope</label>
+                <select
+                  value={taskType}
+                  onChange={(e) => setTaskType(e.target.value)}
+                  className="form-select font-semibold"
+                >
+                  <option value="CURRENT">CURRENT TASK</option>
+                  <option value="NEW">NEW TASK</option>
+                  <option value="UPDATION">UPDATION TASK</option>
                 </select>
               </div>
 
-              {/* Select Project */}
-              <div>
-                <div className="flex justify-between items-center mb-1.5">
-                  <label className="form-label" style={{ marginBottom: 0 }}>Select Project</label>
-                  {projects.length === 0 && (
-                    <button type="button" onClick={() => setShowProjectModal(true)}
-                      className="text-xs font-bold underline" style={{ color: "var(--accent-primary)" }}>
-                      + New
-                    </button>
-                  )}
-                </div>
-                {projects.length === 0 ? (
-                  <div className="alert-warning"><AlertCircle className="h-4 w-4 shrink-0" />No projects yet. Create one first.</div>
-                ) : (
-                  <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="form-select font-semibold">
-                    {projects.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-
-              {/* Description */}
               <div>
                 <label className="form-label">Description</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Task details..." rows={3} className="form-input" style={{ resize: "none" }} />
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Task context, requirements, constraints..."
+                  rows={2}
+                  className="form-input"
+                  style={{ resize: "none" }}
+                />
               </div>
 
-              {/* Priority */}
               <div>
-                <label className="form-label">Priority</label>
-                <select value={priority} onChange={(e) => setPriority(e.target.value)} className="form-select font-semibold">
-                  <option value="NEW">New</option>
-                  <option value="UPDATING">Updating</option>
-                  <option value="URGENT">Urgent</option>
-                  <option value="PENDING">Pending</option>
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
-                  <option value="CRITICAL">Critical</option>
+                <label className="form-label">Target Project</label>
+                <select
+                  value={projectId}
+                  onChange={(e) => setProjectId(e.target.value)}
+                  className="form-select font-semibold"
+                >
+                  {projects.length === 0 ? (
+                    <option value="">No Projects Found</option>
+                  ) : (
+                    projects.map((p) => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))
+                  )}
                 </select>
               </div>
 
-              {/* Assignee */}
               <div>
                 <label className="form-label">Assignee</label>
-                <select value={assigneeId} onChange={(e) => setAssigneeId(e.target.value)} className="form-select font-semibold">
+                <select
+                  value={assigneeId}
+                  onChange={(e) => setAssigneeId(e.target.value)}
+                  className="form-select font-semibold"
+                >
                   <option value="">Unassigned</option>
-                  {employees.map((e) => (
-                    <option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>
+                  {employees.map((e: any) => (
+                    <option key={e.id} value={e.id}>
+                      {e.firstName} {e.lastName} ({e.position})
+                    </option>
                   ))}
                 </select>
               </div>
 
-              {/* Due Date */}
-              <div>
-                <label className="form-label">Due Date</label>
-                <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="form-input" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="form-label">Priority</label>
+                  <select
+                    value={priority}
+                    onChange={(e) => setPriority(e.target.value)}
+                    className="form-select font-semibold"
+                  >
+                    <option value="NEW">NEW</option>
+                    <option value="UPDATING">UPDATING</option>
+                    <option value="URGENT">URGENT</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="form-label">Due Date</label>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="form-input"
+                  />
+                </div>
               </div>
 
-              {/* Submit Button — always visible */}
               <button
                 type="submit"
                 disabled={taskFormLoading || projects.length === 0}
-                className="btn-primary w-full mt-1"
-                style={{ padding: "0.85rem" }}
+                className="btn-primary w-full py-3 mt-2 justify-center"
               >
-                {taskFormLoading
-                  ? <Loader2 className="h-4 w-4 animate-spin" />
-                  : <><PlusCircle className="h-4 w-4" /> Confirm Assignment</>}
+                {taskFormLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    <PlusCircle className="h-4 w-4" /> Confirm Assignment
+                  </>
+                )}
               </button>
             </form>
           </div>
         </div>
       </div>
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <div className="modal-overlay flex items-center justify-center p-4 z-50">
+          <div className="modal-content p-6 w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
+              <div>
+                <h3 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>Edit Task</h3>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Update task instructions, priority, or assignee</p>
+              </div>
+              <button onClick={() => setEditingTask(null)} className="h-8 w-8 rounded-lg flex items-center justify-center cursor-pointer" style={{ background: "var(--bg-hover)", color: "var(--text-muted)" }}>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTaskEdit} className="flex flex-col gap-4">
+              <div>
+                <label className="form-label">Task Title</label>
+                <input type="text" required value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="form-input" />
+              </div>
+
+              <div>
+                <label className="form-label">Description</label>
+                <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} className="form-input" style={{ resize: "none" }} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="form-label">Target Project</label>
+                  <select value={editProjId} onChange={(e) => setEditProjId(e.target.value)} className="form-select font-semibold">
+                    {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Assignee</label>
+                  <select value={editAssigneeId} onChange={(e) => setEditAssigneeId(e.target.value)} className="form-select font-semibold">
+                    <option value="">Unassigned</option>
+                    {employees.map((e: any) => <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.position})</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="form-label">Priority</label>
+                  <select value={editPriority} onChange={(e) => setEditPriority(e.target.value)} className="form-select font-semibold">
+                    <option value="NEW">NEW</option>
+                    <option value="UPDATING">UPDATING</option>
+                    <option value="URGENT">URGENT</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Due Date</label>
+                  <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="form-input" />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button type="button" onClick={() => setEditingTask(null)} className="btn-secondary flex-1">Cancel</button>
+                <button type="submit" disabled={editLoading} className="btn-primary flex-1">
+                  {editLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Project Modal */}
+      {showProjectModal && (
+        <div className="modal-overlay flex items-center justify-center p-4 z-50">
+          <div className="modal-content p-6 w-full max-w-md">
+            <div className="flex justify-between items-center mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
+              <div>
+                <h3 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>New Project Scope</h3>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Create a project container for tasks</p>
+              </div>
+              <button onClick={() => setShowProjectModal(false)} className="h-8 w-8 rounded-lg flex items-center justify-center cursor-pointer" style={{ background: "var(--bg-hover)", color: "var(--text-muted)" }}>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {projSuccess && <div className="alert-success mb-4">{projSuccess}</div>}
+            {projError   && <div className="alert-danger  mb-4">{projError}</div>}
+
+            <form onSubmit={handleCreateProject} className="flex flex-col gap-4">
+              <div>
+                <label className="form-label">Project Name</label>
+                <input type="text" required value={projName} onChange={(e) => setProjName(e.target.value)} placeholder="e.g. ERP AI Integration" className="form-input" />
+              </div>
+              <div>
+                <label className="form-label">Description</label>
+                <textarea value={projDesc} onChange={(e) => setProjDesc(e.target.value)} placeholder="Scope objectives..." rows={2} className="form-input" style={{ resize: "none" }} />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="form-label">Budget (Rs.)</label>
+                  <input type="number" required value={projBudget} onChange={(e) => setProjBudget(e.target.value)} placeholder="150000" className="form-input" />
+                </div>
+                <div>
+                  <label className="form-label">Start Date</label>
+                  <input type="date" value={projStartDate} onChange={(e) => setProjStartDate(e.target.value)} className="form-input" />
+                </div>
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button type="button" onClick={() => setShowProjectModal(false)} className="btn-secondary flex-1">Cancel</button>
+                <button type="submit" disabled={projLoading} className="btn-primary flex-1">
+                  {projLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Create Project"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
