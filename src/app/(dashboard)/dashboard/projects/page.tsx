@@ -111,6 +111,7 @@ export default function ProjectsDashboard() {
 
   useEffect(() => { loadData(); }, []);
 
+  const canAssignTask = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "HR_MANAGER"].includes(userRole);
   const canManageTasks = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "PROJECT_MANAGER"].includes(userRole);
 
   const canChangeTaskState = (task: any) => {
@@ -351,7 +352,7 @@ export default function ProjectsDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
         {/* Kanban Columns */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className={canAssignTask ? "lg:col-span-2 space-y-4" : "lg:col-span-3 space-y-4"}>
           <div className="flex items-center justify-between">
             <h2 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>Task Execution Board</h2>
             <span className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>Drag or update status below</span>
@@ -465,134 +466,136 @@ export default function ProjectsDashboard() {
           </div>
         </div>
 
-        {/* Task Form Panel */}
-        <div className="lg:col-span-1">
-          <div className="glass-panel p-6 sticky top-6">
-            <div className="flex items-center gap-2 mb-4">
-              <PlusCircle className="h-5 w-5" style={{ color: "var(--accent-primary)" }} />
-              <h2 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Assign Task to Employee</h2>
-            </div>
-
-            {taskSuccess && <div className="alert-success mb-4"><CheckCircle2 className="h-4 w-4 shrink-0" />{taskSuccess}</div>}
-            {taskError   && <div className="alert-danger  mb-4"><AlertCircle  className="h-4 w-4 shrink-0" />{taskError}</div>}
-
-            <form onSubmit={handleCreateTask} className="space-y-4">
-              <div>
-                <label className="form-label">Task Title</label>
-                <input
-                  type="text"
-                  required
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="e.g. Implement OAuth logic"
-                  className="form-input"
-                />
+        {/* Task Form Panel — ONLY FOR ADMIN, CEO, HR */}
+        {canAssignTask && (
+          <div className="lg:col-span-1">
+            <div className="glass-panel p-6 sticky top-6">
+              <div className="flex items-center gap-2 mb-4">
+                <PlusCircle className="h-5 w-5" style={{ color: "var(--accent-primary)" }} />
+                <h2 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Assign Task to Employee</h2>
               </div>
 
-              <div>
-                <label className="form-label">Task Type / Scope</label>
-                <select
-                  value={taskType}
-                  onChange={(e) => setTaskType(e.target.value)}
-                  className="form-select font-semibold"
-                >
-                  <option value="CURRENT">CURRENT TASK</option>
-                  <option value="NEW">NEW TASK</option>
-                  <option value="UPDATION">UPDATION TASK</option>
-                </select>
-              </div>
+              {taskSuccess && <div className="alert-success mb-4"><CheckCircle2 className="h-4 w-4 shrink-0" />{taskSuccess}</div>}
+              {taskError   && <div className="alert-danger  mb-4"><AlertCircle  className="h-4 w-4 shrink-0" />{taskError}</div>}
 
-              <div>
-                <label className="form-label">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Task context, requirements, constraints..."
-                  rows={2}
-                  className="form-input"
-                  style={{ resize: "none" }}
-                />
-              </div>
-
-              <div>
-                <label className="form-label">Target Project</label>
-                <select
-                  value={projectId}
-                  onChange={(e) => setProjectId(e.target.value)}
-                  className="form-select font-semibold"
-                >
-                  {projects.length === 0 ? (
-                    <option value="">No Projects Found</option>
-                  ) : (
-                    projects.map((p) => (
-                      <option key={p.id} value={p.id}>{p.name}</option>
-                    ))
-                  )}
-                </select>
-              </div>
-
-              <div>
-                <label className="form-label">Assignee</label>
-                <select
-                  value={assigneeId}
-                  onChange={(e) => setAssigneeId(e.target.value)}
-                  className="form-select font-semibold"
-                >
-                  <option value="">Unassigned</option>
-                  {employees.map((e: any) => (
-                    <option key={e.id} value={e.id}>
-                      {e.firstName} {e.lastName} ({e.position})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
+              <form onSubmit={handleCreateTask} className="space-y-4">
                 <div>
-                  <label className="form-label">Priority</label>
+                  <label className="form-label">Task Title</label>
+                  <input
+                    type="text"
+                    required
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="e.g. Implement OAuth logic"
+                    className="form-input"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">Task Type / Scope</label>
                   <select
-                    value={priority}
-                    onChange={(e) => setPriority(e.target.value)}
+                    value={taskType}
+                    onChange={(e) => setTaskType(e.target.value)}
                     className="form-select font-semibold"
                   >
-                    <option value="NEW">NEW</option>
-                    <option value="UPDATING">UPDATING</option>
-                    <option value="URGENT">URGENT</option>
-                    <option value="PENDING">PENDING</option>
-                    <option value="LOW">LOW</option>
-                    <option value="MEDIUM">MEDIUM</option>
-                    <option value="HIGH">HIGH</option>
-                    <option value="CRITICAL">CRITICAL</option>
+                    <option value="CURRENT">CURRENT TASK</option>
+                    <option value="NEW">NEW TASK</option>
+                    <option value="UPDATION">UPDATION TASK</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="form-label">Due Date</label>
-                  <input
-                    type="date"
-                    value={dueDate}
-                    onChange={(e) => setDueDate(e.target.value)}
+                  <label className="form-label">Description</label>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    placeholder="Task context, requirements, constraints..."
+                    rows={2}
                     className="form-input"
+                    style={{ resize: "none" }}
                   />
                 </div>
-              </div>
 
-              <button
-                type="submit"
-                disabled={taskFormLoading || projects.length === 0}
-                className="btn-primary w-full py-3 mt-2 justify-center"
-              >
-                {taskFormLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <PlusCircle className="h-4 w-4" /> Confirm Assignment
-                  </>
-                )}
-              </button>
-            </form>
+                <div>
+                  <label className="form-label">Target Project</label>
+                  <select
+                    value={projectId}
+                    onChange={(e) => setProjectId(e.target.value)}
+                    className="form-select font-semibold"
+                  >
+                    {projects.length === 0 ? (
+                      <option value="">No Projects Found</option>
+                    ) : (
+                      projects.map((p) => (
+                        <option key={p.id} value={p.id}>{p.name}</option>
+                      ))
+                    )}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="form-label">Assignee</label>
+                  <select
+                    value={assigneeId}
+                    onChange={(e) => setAssigneeId(e.target.value)}
+                    className="form-select font-semibold"
+                  >
+                    <option value="">Unassigned</option>
+                    {employees.map((e: any) => (
+                      <option key={e.id} value={e.id}>
+                        {e.firstName} {e.lastName} ({e.position})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="form-label">Priority</label>
+                    <select
+                      value={priority}
+                      onChange={(e) => setPriority(e.target.value)}
+                      className="form-select font-semibold"
+                    >
+                      <option value="NEW">NEW</option>
+                      <option value="UPDATING">UPDATING</option>
+                      <option value="URGENT">URGENT</option>
+                      <option value="PENDING">PENDING</option>
+                      <option value="LOW">LOW</option>
+                      <option value="MEDIUM">MEDIUM</option>
+                      <option value="HIGH">HIGH</option>
+                      <option value="CRITICAL">CRITICAL</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="form-label">Due Date</label>
+                    <input
+                      type="date"
+                      value={dueDate}
+                      onChange={(e) => setDueDate(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={taskFormLoading || projects.length === 0}
+                  className="btn-primary w-full py-3 mt-2 justify-center"
+                >
+                  {taskFormLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <PlusCircle className="h-4 w-4" /> Confirm Assignment
+                    </>
+                  )}
+                </button>
+              </form>
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Edit Task Modal */}

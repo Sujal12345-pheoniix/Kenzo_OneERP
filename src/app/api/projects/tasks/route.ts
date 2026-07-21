@@ -56,7 +56,15 @@ export async function POST(req: NextRequest) {
     const session = await getSession(req);
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { tenantId } = session;
+    const { tenantId, role } = session;
+    const canAssignTask = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "HR_MANAGER"].includes(role);
+    if (!canAssignTask) {
+      return NextResponse.json(
+        { error: "Forbidden. Task assignment is restricted to Admin, CEO, and HR roles only." },
+        { status: 403 }
+      );
+    }
+
     const body = await req.json();
     const { title, description, status, priority, projectId, assigneeId, dueDate } = body;
 
