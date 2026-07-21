@@ -210,7 +210,7 @@ function EmployeeProfileModal({
       />
 
       {/* Panel */}
-      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto bg-white rounded-3xl shadow-2xl shadow-slate-900/20 border border-slate-100 flex flex-col">
+      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto modal-content rounded-3xl shadow-2xl flex flex-col">
 
         {/* Header gradient banner */}
         <div className={`bg-gradient-to-br ${theme.gradient} px-8 pt-8 pb-6 rounded-t-3xl border-b ${theme.border} shrink-0`}>

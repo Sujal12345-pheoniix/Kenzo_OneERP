@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Send, Bot, Sparkles, Loader2, Play } from "lucide-react";
+import React, { useState, useRef, useEffect } from "react";
+import { Send, Bot, Sparkles, Loader2, Play, Zap } from "lucide-react";
 
 export default function CopilotHub() {
   const [messages, setMessages] = useState<any[]>([
@@ -12,16 +12,19 @@ export default function CopilotHub() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim() || loading) return;
-
     const userMessage = input.trim();
     setInput("");
     setMessages((prev) => [...prev, { sender: "USER", text: userMessage }]);
     setLoading(true);
-
     try {
       const res = await fetch("/api/copilot", {
         method: "POST",
@@ -30,104 +33,172 @@ export default function CopilotHub() {
       });
       const data = await res.json();
       setMessages((prev) => [...prev, { sender: "AI", text: data.reply }]);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setMessages((prev) => [...prev, { sender: "AI", text: "Error connecting to AI Orchestration core." }]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handlePresetPrompt = (promptText: string) => {
-    setInput(promptText);
-  };
-
   const presetQueries = [
-    "Draft a project roadmap task list for Jitendar Saini",
-    "List all employee emails and roles in the company",
-    "Show current financial margins and outstanding billing values",
-    "Find leads with values over Rs. 50,000 in CRM pipelines",
+    "Draft a project roadmap task list for the team",
+    "Show current financial margins and billing values",
+    "Find leads with values over Rs. 50,000 in CRM",
+    "Summarise active project delivery status",
   ];
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-4xl mx-auto h-[calc(100vh-80px)] text-slate-800">
-      
-      <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
-          AI Copilot Hub <span className="text-xs px-2 py-0.5 rounded-full bg-sky-50 text-sky-600 border border-sky-200 uppercase font-extrabold tracking-widest">Enterprise Beta</span>
+    <div
+      className="flex flex-col gap-6 w-full max-w-4xl mx-auto animate-fade-in-up"
+      style={{ color: "var(--text-primary)", height: "calc(100vh - 90px)" }}
+    >
+      {/* Header */}
+      <div className="pb-4" style={{ borderBottom: "1px solid var(--border-base)" }}>
+        <div className="section-eyebrow"><Zap className="h-4 w-4" /> AI Intelligence</div>
+        <h1 className="text-3xl font-black tracking-tight flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
+          Kenzo Copilot
+          <span className="badge" style={{ background: "rgba(99,102,241,0.12)", color: "var(--accent-primary)", fontSize: "0.6rem" }}>
+            ENTERPRISE BETA
+          </span>
         </h1>
-        <p className="text-slate-500 text-sm mt-1">Cross-module operational context analysis, automated drafting, and relational database queries.</p>
+        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+          Cross-module context analysis, automated drafting, and real-time database queries.
+        </p>
       </div>
 
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-4 gap-6 items-stretch">
-        
-        {/* Presets and Guidelines */}
-        <div className="lg:col-span-1 flex flex-col gap-4">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-4 gap-5">
+
+        {/* Preset prompts */}
+        <div className="lg:col-span-1 flex flex-col gap-3">
           <div className="glass-panel p-5 flex flex-col gap-3">
-            <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Interactive Prompts</span>
+            <span className="form-label">Quick Prompts</span>
             {presetQueries.map((q, idx) => (
               <button
                 key={idx}
-                onClick={() => handlePresetPrompt(q)}
-                className="w-full text-left p-3 rounded-xl bg-slate-50 border border-slate-100 hover:border-sky-300 text-slate-600 hover:text-slate-800 text-xs font-semibold leading-relaxed transition-all cursor-pointer flex gap-2 items-start"
+                onClick={() => setInput(q)}
+                className="w-full text-left p-3 rounded-xl cursor-pointer transition-all flex gap-2 items-start animate-fade-in-up"
+                style={{
+                  background: "var(--bg-input)",
+                  border: "1.5px solid var(--border-card)",
+                  color: "var(--text-secondary)",
+                  fontSize: "0.8rem",
+                  fontWeight: 600,
+                  lineHeight: 1.5,
+                  animationDelay: `${idx * 80}ms`,
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--accent-primary)";
+                  (e.currentTarget as HTMLButtonElement).style.color = "var(--text-primary)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = "var(--border-card)";
+                  (e.currentTarget as HTMLButtonElement).style.color = "var(--text-secondary)";
+                }}
               >
-                <Play className="h-3 w-3 text-sky-600 mt-0.5 shrink-0" />
+                <Play className="h-3.5 w-3.5 mt-0.5 shrink-0" style={{ color: "var(--accent-primary)" }} />
                 <span>{q}</span>
               </button>
             ))}
           </div>
+
+          {/* Tips */}
+          <div className="glass-panel p-4">
+            <p className="text-xs font-bold mb-2" style={{ color: "var(--accent-primary)" }}>💡 Try asking about</p>
+            {["Finance reports", "Project status", "Employee payroll", "Lead pipeline", "Email drafts"].map((t) => (
+              <p key={t} className="text-xs py-0.5" style={{ color: "var(--text-muted)" }}>• {t}</p>
+            ))}
+          </div>
         </div>
 
-        {/* Chat area */}
-        <div className="lg:col-span-3 flex flex-col glass-panel p-5 h-full min-h-0">
-          <div className="flex-1 overflow-y-auto pr-2 flex flex-col gap-4 mb-4">
+        {/* Chat window */}
+        <div className="lg:col-span-3 glass-panel p-5 flex flex-col min-h-0">
+          {/* Messages */}
+          <div className="flex-1 overflow-y-auto flex flex-col gap-4 mb-4 pr-1">
             {messages.map((m, idx) => {
               const isAi = m.sender === "AI";
               return (
-                <div key={idx} className={`flex gap-3 max-w-[85%] ${isAi ? "self-start" : "self-end flex-row-reverse"}`}>
-                  <div className={`h-8.5 w-8.5 rounded-xl border flex items-center justify-center shrink-0 ${
-                    isAi ? "bg-sky-50 border-sky-200 text-sky-600" : "bg-slate-100 border-slate-200 text-slate-700"
-                  }`}>
-                    {isAi ? <Bot className="h-4.5 w-4.5" /> : <Sparkles className="h-4.5 w-4.5" />}
+                <div
+                  key={idx}
+                  className={`flex gap-3 max-w-[88%] animate-fade-in-up ${isAi ? "self-start" : "self-end flex-row-reverse"}`}
+                  style={{ animationDelay: `${idx * 30}ms` }}
+                >
+                  {/* Avatar */}
+                  <div
+                    className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+                    style={
+                      isAi
+                        ? { background: "var(--gradient-brand)", boxShadow: "0 4px 12px var(--glow-primary)" }
+                        : { background: "var(--bg-hover)", border: "1.5px solid var(--border-base)" }
+                    }
+                  >
+                    {isAi
+                      ? <Bot className="h-4.5 w-4.5 text-white" />
+                      : <Sparkles className="h-4.5 w-4.5" style={{ color: "var(--accent-primary)" }} />}
                   </div>
-                  <div className={`p-4 rounded-2xl text-xs font-medium leading-relaxed ${
-                    isAi ? "bg-slate-50 border border-slate-100 text-slate-800" : "bg-sky-600 text-white"
-                  }`}>
-                    {m.text}
+
+                  {/* Bubble */}
+                  <div
+                    className="px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed"
+                    style={
+                      isAi
+                        ? {
+                            background: "var(--bg-card-alt)",
+                            border: "1.5px solid var(--border-card)",
+                            color: "var(--text-primary)",
+                            borderRadius: "4px 18px 18px 18px",
+                          }
+                        : {
+                            background: "var(--gradient-brand)",
+                            color: "#ffffff",
+                            borderRadius: "18px 4px 18px 18px",
+                          }
+                    }
+                  >
+                    <pre className="whitespace-pre-wrap font-sans" style={{ fontSize: "0.875rem" }}>{m.text}</pre>
                   </div>
                 </div>
               );
             })}
+
             {loading && (
-              <div className="flex gap-3 self-start items-center text-slate-400 text-xs font-bold pl-1 animate-pulse">
-                <Loader2 className="h-4 w-4 animate-spin text-sky-600" />
-                <span>AI is compiling context responses...</span>
+              <div className="flex gap-3 self-start items-center animate-fade-in">
+                <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: "var(--gradient-brand)" }}>
+                  <Bot className="h-4.5 w-4.5 text-white" />
+                </div>
+                <div className="px-4 py-3 rounded-2xl flex items-center gap-2" style={{ background: "var(--bg-card-alt)", border: "1.5px solid var(--border-card)" }}>
+                  <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--accent-primary)" }} />
+                  <span className="text-sm font-semibold" style={{ color: "var(--text-muted)" }}>Compiling response...</span>
+                </div>
               </div>
             )}
+            <div ref={bottomRef} />
           </div>
 
-          {/* Form input */}
-          <form onSubmit={handleSend} className="flex gap-3 pt-4 border-t border-slate-100 mt-auto">
+          {/* Input */}
+          <form
+            onSubmit={handleSend}
+            className="flex gap-3 pt-4 mt-auto"
+            style={{ borderTop: "1.5px solid var(--border-card)" }}
+          >
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={loading}
-              placeholder="Ask Copilot e.g. Draft a roadmap for Sujal Kumar..."
-              className="flex-1 px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 text-xs transition-all"
+              placeholder="Ask Copilot — e.g. Draft a financial summary report..."
+              className="form-input flex-1"
+              style={{ fontSize: "0.875rem" }}
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="px-4 py-3 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:bg-slate-200 text-white font-bold text-xs transition-all flex items-center justify-center cursor-pointer shadow-md shadow-sky-600/10"
+              className="btn-primary px-5"
             >
               <Send className="h-4 w-4" />
             </button>
           </form>
         </div>
-
       </div>
-
     </div>
   );
 }

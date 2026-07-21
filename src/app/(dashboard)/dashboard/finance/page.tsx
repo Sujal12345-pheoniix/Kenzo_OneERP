@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { PlusCircle, Loader2, FileText, DollarSign, CheckCircle2, AlertCircle, Plus, X } from "lucide-react";
+import { PlusCircle, Loader2, FileText, DollarSign, CheckCircle2, AlertCircle, Plus, X, Landmark, Receipt } from "lucide-react";
 
 export default function FinanceDashboard() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Record Debit Expense form state
+  // Debit Expense form state
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState("OPERATIONAL");
@@ -15,7 +15,7 @@ export default function FinanceDashboard() {
   const [expenseSuccess, setExpenseSuccess] = useState("");
   const [expenseError, setExpenseError] = useState("");
 
-  // Billing Invoice form state (Tab / Modal toggle)
+  // Invoice form
   const [showInvoiceForm, setShowInvoiceForm] = useState(false);
   const [invClientName, setInvClientName] = useState("");
   const [invAmount, setInvAmount] = useState("");
@@ -25,7 +25,7 @@ export default function FinanceDashboard() {
   const [invSuccess, setInvSuccess] = useState("");
   const [invError, setInvError] = useState("");
 
-  // Spending Ledger form state (Tab / Modal toggle)
+  // Spending Ledger form
   const [showSpendingForm, setShowSpendingForm] = useState(false);
   const [spendDesc, setSpendDesc] = useState("");
   const [spendAmount, setSpendAmount] = useState("");
@@ -46,32 +46,20 @@ export default function FinanceDashboard() {
     }
   };
 
-  useEffect(() => {
-    fetchFinanceData();
-  }, []);
+  useEffect(() => { fetchFinanceData(); }, []);
 
-  // Submit Debit Expense
   const handleCreateExpense = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormLoading(true);
-    setExpenseSuccess("");
-    setExpenseError("");
+    setFormLoading(true); setExpenseSuccess(""); setExpenseError("");
     try {
       const res = await fetch("/api/finance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "EXPENSE",
-          description,
-          amount: Number(amount),
-          category,
-        }),
+        body: JSON.stringify({ type: "EXPENSE", description, amount: Number(amount), category }),
       });
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.error || "Failed to record expense");
-      
-      setDescription("");
-      setAmount("");
+      setDescription(""); setAmount("");
       setExpenseSuccess("Expense record saved successfully!");
       await fetchFinanceData();
       setTimeout(() => setExpenseSuccess(""), 3500);
@@ -82,36 +70,21 @@ export default function FinanceDashboard() {
     }
   };
 
-  // Submit New Billing Invoice
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
-    setInvLoading(true);
-    setInvSuccess("");
-    setInvError("");
+    setInvLoading(true); setInvSuccess(""); setInvError("");
     try {
       const res = await fetch("/api/finance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "INVOICE",
-          customerName: invClientName,
-          amount: Number(invAmount),
-          status: invStatus,
-          dueDate: invDueDate || null,
-        }),
+        body: JSON.stringify({ type: "INVOICE", customerName: invClientName, amount: Number(invAmount), status: invStatus, dueDate: invDueDate || null }),
       });
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.error || "Failed to create invoice");
-
-      setInvClientName("");
-      setInvAmount("");
-      setInvDueDate("");
+      setInvClientName(""); setInvAmount(""); setInvDueDate("");
       setInvSuccess("Billing invoice registered successfully!");
       await fetchFinanceData();
-      setTimeout(() => {
-        setInvSuccess("");
-        setShowInvoiceForm(false);
-      }, 2000);
+      setTimeout(() => { setInvSuccess(""); setShowInvoiceForm(false); }, 1500);
     } catch (err: any) {
       setInvError(err.message || "An error occurred");
     } finally {
@@ -119,34 +92,21 @@ export default function FinanceDashboard() {
     }
   };
 
-  // Submit Spending Ledger entry
   const handleCreateSpending = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSpendLoading(true);
-    setSpendSuccess("");
-    setSpendError("");
+    setSpendLoading(true); setSpendSuccess(""); setSpendError("");
     try {
       const res = await fetch("/api/finance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          type: "EXPENSE",
-          description: spendDesc,
-          amount: Number(spendAmount),
-          category: spendCat,
-        }),
+        body: JSON.stringify({ type: "EXPENSE", description: spendDesc, amount: Number(spendAmount), category: spendCat }),
       });
       const resData = await res.json();
       if (!res.ok) throw new Error(resData.error || "Failed to log spending");
-
-      setSpendDesc("");
-      setSpendAmount("");
+      setSpendDesc(""); setSpendAmount("");
       setSpendSuccess("Spending logged in ledger!");
       await fetchFinanceData();
-      setTimeout(() => {
-        setSpendSuccess("");
-        setShowSpendingForm(false);
-      }, 2000);
+      setTimeout(() => { setSpendSuccess(""); setShowSpendingForm(false); }, 1500);
     } catch (err: any) {
       setSpendError(err.message || "An error occurred");
     } finally {
@@ -156,8 +116,9 @@ export default function FinanceDashboard() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 text-sky-600 animate-spin" />
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin mb-3 text-indigo-500" />
+        <span className="text-sm font-semibold text-slate-400">Loading Finance Control...</span>
       </div>
     );
   }
@@ -177,90 +138,84 @@ export default function FinanceDashboard() {
   const netIncome = totalRevenue - totalExpenses;
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto text-slate-800 pb-12">
-      <div>
-        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Finance Control</h1>
-        <p className="text-slate-500 text-sm mt-1">Real-time ledger audit tools, customer billing invoices, and operational expense tracking.</p>
+    <div className="flex flex-col gap-8 w-full max-w-6xl mx-auto pb-12 animate-fade-in-up" style={{ color: "var(--text-primary)" }}>
+      
+      {/* Header */}
+      <div className="pb-4" style={{ borderBottom: "1px solid var(--border-base)" }}>
+        <div className="section-eyebrow"><Landmark className="h-4 w-4" /> Treasury &amp; Cashflow</div>
+        <h1 className="text-3xl font-black tracking-tight" style={{ color: "var(--text-primary)" }}>Finance Control</h1>
+        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>Real-time ledger audit tools, customer billing invoices, and operational expense tracking.</p>
       </div>
 
-      {/* Stats summaries */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="glass-panel p-6">
-          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Total Invoiced Revenue</span>
-          <div className="text-2xl font-extrabold text-slate-900 mb-1">Rs. {totalRevenue.toLocaleString()}</div>
-          <span className="text-slate-500 text-xs font-medium">Cleared sales receipts</span>
+      {/* Stats KPI Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+        <div className="stat-card">
+          <span className="form-label mb-1">Total Invoiced Revenue</span>
+          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-success)" }}>Rs. {totalRevenue.toLocaleString()}</div>
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>Cleared receipts</span>
         </div>
-        <div className="glass-panel p-6">
-          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Outstanding Invoices</span>
-          <div className="text-2xl font-extrabold text-slate-900 mb-1">Rs. {pendingRevenue.toLocaleString()}</div>
-          <span className="text-slate-500 text-xs font-medium">Awaiting customer payment</span>
+        <div className="stat-card">
+          <span className="form-label mb-1">Outstanding Invoices</span>
+          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-warning)" }}>Rs. {pendingRevenue.toLocaleString()}</div>
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>Awaiting client payment</span>
         </div>
-        <div className="glass-panel p-6">
-          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Operational Expenses</span>
-          <div className="text-2xl font-extrabold text-rose-600 mb-1">Rs. {totalExpenses.toLocaleString()}</div>
-          <span className="text-slate-500 text-xs font-medium">Recorded company spending</span>
+        <div className="stat-card">
+          <span className="form-label mb-1">Operational Expenses</span>
+          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-danger)" }}>Rs. {totalExpenses.toLocaleString()}</div>
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>Recorded company spending</span>
         </div>
-        <div className="glass-panel p-6">
-          <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Net Cash Position</span>
-          <div className={`text-2xl font-extrabold mb-1 ${netIncome >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+        <div className="stat-card">
+          <span className="form-label mb-1">Net Cash Position</span>
+          <div className="text-2xl font-black mb-1" style={{ color: netIncome >= 0 ? "var(--accent-success)" : "var(--accent-danger)" }}>
             Rs. {netIncome.toLocaleString()}
           </div>
-          <span className="text-slate-500 text-xs font-medium">Cleared cash profit margins</span>
+          <span className="text-xs" style={{ color: "var(--text-muted)" }}>Cleared profit margin</span>
         </div>
       </div>
 
       {/* Main Grid Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        
-        {/* Left Columns (Invoices & Ledger) */}
-        <div className="lg:col-span-2 flex flex-col gap-8">
-          
-          {/* 1. Billing Invoice Registry */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* Invoices & Ledger */}
+        <div className="lg:col-span-2 flex flex-col gap-6">
+
+          {/* Billing Invoice Registry */}
           <div className="glass-panel p-6">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Billing Invoice Registry</h3>
-                <p className="text-xs text-slate-400">Track and issue customer billing invoices</p>
+                <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Billing Invoice Registry</h3>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Track and issue customer billing invoices</p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowInvoiceForm(!showInvoiceForm)}
-                className="px-3.5 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                className="btn-primary py-2 px-3.5 text-xs"
               >
                 {showInvoiceForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 {showInvoiceForm ? "Close Form" : "+ Add Invoice"}
               </button>
             </div>
 
-            {/* Expandable Form for Billing Invoice Registry */}
+            {/* Invoice Form */}
             {showInvoiceForm && (
-              <div className="mb-6 p-4 rounded-2xl bg-sky-50/70 border border-sky-200">
-                <h4 className="text-xs font-extrabold uppercase text-sky-800 tracking-wider mb-3">Register New Invoice</h4>
-                {invSuccess && <div className="mb-3 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">{invSuccess}</div>}
-                {invError && <div className="mb-3 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 p-2.5 rounded-xl">{invError}</div>}
-                <form onSubmit={handleCreateInvoice} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="mb-6 p-5 rounded-2xl animate-fade-in-up" style={{ background: "var(--bg-card-alt)", border: "1.5px solid var(--border-base)" }}>
+                <h4 className="text-xs font-black uppercase tracking-wider mb-4" style={{ color: "var(--accent-primary)" }}>Register New Invoice</h4>
+                {invSuccess && <div className="alert-success mb-3">{invSuccess}</div>}
+                {invError   && <div className="alert-danger mb-3">{invError}</div>}
+                <form onSubmit={handleCreateInvoice} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Client Reference / Customer</label>
-                    <input
-                      type="text" required value={invClientName} onChange={(e) => setInvClientName(e.target.value)}
-                      placeholder="e.g. Acme Corp Solutions"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:border-sky-500"
-                    />
+                    <label className="form-label">Client / Customer</label>
+                    <input type="text" required value={invClientName} onChange={(e) => setInvClientName(e.target.value)}
+                      placeholder="e.g. Acme Corp" className="form-input" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Invoice Value (Rs.)</label>
-                    <input
-                      type="number" required value={invAmount} onChange={(e) => setInvAmount(e.target.value)}
-                      placeholder="e.g. 50000"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:border-sky-500"
-                    />
+                    <label className="form-label">Value (Rs.)</label>
+                    <input type="number" required value={invAmount} onChange={(e) => setInvAmount(e.target.value)}
+                      placeholder="e.g. 50000" className="form-input" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Status</label>
-                    <select
-                      value={invStatus} onChange={(e) => setInvStatus(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:border-sky-500"
-                    >
+                    <label className="form-label">Status</label>
+                    <select value={invStatus} onChange={(e) => setInvStatus(e.target.value)} className="form-select font-semibold">
                       <option value="SENT">SENT (Outstanding)</option>
                       <option value="PAID">PAID (Cleared)</option>
                       <option value="DRAFT">DRAFT</option>
@@ -268,18 +223,12 @@ export default function FinanceDashboard() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Due Date</label>
-                    <input
-                      type="date" value={invDueDate} onChange={(e) => setInvDueDate(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:border-sky-500"
-                    />
+                    <label className="form-label">Due Date</label>
+                    <input type="date" value={invDueDate} onChange={(e) => setInvDueDate(e.target.value)} className="form-input" />
                   </div>
                   <div className="md:col-span-2 flex justify-end mt-1">
-                    <button
-                      type="submit" disabled={invLoading}
-                      className="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
-                    >
-                      {invLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save Invoice Record"}
+                    <button type="submit" disabled={invLoading} className="btn-primary">
+                      {invLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Invoice Record"}
                     </button>
                   </div>
                 </form>
@@ -288,39 +237,31 @@ export default function FinanceDashboard() {
 
             {/* Invoices Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-600">
+              <table className="premium-table">
                 <thead>
-                  <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                    <th className="pb-3">Invoice ID</th>
-                    <th className="pb-3">Client Reference</th>
-                    <th className="pb-3">Issue Date</th>
-                    <th className="pb-3 text-right">Invoice Value</th>
-                    <th className="pb-3 text-center">Status</th>
+                  <tr>
+                    <th>Invoice ID</th>
+                    <th>Client Reference</th>
+                    <th>Issue Date</th>
+                    <th className="text-right">Value</th>
+                    <th className="text-center">Status</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody>
                   {invoices.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="py-8 text-center text-slate-400 text-xs italic">
-                        No billing invoices recorded yet. Click "+ Add Invoice" to register one.
-                      </td>
+                      <td colSpan={5} className="text-center py-8" style={{ color: "var(--text-muted)" }}>No invoices registered yet.</td>
                     </tr>
                   ) : (
                     invoices.map((inv: any) => (
-                      <tr key={inv.id} className="hover:bg-slate-50">
-                        <td className="py-3.5 font-mono text-xs text-sky-600">
-                          {inv.invoiceNo || `#${inv.id.slice(0, 8).toUpperCase()}`}
-                        </td>
-                        <td className="py-3.5 font-semibold text-slate-900">{inv.customerName || inv.clientName || "—"}</td>
-                        <td className="py-3.5 text-slate-500">{new Date(inv.issueDate || inv.createdAt).toLocaleDateString()}</td>
-                        <td className="py-3.5 text-right font-semibold text-slate-900">Rs. {inv.amount?.toLocaleString()}</td>
-                        <td className="py-3.5 text-center">
-                          <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
-                            inv.status === "PAID"
-                              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                              : inv.status === "OVERDUE"
-                              ? "bg-rose-500/10 text-rose-600 border-rose-500/20"
-                              : "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                      <tr key={inv.id}>
+                        <td className="font-bold" style={{ color: "var(--accent-primary)" }}>{inv.invoiceNo || inv.id.slice(0,8)}</td>
+                        <td className="font-semibold">{inv.customerName || "N/A"}</td>
+                        <td style={{ color: "var(--text-muted)" }}>{new Date(inv.issueDate || inv.createdAt).toLocaleDateString()}</td>
+                        <td className="text-right font-black" style={{ color: "var(--accent-success)" }}>Rs. {(inv.amount || 0).toLocaleString()}</td>
+                        <td className="text-center">
+                          <span className={`badge ${
+                            inv.status === "PAID" ? "status-active" : inv.status === "OVERDUE" ? "status-danger" : "status-pending"
                           }`}>
                             {inv.status}
                           </span>
@@ -331,204 +272,141 @@ export default function FinanceDashboard() {
                 </tbody>
               </table>
             </div>
-
-            {/* End of Section Form Tab Trigger */}
-            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowInvoiceForm(true)}
-                className="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1.5 cursor-pointer"
-              >
-                <PlusCircle className="h-4 w-4" /> Open Billing Invoice Form Tab
-              </button>
-            </div>
           </div>
 
           {/* 2. Company Spending Ledger */}
           <div className="glass-panel p-6">
-            <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+            <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
               <div>
-                <h3 className="text-base font-bold text-slate-900">Company Spending Ledger</h3>
-                <p className="text-xs text-slate-400">Detailed record of corporate debits and operational expenses</p>
+                <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Company Spending Ledger</h3>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Audit ledger for all outgoing operational expenditure</p>
               </div>
               <button
                 type="button"
                 onClick={() => setShowSpendingForm(!showSpendingForm)}
-                className="px-3.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                className="btn-secondary py-2 px-3.5 text-xs"
               >
                 {showSpendingForm ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
                 {showSpendingForm ? "Close Form" : "+ Log Spending"}
               </button>
             </div>
 
-            {/* Expandable Form for Spending Ledger */}
+            {/* Spending Form */}
             {showSpendingForm && (
-              <div className="mb-6 p-4 rounded-2xl bg-slate-100/80 border border-slate-300">
-                <h4 className="text-xs font-extrabold uppercase text-slate-800 tracking-wider mb-3">Add Entry to Company Spending Ledger</h4>
-                {spendSuccess && <div className="mb-3 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 p-2.5 rounded-xl">{spendSuccess}</div>}
-                {spendError && <div className="mb-3 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 p-2.5 rounded-xl">{spendError}</div>}
-                <form onSubmit={handleCreateSpending} className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div className="mb-6 p-5 rounded-2xl animate-fade-in-up" style={{ background: "var(--bg-card-alt)", border: "1.5px solid var(--border-base)" }}>
+                <h4 className="text-xs font-black uppercase tracking-wider mb-4" style={{ color: "var(--accent-primary)" }}>Log Spending</h4>
+                {spendSuccess && <div className="alert-success mb-3">{spendSuccess}</div>}
+                {spendError   && <div className="alert-danger mb-3">{spendError}</div>}
+                <form onSubmit={handleCreateSpending} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Expense Description</label>
-                    <input
-                      type="text" required value={spendDesc} onChange={(e) => setSpendDesc(e.target.value)}
-                      placeholder="e.g. Cloud Server Subscriptions"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:border-sky-500"
-                    />
+                    <label className="form-label">Expense Description</label>
+                    <input type="text" required value={spendDesc} onChange={(e) => setSpendDesc(e.target.value)}
+                      placeholder="e.g. Cloud Server Subscriptions" className="form-input" />
                   </div>
                   <div>
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Debit Value (Rs.)</label>
-                    <input
-                      type="number" required value={spendAmount} onChange={(e) => setSpendAmount(e.target.value)}
-                      placeholder="e.g. 12500"
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:border-sky-500"
-                    />
+                    <label className="form-label">Debit Value (Rs.)</label>
+                    <input type="number" required value={spendAmount} onChange={(e) => setSpendAmount(e.target.value)}
+                      placeholder="e.g. 12500" className="form-input" />
                   </div>
                   <div className="md:col-span-2">
-                    <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Category</label>
-                    <select
-                      value={spendCat} onChange={(e) => setSpendCat(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs focus:outline-none focus:border-sky-500"
-                    >
+                    <label className="form-label">Category</label>
+                    <select value={spendCat} onChange={(e) => setSpendCat(e.target.value)} className="form-select font-semibold">
                       <option value="OPERATIONAL">Operational</option>
                       <option value="PAYROLL">Payroll</option>
                       <option value="MARKETING">Marketing</option>
-                      <option value="SOFTWARE_SaaS">Software & Cloud Services</option>
-                      <option value="FACILITIES">Facilities & Offices</option>
+                      <option value="SOFTWARE_SaaS">Software &amp; Cloud</option>
+                      <option value="FACILITIES">Facilities &amp; Office</option>
                     </select>
                   </div>
                   <div className="md:col-span-2 flex justify-end mt-1">
-                    <button
-                      type="submit" disabled={spendLoading}
-                      className="px-5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-md cursor-pointer"
-                    >
-                      {spendLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save Ledger Record"}
+                    <button type="submit" disabled={spendLoading} className="btn-primary">
+                      {spendLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Ledger Record"}
                     </button>
                   </div>
                 </form>
               </div>
             )}
 
-            {/* Ledger Table */}
+            {/* Expenses Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-sm text-slate-600">
+              <table className="premium-table">
                 <thead>
-                  <tr className="border-b border-slate-100 text-slate-400 text-xs font-bold uppercase tracking-wider">
-                    <th className="pb-3">Expense Description</th>
-                    <th className="pb-3">Category</th>
-                    <th className="pb-3">Log Date</th>
-                    <th className="pb-3 text-right">Debit Value</th>
+                  <tr>
+                    <th>Description</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th className="text-right">Debit Amount</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody>
                   {expenses.length === 0 ? (
                     <tr>
-                      <td colSpan={4} className="py-8 text-center text-slate-400 text-xs italic">
-                        No spending records found. Use "+ Log Spending" or the Record Debit Expense form to add entries.
-                      </td>
+                      <td colSpan={4} className="text-center py-8" style={{ color: "var(--text-muted)" }}>No spending entries logged yet.</td>
                     </tr>
                   ) : (
                     expenses.map((exp: any) => (
-                      <tr key={exp.id} className="hover:bg-slate-50">
-                        <td className="py-3.5 font-semibold text-slate-900">{exp.description}</td>
-                        <td className="py-3.5">
-                          <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                            {exp.category}
-                          </span>
+                      <tr key={exp.id}>
+                        <td className="font-semibold">{exp.description || "Expense Record"}</td>
+                        <td>
+                          <span className="badge status-info">{exp.category}</span>
                         </td>
-                        <td className="py-3.5 text-slate-500">{new Date(exp.createdAt || exp.date).toLocaleDateString()}</td>
-                        <td className="py-3.5 text-right font-semibold text-rose-600">Rs. {exp.amount?.toLocaleString()}</td>
+                        <td style={{ color: "var(--text-muted)" }}>{new Date(exp.date || exp.createdAt).toLocaleDateString()}</td>
+                        <td className="text-right font-black" style={{ color: "var(--accent-danger)" }}>Rs. {(exp.amount || 0).toLocaleString()}</td>
                       </tr>
                     ))
                   )}
                 </tbody>
               </table>
             </div>
-
-            {/* End of Section Form Tab Trigger */}
-            <div className="mt-4 pt-3 border-t border-slate-100 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowSpendingForm(true)}
-                className="text-xs font-bold text-slate-800 hover:text-slate-900 flex items-center gap-1.5 cursor-pointer"
-              >
-                <PlusCircle className="h-4 w-4" /> Open Spending Ledger Form Tab
-              </button>
-            </div>
           </div>
-
         </div>
 
-        {/* 3. Record Debit Expense Form Sidebar */}
-        <div>
+        {/* Debit Expense Form Sidebar */}
+        <div className="lg:col-span-1">
           <div className="glass-panel p-6 sticky top-6">
-            <h3 className="text-base font-bold text-slate-900 mb-4">Record Debit Expense</h3>
-            
-            {expenseSuccess && (
-              <div className="mb-4 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 p-3 rounded-xl flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600" />
-                {expenseSuccess}
+            <div className="flex items-center gap-2 mb-5">
+              <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: "var(--gradient-brand)" }}>
+                <Receipt className="h-4.5 w-4.5 text-white" />
               </div>
-            )}
-            
-            {expenseError && (
-              <div className="mb-4 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 p-3 rounded-xl flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 shrink-0 text-rose-600" />
-                {expenseError}
+              <div>
+                <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Record Debit Expense</h3>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Quick operational ledger log</p>
               </div>
-            )}
+            </div>
+
+            {expenseSuccess && <div className="alert-success mb-4">{expenseSuccess}</div>}
+            {expenseError   && <div className="alert-danger mb-4">{expenseError}</div>}
 
             <form onSubmit={handleCreateExpense} className="flex flex-col gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Description</label>
-                <input
-                  type="text"
-                  required
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="e.g. AWS Production Infrastructure"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 text-sm transition-all"
-                />
+                <label className="form-label">Expense Description</label>
+                <input type="text" required value={description} onChange={(e) => setDescription(e.target.value)}
+                  placeholder="e.g. Office Hardware Purchase" className="form-input" />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Debit Amount (Rs.)</label>
-                <input
-                  type="number"
-                  required
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="e.g. 1500"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 text-sm transition-all"
-                />
+                <label className="form-label">Amount (Rs.)</label>
+                <input type="number" required value={amount} onChange={(e) => setAmount(e.target.value)}
+                  placeholder="e.g. 15000" className="form-input" />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Expense Category</label>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 focus:outline-none focus:border-sky-500 text-sm transition-all"
-                >
+                <label className="form-label">Category</label>
+                <select value={category} onChange={(e) => setCategory(e.target.value)} className="form-select font-semibold">
                   <option value="OPERATIONAL">Operational</option>
-                  <option value="PAYROLL">Payroll</option>
-                  <option value="MARKETING">Marketing</option>
-                  <option value="SOFTWARE_SaaS">Software & Cloud Services</option>
-                  <option value="FACILITIES">Facilities & Offices</option>
+                  <option value="TRAVEL">Travel &amp; Logistics</option>
+                  <option value="SOFTWARE">Software Licences</option>
+                  <option value="MARKETING">Marketing &amp; Sales</option>
+                  <option value="OFFICE">Office Supplies</option>
                 </select>
               </div>
 
-              <button
-                type="submit"
-                disabled={formLoading}
-                className="w-full mt-2 py-3 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md shadow-sky-600/10 hover:-translate-y-0.5"
-              >
+              <button type="submit" disabled={formLoading} className="btn-primary w-full mt-2" style={{ padding: "0.85rem" }}>
                 {formLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><PlusCircle className="h-4 w-4" /> Save Expense Record</>}
               </button>
             </form>
           </div>
         </div>
-
       </div>
     </div>
   );
