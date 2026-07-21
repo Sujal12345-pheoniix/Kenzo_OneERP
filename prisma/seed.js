@@ -33,9 +33,9 @@ async function main() {
 
   const passwordHash = await bcrypt.hash("password123", 10);
 
-  console.log("Creating target users...");
+  console.log("Creating target users with updated positions & roles...");
 
-  // 1. Jitendar Saini - Company Admin
+  // 1. Jitendar Saini - CEO (admin@kenzo.com)
   const userAdmin = await prisma.user.create({
     data: {
       email: "admin@kenzo.com",
@@ -52,14 +52,14 @@ async function main() {
       userId: userAdmin.id,
       firstName: "Jitendar",
       lastName: "Saini",
-      department: "ADMINISTRATION",
-      position: "Company Administrator",
+      department: "MANAGEMENT",
+      position: "CEO",
       status: "ACTIVE",
-      salary: 120000,
+      salary: 250000,
     },
   });
 
-  // 2. Ankit Sethi - CEO
+  // 2. Ankit Sethi - Bussiness and Sales Head (ceo@kenzo.com)
   const userCeo = await prisma.user.create({
     data: {
       email: "ceo@kenzo.com",
@@ -76,14 +76,14 @@ async function main() {
       userId: userCeo.id,
       firstName: "Ankit",
       lastName: "Sethi",
-      department: "MANAGEMENT",
-      position: "Chief Executive Officer",
+      department: "SALES",
+      position: "Bussiness and Sales Head",
       status: "ACTIVE",
-      salary: 250000,
+      salary: 200000,
     },
   });
 
-  // 3. Chanchal Saini - HR Manager
+  // 3. Chanchal Saini - Managing Director (hr@kenzo.com)
   const userHr = await prisma.user.create({
     data: {
       email: "hr@kenzo.com",
@@ -100,14 +100,14 @@ async function main() {
       userId: userHr.id,
       firstName: "Chanchal",
       lastName: "Saini",
-      department: "HR",
-      position: "HR Manager",
+      department: "MANAGEMENT",
+      position: "Managing Director",
       status: "ACTIVE",
-      salary: 80000,
+      salary: 180000,
     },
   });
 
-  // 4. Sujal Kumar - Developer
+  // 4. Sujal Kumar - Developer (dev@kenzo.com)
   const userDev = await prisma.user.create({
     data: {
       email: "dev@kenzo.com",
@@ -131,7 +131,7 @@ async function main() {
     },
   });
 
-  // 5. Laxmi Narayan Ojha - Project Manager
+  // 5. Laxmi Narayan Ojha - Field Sales Executive (pm@kenzo.com)
   const userPm = await prisma.user.create({
     data: {
       email: "pm@kenzo.com",
@@ -148,14 +148,26 @@ async function main() {
       userId: userPm.id,
       firstName: "Laxmi Narayan",
       lastName: "Ojha",
-      department: "ENGINEERING",
-      position: "Project Manager",
+      department: "SALES",
+      position: "Field Sales Executive",
       status: "ACTIVE",
       salary: 110000,
     },
   });
 
-  console.log("Database reset and customized users seeded successfully!");
+  // Default project
+  await prisma.project.create({
+    data: {
+      tenantId: tenantKenzo.id,
+      name: "General Corporate Operations",
+      description: "Core operational scope & assigned task lane",
+      status: "ACTIVE",
+      budget: 100000,
+      startDate: new Date(),
+    },
+  });
+
+  console.log("Database successfully seeded with updated roles and positions!");
 }
 
 main()

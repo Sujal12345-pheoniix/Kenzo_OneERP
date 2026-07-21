@@ -89,8 +89,8 @@ export default function Home() {
             <Sparkles className="h-8 w-8 text-white" />
           </div>
           <img src="/logo.png" alt="Kenzo Logo" className="h-10 w-auto object-contain mb-2" />
-          <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-            Enterprise Resource Planning Platform
+          <p className="text-sm font-black tracking-tight mt-1" style={{ color: "var(--text-primary)" }}>
+            The ERP System - Manage Everything
           </p>
         </div>
 

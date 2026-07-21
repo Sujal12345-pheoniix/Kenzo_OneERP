@@ -953,7 +953,7 @@ export default function ExecutiveHub() {
                 <div className="h-8 w-8 rounded-full bg-slate-105 text-slate-700 font-bold flex items-center justify-center text-xs">CS</div>
                 <div>
                   <span className="text-xs font-bold text-slate-800 block">Chanchal Saini</span>
-                  <span className="text-[10px] text-slate-450 block">HR Manager | July 16 - July 16</span>
+                  <span className="text-[10px] text-slate-450 block">Managing Director | July 16 - July 16</span>
                 </div>
               </div>
             </div>
