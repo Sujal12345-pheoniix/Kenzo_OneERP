@@ -26,6 +26,7 @@ import {
   Moon,
   Sparkles,
   Zap,
+  ArrowUpRight,
 } from "lucide-react";
 
 /* ─────────────────────────── Types ─────────────────────────── */
@@ -434,6 +435,37 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen,     setSidebarOpen]     = useState(false);
   const [hasUnread,       setHasUnread]       = useState(false);
   const [hasHighPriority, setHasHighPriority] = useState(false);
+  const [latestTask,      setLatestTask]      = useState<any>(null);
+  const [showTaskPopup,   setShowTaskPopup]   = useState(false);
+
+  const checkAssignedTaskPopup = useCallback(async (curUser: any) => {
+    if (!curUser) return;
+    try {
+      const res = await fetch("/api/projects/tasks");
+      if (!res.ok) return;
+      const tasksList = await res.json();
+      if (Array.isArray(tasksList) && tasksList.length > 0) {
+        const myTask = tasksList.find((t: any) => {
+          if (!t || t.status === "DONE" || !t.assignee) return false;
+          const matchUserId = t.assignee.userId === curUser.id;
+          const matchEmail  = t.assignee.email === curUser.email || t.assignee.user?.email === curUser.email;
+          const empFullName = `${t.assignee.firstName || ''} ${t.assignee.lastName || ''}`.trim().toLowerCase();
+          const matchName   = empFullName === (curUser.name || '').trim().toLowerCase();
+          return matchUserId || matchEmail || matchName;
+        });
+
+        if (myTask) {
+          setLatestTask(myTask);
+          setShowTaskPopup(true);
+        } else {
+          setLatestTask(null);
+          setShowTaskPopup(false);
+        }
+      }
+    } catch (e) {
+      console.error("Task popup fetch error:", e);
+    }
+  }, []);
 
   /* ── Mark notices as read ── */
   const markNoticesRead = useCallback(() => {
@@ -484,20 +516,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         if (data.authenticated) {
           setUser(data.user);
           checkUnread();
+          checkAssignedTaskPopup(data.user);
         } else {
           router.push("/");
         }
         setLoading(false);
       })
       .catch(() => { router.push("/"); });
-  }, [router, checkUnread]);
+  }, [router, checkUnread, checkAssignedTaskPopup]);
 
-  /* ── Poll for new notices every 60 seconds ── */
+  /* ── Poll for new notices and tasks ── */
   useEffect(() => {
     if (!user) return;
-    const interval = setInterval(checkUnread, 60_000);
+    const interval = setInterval(() => {
+      checkUnread();
+      checkAssignedTaskPopup(user);
+    }, 20_000);
     return () => clearInterval(interval);
-  }, [user, checkUnread]);
+  }, [user, checkUnread, checkAssignedTaskPopup]);
 
   /* ── Auto-clear dot when navigating to notices ── */
   useEffect(() => {
@@ -649,6 +685,70 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 flex flex-col h-full overflow-y-auto relative z-10 pt-16 md:pt-0">
         <div className="flex-1 px-4 py-5 md:px-8 md:py-8">{children}</div>
       </main>
+
+      {/* Global Assigned Task Pop-Up (Hovering & 30s Zoom Pulse across ALL Dashboards & HR Portal) */}
+      {showTaskPopup && latestTask && (
+        <div
+          className="fixed bottom-6 right-6 z-50 w-full max-w-sm p-4 rounded-2xl shadow-2xl task-popup-floating flex flex-col gap-3"
+          style={{
+            background: "#0b1329",
+            border: "1px solid rgba(99, 102, 241, 0.4)",
+            color: "#ffffff",
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold text-sky-400 uppercase tracking-wider">
+              <Zap className="h-4 w-4 animate-pulse text-amber-400" />
+              Assigned Work &amp; Task Pop-Up
+            </div>
+            <button
+              onClick={() => setShowTaskPopup(false)}
+              className="h-6 w-6 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <div>
+            <h4 className="font-extrabold text-sm text-white">{latestTask.title}</h4>
+            <p className="text-slate-400 text-xs mt-1 line-clamp-2">
+              {latestTask.description || "Active task instructions attached to your project."}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+              Project: {latestTask.project?.name || "Corporate Project"}
+            </span>
+            <span className={`px-2 py-0.5 rounded-full border ${
+              latestTask.priority === "URGENT" || latestTask.priority === "CRITICAL"
+                ? "bg-red-500/20 text-red-300 border-red-500/30"
+                : latestTask.priority === "NEW"
+                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                : latestTask.priority === "UPDATING"
+                ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                : "bg-amber-500/20 text-amber-300 border-amber-500/30"
+            }`}>
+              {latestTask.priority || "HIGH"}
+            </span>
+            {latestTask.assignee && (
+              <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                Assigned: {latestTask.assignee.firstName} {latestTask.assignee.lastName?.slice(0, 1)}.
+              </span>
+            )}
+          </div>
+
+          <button
+            onClick={() => {
+              setShowTaskPopup(false);
+              router.push("/dashboard/projects");
+            }}
+            className="mt-1 w-full py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-sky-500/20 hover:scale-[1.02]"
+          >
+            <ArrowUpRight className="h-4 w-4" /> View Work &amp; Redirect to Task
+          </button>
+        </div>
+      )}
     </div>
   );
 }
