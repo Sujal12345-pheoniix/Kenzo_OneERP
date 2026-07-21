@@ -629,7 +629,7 @@ export default function HRMSDashboard() {
                         </td>
                         <td>
                           <span className="badge status-info">
-                            {emp.user?.role || emp.role}
+                            {emp.position || emp.user?.role || emp.role}
                           </span>
                         </td>
                         <td style={{ color: "var(--text-muted)" }}>{emp.user?.email || emp.email}</td>

@@ -400,7 +400,7 @@ function SidebarContent({
                 className="h-1.5 w-1.5 rounded-full shrink-0"
                 style={{ background: rc.dot }}
               />
-              {rc.label}
+              {user?.employee?.position || rc.label}
             </span>
           </div>
         </div>
