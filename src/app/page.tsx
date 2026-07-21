@@ -79,18 +79,12 @@ export default function Home() {
           className="flex flex-col items-center mb-8 pb-6"
           style={{ borderBottom: "1px solid var(--border-base)" }}
         >
-          <div
-            className="h-16 w-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
-            style={{
-              background: "var(--gradient-brand)",
-              boxShadow: "0 8px 30px var(--glow-primary)",
-            }}
-          >
-            <Sparkles className="h-8 w-8 text-white" />
-          </div>
-          <img src="/logo.png" alt="Kenzo Logo" className="h-10 w-auto object-contain mb-2" />
-          <p className="text-sm font-black tracking-tight mt-1" style={{ color: "var(--text-primary)" }}>
+          <img src="/logo.png" alt="Kenzo Logo" className="h-12 w-auto object-contain mb-3 drop-shadow" />
+          <p className="text-base font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
             The ERP System - Manage Everything
+          </p>
+          <p className="text-xs mt-1 font-medium" style={{ color: "var(--text-muted)" }}>
+            Enterprise Resource Planning &amp; AI Intelligence Portal
           </p>
         </div>
 
