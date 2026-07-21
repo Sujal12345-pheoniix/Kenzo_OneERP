@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   PlusCircle, Loader2, CalendarDays, CheckCircle2, Clock, X,
   ChevronLeft, ChevronRight, UserCheck, AlertCircle, Sparkles, ClipboardList,
-  Briefcase, FileText, UserPlus, Eye, Filter, Check, ShieldAlert, Award
+  Briefcase, FileText, UserPlus, Eye, Filter, Check, ShieldAlert, Award,
+  Pencil, Trash2, ArrowUpRight, Zap
 } from "lucide-react";
 
 /* ─── Attendance color map ───────────────────────────────────── */
@@ -224,10 +226,15 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
 
 /* ─── Main HRMS & Recruitment Dashboard ───────────────────────── */
 export default function HRMSDashboard() {
+  const router = useRouter();
   const [data, setData]               = useState<any>(null);
   const [loading, setLoading]         = useState(true);
   const [userRole, setUserRole]       = useState("");
   const [sessionUser, setSessionUser] = useState<any>(null);
+
+  // Task Popup state
+  const [latestTask, setLatestTask]     = useState<any>(null);
+  const [showTaskPopup, setShowTaskPopup] = useState(false);
 
   // Tab State
   const [activeTab, setActiveTab]     = useState<"roster" | "projects" | "applications">("roster");
@@ -252,9 +259,18 @@ export default function HRMSDashboard() {
   const [taskLoading, setTaskLoading] = useState(false);
   const [taskMsg, setTaskMsg]         = useState("");
 
+  // Task Edit Modal
+  const [editingTask, setEditingTask]       = useState<any>(null);
+  const [editTitle, setEditTitle]           = useState("");
+  const [editDesc, setEditDesc]             = useState("");
+  const [editPriority, setEditPriority]     = useState("MEDIUM");
+  const [editAssigneeId, setEditAssigneeId] = useState("");
+  const [editProjId, setEditProjId]         = useState("");
+  const [editDueDate, setEditDueDate]       = useState("");
+  const [editLoading, setEditLoading]       = useState(false);
+
   // Job Applications State
   const [applications, setApplications] = useState<any[]>([]);
-  const [appLoading, setAppLoading]     = useState(false);
   const [showAddAppModal, setShowAddAppModal] = useState(false);
   const [selectedApp, setSelectedApp]   = useState<any>(null);
 
@@ -269,25 +285,54 @@ export default function HRMSDashboard() {
 
   const fetchHRData = async () => {
     try {
-      const [resHrms, resProj, resTasks, resApps] = await Promise.all([
+      const [resSess, resHrms, resProj, resTasks, resApps] = await Promise.all([
+        fetch("/api/auth/session"),
         fetch("/api/hrms"),
         fetch("/api/projects"),
         fetch("/api/projects/tasks"),
         fetch("/api/hrms/applications"),
       ]);
+      const jsonSess  = await resSess.json();
       const jsonHrms  = await resHrms.json();
       const jsonProj  = await resProj.json();
       const jsonTasks = await resTasks.json();
       const jsonApps  = await resApps.json();
 
+      if (jsonSess.authenticated) {
+        setUserRole(jsonSess.user.role);
+        setSessionUser(jsonSess.user);
+      }
+
       setData(jsonHrms);
       const projList = Array.isArray(jsonProj) ? jsonProj : (jsonProj.projects || []);
       setHrProjects(projList);
-      setHrTasks(Array.isArray(jsonTasks) ? jsonTasks : []);
+      const allTasks = Array.isArray(jsonTasks) ? jsonTasks : [];
+      setHrTasks(allTasks);
       setApplications(jsonApps.applications || []);
 
       if (projList.length > 0) setTaskProjId(projList[0].id);
       if (jsonHrms.employees?.length > 0) setTaskAssigneeId(jsonHrms.employees[0].id);
+
+      // Check Task Notification Popup strictly for logged in user
+      if (jsonSess.authenticated && allTasks.length > 0) {
+        const curUser = jsonSess.user;
+        const myTask = allTasks.find((t: any) => {
+          if (!t || t.status === "DONE" || !t.assignee) return false;
+          const matchUserId = t.assignee.userId === curUser.id;
+          const matchEmail  = t.assignee.email === curUser.email || t.assignee.user?.email === curUser.email;
+          const empFullName = `${t.assignee.firstName || ''} ${t.assignee.lastName || ''}`.trim().toLowerCase();
+          const matchName   = empFullName === (curUser.name || '').trim().toLowerCase();
+          return matchUserId || matchEmail || matchName;
+        });
+
+        if (myTask) {
+          setLatestTask(myTask);
+          setShowTaskPopup(true);
+        } else {
+          setLatestTask(null);
+          setShowTaskPopup(false);
+        }
+      }
 
     } catch (err) {
       console.error("Fetch HR Data error:", err);
@@ -297,14 +342,6 @@ export default function HRMSDashboard() {
   };
 
   useEffect(() => {
-    fetch("/api/auth/session")
-      .then((r) => r.json())
-      .then((sess) => {
-        if (sess.authenticated) {
-          setUserRole(sess.user.role);
-          setSessionUser(sess.user);
-        }
-      });
     fetchHRData();
   }, []);
 
@@ -355,6 +392,74 @@ export default function HRMSDashboard() {
       console.error("Assign task error:", err);
     } finally {
       setTaskLoading(false);
+    }
+  };
+
+  const handleUpdateTaskStatus = async (taskId: string, newStatus: string) => {
+    try {
+      const res = await fetch("/api/projects/tasks", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: taskId, status: newStatus }),
+      });
+      if (res.ok) {
+        await fetchHRData();
+      }
+    } catch (err) {
+      console.error("Update task status error:", err);
+    }
+  };
+
+  const handleDeleteTask = async (taskId: string) => {
+    if (!confirm("Are you sure you want to delete this task?")) return;
+    try {
+      const res = await fetch(`/api/projects/tasks?id=${taskId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        await fetchHRData();
+      }
+    } catch (err) {
+      console.error("Delete task error:", err);
+    }
+  };
+
+  const openEditTaskModal = (task: any) => {
+    setEditingTask(task);
+    setEditTitle(task.title || "");
+    setEditDesc(task.description || "");
+    setEditPriority(task.priority || "MEDIUM");
+    setEditAssigneeId(task.assigneeId || "");
+    setEditProjId(task.projectId || "");
+    setEditDueDate(task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "");
+  };
+
+  const handleSaveTaskEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTask) return;
+    setEditLoading(true);
+    try {
+      const res = await fetch("/api/projects/tasks", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: editingTask.id,
+          title: editTitle,
+          description: editDesc,
+          priority: editPriority,
+          assigneeId: editAssigneeId || null,
+          projectId: editProjId,
+          dueDate: editDueDate || null,
+        }),
+      });
+      if (res.ok) {
+        setEditingTask(null);
+        await fetchHRData();
+      }
+    } catch (err) {
+      console.error("Save task edit error:", err);
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -417,7 +522,8 @@ export default function HRMSDashboard() {
   const leaves    = data?.leaves || [];
   const payrollTotal = employees.reduce((sum: number, e: any) => sum + e.salary, 0);
 
-  const isPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR"].includes(userRole);
+  const isPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "HR_MANAGER"].includes(userRole);
+  const canAssignTask = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "HR_MANAGER"].includes(userRole);
   const showCalendar = !["COMPANY_ADMIN", "SUPER_ADMIN", "CEO"].includes(userRole) && userRole !== "";
 
   // Recruitment Stats
@@ -622,7 +728,7 @@ export default function HRMSDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in-up">
           
           {/* Active Tasks Board */}
-          <div className="lg:col-span-2 flex flex-col gap-6">
+          <div className={canAssignTask ? "lg:col-span-2 flex flex-col gap-6" : "lg:col-span-3 flex flex-col gap-6"}>
             <div className="glass-panel p-6">
               <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
                 <div>
@@ -636,23 +742,31 @@ export default function HRMSDashboard() {
                 <table className="premium-table">
                   <thead>
                     <tr>
-                      <th>Task Title</th>
+                      <th>Task Title &amp; Description</th>
                       <th>Project Context</th>
                       <th>Assigned To</th>
                       <th>Priority</th>
-                      <th>Status</th>
+                      <th>Status &amp; Move</th>
+                      {isPrivileged && <th className="text-center">Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {hrTasks.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="text-center py-8" style={{ color: "var(--text-muted)" }}>No tasks published yet.</td>
+                        <td colSpan={6} className="text-center py-8" style={{ color: "var(--text-muted)" }}>No tasks published yet.</td>
                       </tr>
                     ) : (
                       hrTasks.map((t: any) => (
                         <tr key={t.id}>
-                          <td className="font-bold">{t.title}</td>
-                          <td className="font-semibold" style={{ color: "var(--accent-primary)" }}>{t.project?.name || "Corporate"}</td>
+                          <td>
+                            <span className="font-extrabold block text-sm">{t.title}</span>
+                            {t.description && (
+                              <span className="text-xs block mt-0.5 max-w-xs line-clamp-2" style={{ color: "var(--text-muted)" }}>
+                                {t.description}
+                              </span>
+                            )}
+                          </td>
+                          <td className="font-semibold text-xs" style={{ color: "var(--accent-primary)" }}>{t.project?.name || "Corporate"}</td>
                           <td>
                             {t.assignee ? (
                               <span className="font-bold text-xs" style={{ color: "var(--text-primary)" }}>
@@ -664,10 +778,44 @@ export default function HRMSDashboard() {
                           </td>
                           <td><span className="badge status-warning">{t.priority}</span></td>
                           <td>
-                            <span className={`badge ${t.status === "DONE" ? "status-active" : "status-pending"}`}>
-                              {t.status}
-                            </span>
+                            {/* Interactive Status Selector Dropdown */}
+                            <select
+                              value={t.status}
+                              onChange={(e) => handleUpdateTaskStatus(t.id, e.target.value)}
+                              className="rounded-lg px-2.5 py-1.5 text-xs font-bold cursor-pointer"
+                              style={{
+                                background: "var(--bg-input)",
+                                color: t.status === "DONE" ? "var(--accent-success)" : t.status === "IN_PROGRESS" ? "var(--accent-warning)" : "var(--text-primary)",
+                                border: "1px solid var(--border-card)",
+                                outline: "none",
+                              }}
+                            >
+                              <option value="TODO">To Do</option>
+                              <option value="IN_PROGRESS">In Progress</option>
+                              <option value="REVIEW">In Review</option>
+                              <option value="DONE">Done</option>
+                            </select>
                           </td>
+                          {isPrivileged && (
+                            <td className="text-center">
+                              <div className="flex items-center justify-center gap-1.5">
+                                <button
+                                  onClick={() => openEditTaskModal(t)}
+                                  title="Edit Task"
+                                  className="p-1.5 rounded-lg hover:bg-slate-500/20 text-slate-400 hover:text-sky-400 cursor-pointer transition-all"
+                                >
+                                  <Pencil className="h-3.5 w-3.5" />
+                                </button>
+                                <button
+                                  onClick={() => handleDeleteTask(t.id)}
+                                  title="Delete Task"
+                                  className="p-1.5 rounded-lg hover:bg-red-500/20 text-slate-400 hover:text-red-400 cursor-pointer transition-all"
+                                >
+                                  <Trash2 className="h-3.5 w-3.5" />
+                                </button>
+                              </div>
+                            </td>
+                          )}
                         </tr>
                       ))
                     )}
@@ -677,72 +825,74 @@ export default function HRMSDashboard() {
             </div>
           </div>
 
-          {/* Assign Task Sidebar */}
-          <div className="lg:col-span-1">
-            <div className="glass-panel p-6 sticky top-6">
-              <div className="flex items-center gap-2 mb-4">
-                <ClipboardList className="h-5 w-5" style={{ color: "var(--accent-primary)" }} />
-                <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Assign Task to Staff</h3>
+          {/* Assign Task Sidebar — ONLY FOR ADMIN, CEO, HR */}
+          {canAssignTask && (
+            <div className="lg:col-span-1">
+              <div className="glass-panel p-6 sticky top-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <ClipboardList className="h-5 w-5" style={{ color: "var(--accent-primary)" }} />
+                  <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Assign Task to Staff</h3>
+                </div>
+
+                {taskMsg && <div className="alert-success mb-4">{taskMsg}</div>}
+
+                <form onSubmit={handleAssignTask} className="flex flex-col gap-4">
+                  <div>
+                    <label className="form-label">Task Title</label>
+                    <input type="text" required value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} placeholder="e.g. Conduct Q3 Staff Performance Review" className="form-input" />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Description</label>
+                    <textarea value={taskDesc} onChange={(e) => setTaskDesc(e.target.value)} placeholder="Task instructions & scope..." rows={2} className="form-input" style={{ resize: "none" }} />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Select Project</label>
+                    <select value={taskProjId} onChange={(e) => setTaskProjId(e.target.value)} className="form-select font-semibold">
+                      {hrProjects.length === 0 ? (
+                        <option value="">General Corporate Operations</option>
+                      ) : (
+                        hrProjects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="form-label">Assignee</label>
+                    <select value={taskAssigneeId} onChange={(e) => setTaskAssigneeId(e.target.value)} className="form-select font-semibold">
+                      {employees.map((e: any) => (
+                        <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.position})</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="form-label">Priority</label>
+                    <select value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)} className="form-select font-semibold">
+                      <option value="NEW">NEW</option>
+                      <option value="UPDATING">UPDATING</option>
+                      <option value="URGENT">URGENT</option>
+                      <option value="PENDING">PENDING</option>
+                      <option value="LOW">LOW</option>
+                      <option value="MEDIUM">MEDIUM</option>
+                      <option value="HIGH">HIGH</option>
+                      <option value="CRITICAL">CRITICAL</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="form-label">Due Date</label>
+                    <input type="date" value={taskDueDate} onChange={(e) => setTaskDueDate(e.target.value)} className="form-input" />
+                  </div>
+
+                  <button type="submit" disabled={taskLoading} className="btn-primary w-full mt-2" style={{ padding: "0.85rem" }}>
+                    {taskLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Publish &amp; Confirm Assignment"}
+                  </button>
+                </form>
               </div>
-
-              {taskMsg && <div className="alert-success mb-4">{taskMsg}</div>}
-
-              <form onSubmit={handleAssignTask} className="flex flex-col gap-4">
-                <div>
-                  <label className="form-label">Task Title</label>
-                  <input type="text" required value={taskTitle} onChange={(e) => setTaskTitle(e.target.value)} placeholder="e.g. Conduct Q3 Staff Performance Review" className="form-input" />
-                </div>
-
-                <div>
-                  <label className="form-label">Description</label>
-                  <textarea value={taskDesc} onChange={(e) => setTaskDesc(e.target.value)} placeholder="Task instructions & scope..." rows={2} className="form-input" style={{ resize: "none" }} />
-                </div>
-
-                <div>
-                  <label className="form-label">Select Project</label>
-                  <select value={taskProjId} onChange={(e) => setTaskProjId(e.target.value)} className="form-select font-semibold">
-                    {hrProjects.length === 0 ? (
-                      <option value="">General Corporate Operations</option>
-                    ) : (
-                      hrProjects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)
-                    )}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="form-label">Assignee</label>
-                  <select value={taskAssigneeId} onChange={(e) => setTaskAssigneeId(e.target.value)} className="form-select font-semibold">
-                    {employees.map((e: any) => (
-                      <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.position})</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="form-label">Priority</label>
-                  <select value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)} className="form-select font-semibold">
-                    <option value="NEW">NEW</option>
-                    <option value="UPDATING">UPDATING</option>
-                    <option value="URGENT">URGENT</option>
-                    <option value="PENDING">PENDING</option>
-                    <option value="LOW">LOW</option>
-                    <option value="MEDIUM">MEDIUM</option>
-                    <option value="HIGH">HIGH</option>
-                    <option value="CRITICAL">CRITICAL</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="form-label">Due Date</label>
-                  <input type="date" value={taskDueDate} onChange={(e) => setTaskDueDate(e.target.value)} className="form-input" />
-                </div>
-
-                <button type="submit" disabled={taskLoading} className="btn-primary w-full mt-2" style={{ padding: "0.85rem" }}>
-                  {taskLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Publish &amp; Confirm Assignment"}
-                </button>
-              </form>
             </div>
-          </div>
+          )}
         </div>
       )}
 
@@ -825,6 +975,78 @@ export default function HRMSDashboard() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Task Modal */}
+      {editingTask && (
+        <div className="modal-overlay flex items-center justify-center p-4 z-50">
+          <div className="modal-content p-6 w-full max-w-lg">
+            <div className="flex justify-between items-center mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
+              <div>
+                <h3 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>Edit Task</h3>
+                <p className="text-xs" style={{ color: "var(--text-muted)" }}>Update task instructions, priority, or assignee</p>
+              </div>
+              <button onClick={() => setEditingTask(null)} className="h-8 w-8 rounded-lg flex items-center justify-center cursor-pointer" style={{ background: "var(--bg-hover)", color: "var(--text-muted)" }}>
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveTaskEdit} className="flex flex-col gap-4">
+              <div>
+                <label className="form-label">Task Title</label>
+                <input type="text" required value={editTitle} onChange={(e) => setEditTitle(e.target.value)} className="form-input" />
+              </div>
+
+              <div>
+                <label className="form-label">Description</label>
+                <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} className="form-input" style={{ resize: "none" }} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="form-label">Target Project</label>
+                  <select value={editProjId} onChange={(e) => setEditProjId(e.target.value)} className="form-select font-semibold">
+                    {hrProjects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Assignee</label>
+                  <select value={editAssigneeId} onChange={(e) => setEditAssigneeId(e.target.value)} className="form-select font-semibold">
+                    <option value="">Unassigned</option>
+                    {employees.map((e: any) => <option key={e.id} value={e.id}>{e.firstName} {e.lastName} ({e.position})</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="form-label">Priority</label>
+                  <select value={editPriority} onChange={(e) => setEditPriority(e.target.value)} className="form-select font-semibold">
+                    <option value="NEW">NEW</option>
+                    <option value="UPDATING">UPDATING</option>
+                    <option value="URGENT">URGENT</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="CRITICAL">CRITICAL</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="form-label">Due Date</label>
+                  <input type="date" value={editDueDate} onChange={(e) => setEditDueDate(e.target.value)} className="form-input" />
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-3">
+                <button type="button" onClick={() => setEditingTask(null)} className="btn-secondary flex-1">Cancel</button>
+                <button type="submit" disabled={editLoading} className="btn-primary flex-1">
+                  {editLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
@@ -932,6 +1154,70 @@ export default function HRMSDashboard() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Task Notification Pop-Up */}
+      {showTaskPopup && latestTask && (
+        <div
+          className="fixed bottom-6 right-6 z-50 w-full max-w-sm p-4 rounded-2xl shadow-2xl animate-fade-in-up flex flex-col gap-3"
+          style={{
+            background: "#0b1329",
+            border: "1px solid rgba(99, 102, 241, 0.3)",
+            color: "#ffffff",
+          }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold text-sky-400 uppercase tracking-wider">
+              <Zap className="h-4 w-4 animate-pulse text-amber-400" />
+              Assigned Work &amp; Task Pop-Up
+            </div>
+            <button
+              onClick={() => setShowTaskPopup(false)}
+              className="h-6 w-6 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <div>
+            <h4 className="font-extrabold text-sm text-white">{latestTask.title}</h4>
+            <p className="text-slate-400 text-xs mt-1 line-clamp-2">
+              {latestTask.description || "Active task instructions attached to your project."}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+              Project: {latestTask.project?.name || "Corporate Project"}
+            </span>
+            <span className={`px-2 py-0.5 rounded-full border ${
+              latestTask.priority === "URGENT" || latestTask.priority === "CRITICAL"
+                ? "bg-red-500/20 text-red-300 border-red-500/30"
+                : latestTask.priority === "NEW"
+                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                : latestTask.priority === "UPDATING"
+                ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                : "bg-amber-500/20 text-amber-300 border-amber-500/30"
+            }`}>
+              {latestTask.priority || "HIGH"}
+            </span>
+            {latestTask.assignee && (
+              <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                Assigned: {latestTask.assignee.firstName} {latestTask.assignee.lastName.slice(0, 1)}.
+              </span>
+            )}
+          </div>
+
+          <button
+            onClick={() => {
+              setShowTaskPopup(false);
+              router.push("/dashboard/projects");
+            }}
+            className="mt-1 w-full py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-sky-500/20 hover:scale-[1.02]"
+          >
+            <ArrowUpRight className="h-4 w-4" /> View Work &amp; Redirect to Task
+          </button>
         </div>
       )}
     </div>
