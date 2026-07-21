@@ -370,7 +370,7 @@ export default function ExecutiveHub() {
                         background: u.role === 'COMPANY_ADMIN' ? 'rgba(239,68,68,0.1)' : u.role === 'CEO' ? 'rgba(245,158,11,0.1)' : u.role === 'HR' ? 'rgba(139,92,246,0.1)' : 'rgba(99,102,241,0.1)',
                         color: u.role === 'COMPANY_ADMIN' ? '#ef4444' : u.role === 'CEO' ? '#f59e0b' : u.role === 'HR' ? '#8b5cf6' : 'var(--accent-primary)'
                       }}>
-                        {u.role}
+                        {u.employee?.position || u.role}
                       </span>
                     </td>
                     <td>
