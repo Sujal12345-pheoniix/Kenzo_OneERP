@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldAlert, Loader2 } from "lucide-react";
-
+import { ShieldAlert, Loader2, Sparkles, Zap, BarChart3, Users, DollarSign } from "lucide-react";
 
 export default function Home() {
   const router = useRouter();
@@ -16,9 +15,7 @@ export default function Home() {
     fetch("/api/auth/session")
       .then((res) => res.json())
       .then((data) => {
-        if (data.authenticated) {
-          router.push("/dashboard");
-        }
+        if (data.authenticated) router.push("/dashboard");
       })
       .catch(() => {});
   }, [router]);
@@ -27,14 +24,12 @@ export default function Home() {
     e.preventDefault();
     setLoading(true);
     setError("");
-
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Login failed");
       router.push("/dashboard");
@@ -44,66 +39,154 @@ export default function Home() {
     }
   };
 
-  return (
-    <div className="flex flex-col flex-1 min-h-screen bg-slate-50 items-center justify-center font-sans p-6 relative overflow-hidden">
-      {/* Subtle Background Radial Lights */}
-      <div className="absolute top-[-20%] left-[-20%] w-[60%] h-[60%] rounded-full bg-sky-500/5 blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-20%] right-[-20%] w-[60%] h-[60%] rounded-full bg-indigo-500/5 blur-[120px] pointer-events-none" />
+  const features = [
+    { icon: BarChart3, label: "Analytics & KPIs", color: "#6366f1" },
+    { icon: Users, label: "HR & People Ops", color: "#10b981" },
+    { icon: DollarSign, label: "Finance & CRM", color: "#f59e0b" },
+    { icon: Zap, label: "AI Copilot", color: "#0ea5e9" },
+  ];
 
-      {/* Main Dedicated Login Panel */}
-      <div className="w-full max-w-md bg-white border border-slate-100 rounded-3xl shadow-xl p-8 z-10 relative flex flex-col">
-        
-        {/* Brand Logo Header */}
-        <div className="flex justify-center mb-8 pb-6 border-b border-slate-100">
-          <img src="/logo.png" alt="Kenzo Logo" className="h-14 w-auto object-contain" />
+  return (
+    <div
+      className="flex flex-col flex-1 min-h-screen items-center justify-center p-6 relative overflow-hidden"
+      style={{ background: "var(--bg-base)" }}
+    >
+      {/* Ambient blobs */}
+      <div
+        className="absolute top-[-15%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] pointer-events-none"
+        style={{ background: "var(--accent-primary)", opacity: 0.07 }}
+      />
+      <div
+        className="absolute bottom-[-15%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[120px] pointer-events-none"
+        style={{ background: "var(--accent-secondary)", opacity: 0.07 }}
+      />
+      <div
+        className="absolute top-[40%] right-[20%] w-[30%] h-[30%] rounded-full blur-[100px] pointer-events-none"
+        style={{ background: "var(--accent-violet)", opacity: 0.04 }}
+      />
+
+      {/* Main panel */}
+      <div
+        className="w-full max-w-md z-10 relative rounded-3xl p-8 animate-scale-in"
+        style={{
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-base)",
+          boxShadow: "var(--shadow-elevated)",
+        }}
+      >
+        {/* Brand header */}
+        <div
+          className="flex flex-col items-center mb-8 pb-6"
+          style={{ borderBottom: "1px solid var(--border-base)" }}
+        >
+          <div
+            className="h-16 w-16 rounded-2xl flex items-center justify-center mb-4 shadow-lg"
+            style={{
+              background: "var(--gradient-brand)",
+              boxShadow: "0 8px 30px var(--glow-primary)",
+            }}
+          >
+            <Sparkles className="h-8 w-8 text-white" />
+          </div>
+          <img src="/logo.png" alt="Kenzo Logo" className="h-10 w-auto object-contain mb-2" />
+          <p className="text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
+            Enterprise Resource Planning Platform
+          </p>
         </div>
 
+        {/* Error state */}
         {error && (
-          <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex gap-3 text-red-700 text-xs">
-            <ShieldAlert className="h-5 w-5 text-red-500 shrink-0" />
+          <div
+            className="mb-5 p-4 rounded-xl flex gap-3 text-xs animate-fade-in"
+            style={{
+              background: "rgba(239,68,68,0.08)",
+              border: "1px solid rgba(239,68,68,0.2)",
+              color: "var(--accent-danger)",
+            }}
+          >
+            <ShieldAlert className="h-4 w-4 shrink-0 mt-0.5" />
             <span>{error}</span>
           </div>
         )}
 
-        {/* Credentials Form */}
-        <form onSubmit={handleLogin} className="flex flex-col gap-4.5">
+        {/* Login form */}
+        <form onSubmit={handleLogin} className="flex flex-col gap-4">
           <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Workspace Email</label>
+            <label
+              className="block text-[10px] font-black uppercase tracking-widest mb-1.5"
+              style={{ color: "var(--text-muted)" }}
+            >
+              Workspace Email
+            </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              placeholder="Enter Workspace Email"
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 text-xs transition-all"
+              placeholder="Enter workspace email"
+              className="form-input"
             />
           </div>
-
           <div>
-            <label className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Pin/Password</label>
+            <label
+              className="block text-[10px] font-black uppercase tracking-widest mb-1.5"
+              style={{ color: "var(--text-muted)" }}
+            >
+              Password / PIN
+            </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="Password"
-              className="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-500 text-xs transition-all"
+              placeholder="••••••••"
+              className="form-input"
             />
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 px-4 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center justify-center gap-2 cursor-pointer transition-all shadow-md shadow-sky-600/10 hover:-translate-y-0.5"
+            className="btn-primary w-full py-3.5 mt-1 justify-center text-sm"
           >
-            {loading ? <Loader2 className="h-4.5 w-4.5 animate-spin" /> : <>Enter Portal Workspace</>}
+            {loading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <>
+                <Sparkles className="h-4 w-4" />
+                Enter Portal Workspace
+              </>
+            )}
           </button>
         </form>
 
+        {/* Feature pills */}
+        <div className="mt-6 flex items-center gap-2 flex-wrap justify-center">
+          {features.map((f, i) => {
+            const FIcon = f.icon;
+            return (
+              <div
+                key={i}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
+                style={{
+                  background: `${f.color}15`,
+                  color: f.color,
+                  border: `1px solid ${f.color}25`,
+                }}
+              >
+                <FIcon className="h-3 w-3" />
+                {f.label}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Subtle Bottom Footer */}
-      <footer className="w-full max-w-md text-center text-[10px] text-slate-400 mt-6 z-10">
+      {/* Footer */}
+      <footer
+        className="w-full max-w-md text-center text-[10px] mt-6 z-10"
+        style={{ color: "var(--text-muted)" }}
+      >
         © 2026 Kenzo Infosystems Pvt. Ltd. All rights reserved.
       </footer>
     </div>

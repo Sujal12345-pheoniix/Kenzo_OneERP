@@ -27,8 +27,11 @@ import {
   Zap,
   TrendingDown,
   Building,
-  Target
+  Target,
+  X,
+  FolderKanban,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
   AreaChart,
   Area,
@@ -73,6 +76,10 @@ export default function ExecutiveHub() {
   const [resetError, setResetError] = useState("");
   const [resetSuccess, setResetSuccess] = useState("");
 
+  const router = useRouter();
+  const [latestTask, setLatestTask] = useState<any>(null);
+  const [showTaskPopup, setShowTaskPopup] = useState(false);
+
   const fetchSessionAndData = async () => {
     try {
       // 1. Fetch Session
@@ -86,7 +93,21 @@ export default function ExecutiveHub() {
         const dashJson = await dashRes.json();
         setData(dashJson);
 
-        // 3. If Admin, fetch users
+        // 3. Fetch Assigned Tasks for Notification Popup
+        try {
+          const tasksRes = await fetch("/api/projects/tasks");
+          if (tasksRes.ok) {
+            const tasksList = await tasksRes.json();
+            if (Array.isArray(tasksList) && tasksList.length > 0) {
+              setLatestTask(tasksList[0]);
+              setShowTaskPopup(true);
+            }
+          }
+        } catch (e) {
+          console.error("Task popup fetch error:", e);
+        }
+
+        // 4. If Admin, fetch users
         if (sessionJson.user.role === "COMPANY_ADMIN" || sessionJson.user.role === "SUPER_ADMIN") {
           fetchAdminUsers();
         }
@@ -232,9 +253,15 @@ export default function ExecutiveHub() {
 
   if (loading || !data) {
     return (
-      <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-10 w-10 text-sky-600 animate-spin" />
-        <span className="text-slate-500 text-sm mt-4 font-semibold tracking-wide">Syncing Workspace Ledger...</span>
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh]" style={{ background: 'var(--bg-base)' }}>
+        <div className="relative flex items-center justify-center mb-5">
+          <div className="h-14 w-14 rounded-2xl flex items-center justify-center" style={{ background: 'var(--gradient-brand)' }}>
+            <Sparkles className="h-6 w-6 text-white animate-pulse" />
+          </div>
+          <div className="absolute h-18 w-18 rounded-2xl border-2 animate-spin" style={{ borderColor: 'var(--accent-primary)', borderTopColor: 'transparent', animationDuration: '1.2s', inset: '-4px' }} />
+        </div>
+        <span className="text-sm font-semibold tracking-wide" style={{ color: 'var(--text-muted)' }}>Syncing Workspace Ledger...</span>
+        <span className="text-xs mt-1" style={{ color: 'var(--accent-primary)' }}>Kenzo OneERP</span>
       </div>
     );
   }
@@ -245,119 +272,115 @@ export default function ExecutiveHub() {
   // Render Admin Dashboard
   if (role === "COMPANY_ADMIN" || role === "SUPER_ADMIN") {
     return (
-      <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto text-slate-800 animate-fadeIn">
+      <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto animate-fade-in-up" style={{ color: 'var(--text-primary)' }}>
         {/* Admin Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5" style={{ borderBottom: '1px solid var(--border-base)' }}>
           <div>
-            <div className="flex items-center gap-2 text-sky-600 font-bold text-xs uppercase tracking-widest">
-              <ShieldCheck className="h-4 w-4" /> ADMIN CONTROL NODE
+            <div className="section-eyebrow">
+              <ShieldCheck className="h-4 w-4" /> Admin Control Node
             </div>
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">Admin Control Hub</h1>
-            <p className="text-slate-500 text-sm mt-0.5">Control corporate security, user permissions, monitor audit logs, and oversee global operations.</p>
+            <h1 className="text-3xl font-black tracking-tight mt-1" style={{ color: 'var(--text-primary)' }}>Admin Control Hub</h1>
+            <p className="text-sm mt-0.5" style={{ color: 'var(--text-muted)' }}>Control corporate security, user permissions, monitor audit logs, and oversee global operations.</p>
           </div>
           <button
             onClick={() => setShowAddUserModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-md shadow-sky-600/10 cursor-pointer hover:-translate-y-0.5 transition-all"
+            className="btn-primary"
           >
             <UserPlus className="h-4 w-4" /> Add Corporate User
           </button>
         </div>
 
         {/* KPI Panel */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="glass-panel p-6 border-l-4 border-l-sky-500">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Total Members</span>
-            <div className="text-3xl font-extrabold text-slate-900 mt-2">{adminUsers.length || metrics.employees}</div>
-            <span className="text-slate-500 text-xs font-medium mt-1 block">Active directory user nodes</span>
-          </div>
-          <div className="glass-panel p-6 border-l-4 border-l-emerald-500">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Operational Inflow</span>
-            <div className="text-3xl font-extrabold text-slate-900 mt-2">${metrics.revenue.toLocaleString()}</div>
-            <span className="text-slate-500 text-xs font-medium mt-1 block">Paid invoices cash-inflow</span>
-          </div>
-          <div className="glass-panel p-6 border-l-4 border-l-violet-500">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Active Initiatives</span>
-            <div className="text-3xl font-extrabold text-slate-900 mt-2">{metrics.activeProjects}</div>
-            <span className="text-slate-500 text-xs font-medium mt-1 block">Current running projects</span>
-          </div>
-          <div className="glass-panel p-6 border-l-4 border-l-amber-500">
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Audit Trail Length</span>
-            <div className="text-3xl font-extrabold text-slate-900 mt-2">{recentAuditLogs.length} logs</div>
-            <span className="text-slate-500 text-xs font-medium mt-1 block">Recent security transactions</span>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {[
+            { label: 'Total Members', value: adminUsers.length || metrics.employees, sub: 'Active directory user nodes', grad: 'linear-gradient(135deg,#0ea5e9,#38bdf8)', glow: 'rgba(14,165,233,0.2)', icon: Users },
+            { label: 'Operational Inflow', value: `Rs. ${metrics.revenue.toLocaleString()}`, sub: 'Paid invoices cash-inflow', grad: 'linear-gradient(135deg,#10b981,#34d399)', glow: 'rgba(16,185,129,0.2)', icon: DollarSign },
+            { label: 'Active Initiatives', value: metrics.activeProjects, sub: 'Current running projects', grad: 'linear-gradient(135deg,#8b5cf6,#a78bfa)', glow: 'rgba(139,92,246,0.2)', icon: FolderKanban },
+            { label: 'Audit Trail', value: `${recentAuditLogs.length} logs`, sub: 'Recent security transactions', grad: 'linear-gradient(135deg,#f59e0b,#fbbf24)', glow: 'rgba(245,158,11,0.2)', icon: ShieldCheck },
+          ].map((kpi, i) => {
+            const KpiIcon = kpi.icon;
+            return (
+              <div key={i} className="stat-card animate-fade-in-up" style={{ animationDelay: `${i * 80}ms` }}>
+                <div className="flex justify-between items-start mb-4">
+                  <span className="text-[10px] font-black uppercase tracking-widest" style={{ color: 'var(--text-muted)' }}>{kpi.label}</span>
+                  <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: kpi.grad, boxShadow: `0 4px 14px ${kpi.glow}` }}>
+                    <KpiIcon className="h-4 w-4 text-white" />
+                  </div>
+                </div>
+                <div className="text-2xl font-black" style={{ color: 'var(--text-primary)' }}>{kpi.value}</div>
+                <span className="text-xs mt-1.5 block" style={{ color: 'var(--text-muted)' }}>{kpi.sub}</span>
+              </div>
+            );
+          })}
         </div>
 
         {/* User Management & RBAC Controls */}
         <div className="glass-panel p-6">
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex justify-between items-center mb-5">
             <div>
-              <h2 className="text-lg font-extrabold text-slate-900 tracking-tight">Active User Directory & RBAC Matrix</h2>
-              <p className="text-slate-500 text-xs">Assign roles, adjust employee salary status, update access codes, or purge inactive records.</p>
+              <h2 className="text-base font-black tracking-tight" style={{ color: 'var(--text-primary)' }}>Active User Directory &amp; RBAC Matrix</h2>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>Assign roles, adjust employee salary status, update access codes, or purge inactive records.</p>
             </div>
-            {adminUsersLoading && <Loader2 className="h-5 w-5 text-sky-600 animate-spin" />}
+            {adminUsersLoading && <Loader2 className="h-5 w-5 animate-spin" style={{ color: 'var(--accent-primary)' }} />}
           </div>
-
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="premium-table">
               <thead>
-                <tr className="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
-                  <th className="py-3 px-4">Employee Node</th>
-                  <th className="py-3 px-4">Work Email</th>
-                  <th className="py-3 px-4">Assigned Role</th>
-                  <th className="py-3 px-4">Department & Position</th>
-                  <th className="py-3 px-4">Compensation</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
+                <tr>
+                  <th>Employee</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Dept / Position</th>
+                  <th>Salary</th>
+                  <th style={{ textAlign: 'right' }}>Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody>
                 {adminUsers.map((u) => (
-                  <tr key={u.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="py-3.5 px-4 font-bold text-slate-800 flex items-center gap-2">
-                      <div className="h-7 w-7 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold uppercase text-[10px]">
-                        {u.name.slice(0, 2)}
+                  <tr key={u.id}>
+                    <td>
+                      <div className="flex items-center gap-2">
+                        <div className="h-7 w-7 rounded-lg flex items-center justify-center font-black text-[10px] text-white" style={{ background: 'var(--gradient-brand)' }}>
+                          {u.name.slice(0, 2).toUpperCase()}
+                        </div>
+                        <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>{u.name}</span>
                       </div>
-                      {u.name}
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600">{u.email}</td>
-                    <td className="py-3.5 px-4">
-                      <span className={`px-2.5 py-1 rounded-full text-[9px] font-bold ${
-                        u.role === "COMPANY_ADMIN" ? "bg-red-50 text-red-600 border border-red-100" :
-                        u.role === "CEO" ? "bg-amber-50 text-amber-600 border border-amber-100" :
-                        u.role === "HR" ? "bg-violet-50 text-violet-600 border border-violet-100" :
-                        "bg-sky-50 text-sky-600 border border-sky-100"
-                      }`}>
+                    <td style={{ color: 'var(--text-secondary)' }}>{u.email}</td>
+                    <td>
+                      <span className="badge" style={{
+                        background: u.role === 'COMPANY_ADMIN' ? 'rgba(239,68,68,0.1)' : u.role === 'CEO' ? 'rgba(245,158,11,0.1)' : u.role === 'HR' ? 'rgba(139,92,246,0.1)' : 'rgba(99,102,241,0.1)',
+                        color: u.role === 'COMPANY_ADMIN' ? '#ef4444' : u.role === 'CEO' ? '#f59e0b' : u.role === 'HR' ? '#8b5cf6' : 'var(--accent-primary)'
+                      }}>
                         {u.role}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600">
-                      <div className="font-semibold">{u.employee?.position || "N/A"}</div>
-                      <div className="text-[10px] text-slate-400">{u.employee?.department || "N/A"}</div>
+                    <td>
+                      <div className="font-semibold text-xs" style={{ color: 'var(--text-primary)' }}>{u.employee?.position || 'N/A'}</div>
+                      <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{u.employee?.department || 'N/A'}</div>
                     </td>
-                    <td className="py-3.5 px-4 font-bold text-slate-700">
-                      ${(u.employee?.salary || 0).toLocaleString()}/yr
-                    </td>
-                    <td className="py-3.5 px-4 text-right flex justify-end gap-2">
-                      <button
-                        onClick={() => {
-                          setResettingUserId(u.id);
-                          setNewResetPassword("");
-                          setResetError("");
-                          setResetSuccess("");
-                        }}
-                        title="Reset Passkey"
-                        className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 cursor-pointer transition-all"
-                      >
-                        <Key className="h-3.5 w-3.5" />
-                      </button>
-                      {u.id !== sessionUser?.id && (
+                    <td className="font-bold" style={{ color: 'var(--accent-success)' }}>Rs. {(u.employee?.salary || 0).toLocaleString()}/yr</td>
+                    <td>
+                      <div className="flex items-center justify-end gap-2">
                         <button
-                          onClick={() => handleDeleteUser(u.id)}
-                          title="Revoke Access"
-                          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-600 hover:text-white text-red-650 cursor-pointer transition-all"
+                          onClick={() => { setResettingUserId(u.id); setNewResetPassword(''); setResetError(''); setResetSuccess(''); }}
+                          title="Reset Passkey"
+                          className="p-1.5 rounded-lg cursor-pointer transition-all"
+                          style={{ background: 'var(--bg-input)', color: 'var(--text-secondary)' }}
                         >
-                          <Trash2 className="h-3.5 w-3.5" />
+                          <Key className="h-3.5 w-3.5" />
                         </button>
-                      )}
+                        {u.id !== sessionUser?.id && (
+                          <button
+                            onClick={() => handleDeleteUser(u.id)}
+                            title="Revoke Access"
+                            className="p-1.5 rounded-lg cursor-pointer transition-all"
+                            style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--accent-danger)' }}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -368,20 +391,19 @@ export default function ExecutiveHub() {
 
         {/* Modal for Resetting Password */}
         {resettingUserId && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl border border-slate-100 p-6 w-full max-w-sm shadow-xl animate-fadeIn">
-              <h3 className="text-base font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <Key className="h-4.5 w-4.5 text-sky-600" /> Force Password Update
+          <div className="modal-overlay flex items-center justify-center">
+            <div className="modal-content p-6 w-full max-w-sm">
+              <h3 className="text-base font-black mb-2 flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                <Key className="h-4 w-4" style={{ color: 'var(--accent-primary)' }} /> Force Password Update
               </h3>
-              <p className="text-xs text-slate-500 mb-4">Enter a new secure pin/password code for the credential database.</p>
-              
+              <p className="text-xs mb-4" style={{ color: 'var(--text-muted)' }}>Enter a new secure pin/password code for the credential database.</p>
               {resetError && (
-                <div className="p-3 bg-red-50 text-red-600 text-xs rounded-xl mb-3 flex gap-2">
+                <div className="p-3 text-xs rounded-xl mb-3 flex gap-2" style={{ background: 'rgba(239,68,68,0.1)', color: 'var(--accent-danger)' }}>
                   <ShieldAlert className="h-4 w-4 shrink-0" /> {resetError}
                 </div>
               )}
               {resetSuccess && (
-                <div className="p-3 bg-emerald-50 text-emerald-600 text-xs rounded-xl mb-3 flex gap-2">
+                <div className="p-3 text-xs rounded-xl mb-3 flex gap-2" style={{ background: 'rgba(16,185,129,0.1)', color: 'var(--accent-success)' }}>
                   <CheckCircle2 className="h-4 w-4 shrink-0" /> {resetSuccess}
                 </div>
               )}
@@ -531,7 +553,7 @@ export default function ExecutiveHub() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Salary ($)</label>
+                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Salary (Rs.)</label>
                     <input
                       type="number"
                       required
@@ -635,20 +657,15 @@ export default function ExecutiveHub() {
           <div className="p-6 rounded-3xl bg-emerald-50/70 border border-emerald-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
               <span className="text-emerald-700 text-xs font-bold uppercase tracking-wider block">Total Capital Inflow</span>
-              <span className="text-3xl font-extrabold text-emerald-950 tracking-tight mt-2 block">$8.7M</span>
+              <span className="text-3xl font-extrabold text-emerald-950 tracking-tight mt-2 block">Rs. 8.7M</span>
             </div>
             <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-emerald-600">
               <ArrowUpRight className="h-3.5 w-3.5" /> 12.5% vs last month
             </div>
           </div>
-          <div className="p-6 rounded-3xl bg-blue-50/70 border border-blue-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
-            <div>
-              <span className="text-blue-700 text-xs font-bold uppercase tracking-wider block">Active Enterprise Deals</span>
-              <span className="text-3xl font-extrabold text-blue-950 tracking-tight mt-2 block">47 Deals</span>
-            </div>
-            <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-blue-600">
-              <ArrowUpRight className="h-3.5 w-3.5" /> 8.5% in pipeline
-            </div>
+          <div className="glass-panel p-5">
+              <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">Monthly Burn</span>
+              <span className="text-3xl font-extrabold text-rose-950 tracking-tight mt-2 block">Rs. 285K/mo</span>
           </div>
           <div className="p-6 rounded-3xl bg-violet-50/70 border border-violet-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
@@ -662,7 +679,7 @@ export default function ExecutiveHub() {
           <div className="p-6 rounded-3xl bg-rose-50/70 border border-rose-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
               <span className="text-rose-700 text-xs font-bold uppercase tracking-wider block">Quarterly Burn Rate</span>
-              <span className="text-3xl font-extrabold text-rose-950 tracking-tight mt-2 block">$285K/mo</span>
+              <span className="text-3xl font-extrabold text-rose-950 tracking-tight mt-2 block">Rs. 285K/mo</span>
             </div>
             <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-rose-600">
               <ArrowDownRight className="h-3.5 w-3.5" /> 5.5% decreased
@@ -690,10 +707,21 @@ export default function ExecutiveHub() {
                   <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
                   <YAxis stroke="#94a3b8" fontSize={11} />
                   <Tooltip />
-                  <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" name="Revenue ($M)" />
+                  <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" name="Revenue (Rs. M)" />
                   <Legend />
                 </AreaChart>
               </ResponsiveContainer>
+            </div>
+            <div className="grid grid-cols-3 gap-4 mt-4 text-center text-xs font-bold text-slate-500">
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span>Q1 Target (Rs. 1.25M)</span>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span>Q2 Target (Rs. 1.5M)</span>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <span>Q3 Target (Rs. 1.8M)</span>
+              </div>
             </div>
           </div>
 
@@ -778,7 +806,7 @@ export default function ExecutiveHub() {
                       <span className="text-slate-500 text-xs">{exp.description}</span>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-base font-extrabold text-slate-900">${exp.amount}</span>
+                      <span className="text-base font-extrabold text-slate-900">Rs. {exp.amount}</span>
                       <div className="flex gap-2">
                         <button
                           disabled={actionLoading !== null}
@@ -1084,7 +1112,7 @@ export default function ExecutiveHub() {
                 <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
                 <YAxis stroke="#94a3b8" fontSize={11} />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2.5} name="Revenue ($)" />
+                <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2.5} name="Revenue (Rs.)" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -1163,6 +1191,61 @@ export default function ExecutiveHub() {
           </div>
         </div>
       </div>
+
+      {/* Pop-Up Notification Modal for Assigned Work & Task */}
+      {showTaskPopup && latestTask && (
+        <div className="fixed bottom-6 right-6 z-50 max-w-md w-full bg-slate-900 text-white rounded-3xl p-5 shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-5 duration-300 flex flex-col gap-3">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+            <div className="flex items-center gap-2 text-sky-400 font-extrabold text-xs uppercase tracking-wider">
+              <Zap className="h-4 w-4 animate-pulse text-amber-400" />
+              Assigned Work &amp; Task Pop-Up
+            </div>
+            <button
+              onClick={() => setShowTaskPopup(false)}
+              className="h-6 w-6 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <div>
+            <h4 className="font-extrabold text-sm text-white">{latestTask.title}</h4>
+            <p className="text-slate-400 text-xs mt-1 line-clamp-2">{latestTask.description || "Active task instructions attached to your project."}</p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
+              Project: {latestTask.project?.name || "Corporate Project"}
+            </span>
+            <span className={`px-2 py-0.5 rounded-full border ${
+              latestTask.priority === "URGENT" || latestTask.priority === "CRITICAL"
+                ? "bg-red-500/20 text-red-300 border-red-500/30"
+                : latestTask.priority === "NEW"
+                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                : latestTask.priority === "UPDATING"
+                ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
+                : "bg-amber-500/20 text-amber-300 border-amber-500/30"
+            }`}>
+              {latestTask.priority || "HIGH"}
+            </span>
+            {latestTask.assignee && (
+              <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+                Assigned: {latestTask.assignee.firstName} {latestTask.assignee.lastName.slice(0, 1)}.
+              </span>
+            )}
+          </div>
+
+          <button
+            onClick={() => {
+              setShowTaskPopup(false);
+              router.push("/dashboard/projects");
+            }}
+            className="mt-1 w-full py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-sky-500/20 hover:scale-[1.02]"
+          >
+            <ArrowUpRight className="h-4 w-4" /> View Work &amp; Redirect to Task
+          </button>
+        </div>
+      )}
     </div>
   );
 }

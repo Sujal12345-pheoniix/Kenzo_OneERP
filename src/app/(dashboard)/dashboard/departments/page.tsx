@@ -28,6 +28,10 @@ const TASK_STATUS: Record<string, { cls: string; label: string; icon: React.Elem
 };
 
 const PRIORITY_BADGE: Record<string, string> = {
+  NEW:      "bg-sky-100 text-sky-700 border border-sky-200",
+  UPDATING: "bg-purple-100 text-purple-700 border border-purple-200",
+  URGENT:   "bg-red-100 text-red-700 border border-red-200",
+  PENDING:  "bg-amber-100 text-amber-700 border border-amber-200",
   LOW:      "bg-slate-100 text-slate-600",
   MEDIUM:   "bg-sky-100 text-sky-700",
   HIGH:     "bg-amber-100 text-amber-700",
@@ -190,7 +194,7 @@ function EmployeeProfileModal({
   // Current projects (unique from tasks)
   const activeProjects = Array.from(
     new Map(
-      tasks.filter((t: any) => t.status === "IN_PROGRESS" && t.project)
+      tasks.filter((t: any) => t.project)
            .map((t: any) => [t.project.id, t.project])
     ).values()
   ) as any[];
@@ -333,6 +337,10 @@ function EmployeeProfileModal({
                       value={taskPriority} onChange={(e) => setTaskPriority(e.target.value)}
                       className="w-full px-3 py-2 rounded-xl bg-white border border-slate-250 text-xs focus:outline-none focus:border-sky-500"
                     >
+                      <option value="NEW">NEW</option>
+                      <option value="UPDATING">UPDATING</option>
+                      <option value="URGENT">URGENT</option>
+                      <option value="PENDING">PENDING</option>
                       <option value="LOW">LOW</option>
                       <option value="MEDIUM">MEDIUM</option>
                       <option value="HIGH">HIGH</option>
@@ -507,11 +515,11 @@ function EmployeeProfileModal({
               </div>
               <div>
                 <p className="text-white/60 text-[10px] font-bold uppercase tracking-wider">Annual Compensation</p>
-                <p className="text-white text-xl font-extrabold">${emp.salary.toLocaleString()}</p>
+                <p className="text-white text-xl font-extrabold">Rs. {emp.salary.toLocaleString()}</p>
               </div>
               <div className="ml-auto text-right">
                 <p className="text-white/60 text-[10px] font-bold uppercase tracking-wider">Monthly</p>
-                <p className="text-white font-extrabold">${Math.round(emp.salary / 12).toLocaleString()}</p>
+                <p className="text-white font-extrabold">Rs. {Math.round(emp.salary / 12).toLocaleString()}</p>
               </div>
             </div>
 
@@ -631,7 +639,7 @@ export default function DepartmentsPage() {
           </div>
           <div className="glass-panel px-4 py-3 text-center">
             <span className="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Annual Payroll</span>
-            <span className="block text-xl font-extrabold text-slate-900">${(totalPayroll / 1000).toFixed(0)}K</span>
+            <span className="block text-xl font-extrabold text-slate-900">Rs. {(totalPayroll / 1000).toFixed(0)}K</span>
           </div>
         </div>
       </div>
@@ -645,10 +653,10 @@ export default function DepartmentsPage() {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} tickLine={false} />
               <YAxis yAxisId="left" stroke="#94a3b8" fontSize={11} tickLine={false} />
-              <YAxis yAxisId="right" orientation="right" stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `$${v}k`} />
+              <YAxis yAxisId="right" orientation="right" stroke="#94a3b8" fontSize={11} tickLine={false} tickFormatter={(v) => `Rs.${v}k`} />
               <Tooltip />
               <Bar yAxisId="left" dataKey="headcount" fill="#6366f1" radius={[6, 6, 0, 0]} name="Headcount" />
-              <Bar yAxisId="right" dataKey="avgSalary" fill="#10b981" radius={[6, 6, 0, 0]} name="Avg Salary ($k)" />
+              <Bar yAxisId="right" dataKey="avgSalary" fill="#10b981" radius={[6, 6, 0, 0]} name="Avg Salary (Rs. k)" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -680,8 +688,8 @@ export default function DepartmentsPage() {
                 <span className="block text-lg font-extrabold text-slate-900">{dept.active}</span>
               </div>
               <div className="bg-white/60 rounded-xl p-3">
-                <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Avg Salary</span>
-                <span className="block text-lg font-extrabold text-slate-900">${(dept.avgSalary / 1000).toFixed(0)}k</span>
+                <span className="block text-slate-400 text-[10px] font-bold uppercase tracking-wider">Avg. Salary</span>
+                <span className="block text-lg font-extrabold text-slate-900">Rs. {(dept.avgSalary / 1000).toFixed(0)}k</span>
               </div>
             </div>
 
@@ -738,8 +746,8 @@ export default function DepartmentsPage() {
 
             {/* Payroll */}
             <div className="mt-4 pt-3 border-t border-white/50 flex justify-between items-center">
-              <span className="text-[10px] text-slate-500 font-semibold">Dept. Payroll</span>
-              <span className="text-sm font-extrabold text-slate-900">${dept.totalSalary.toLocaleString()}/yr</span>
+              <span className="text-slate-400 text-xs font-semibold">Total Dept Payroll</span>
+              <span className="text-sm font-extrabold text-slate-900">Rs. {dept.totalSalary.toLocaleString()}/yr</span>
             </div>
           </div>
         ))}

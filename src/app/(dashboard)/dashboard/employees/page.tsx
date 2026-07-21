@@ -95,12 +95,12 @@ export default function EmployeesPage() {
         </div>
         <div className="glass-panel p-5">
           <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Avg. Salary</span>
-          <div className="text-2xl font-extrabold text-slate-900 mt-1">${avgSalary.toLocaleString()}</div>
+          <div className="text-2xl font-extrabold text-slate-900 mt-1">Rs. {avgSalary.toLocaleString()}</div>
           <span className="text-xs text-slate-500">Annual average</span>
         </div>
         <div className="glass-panel p-5">
           <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block">Total Payroll</span>
-          <div className="text-2xl font-extrabold text-slate-900 mt-1">${(totalPayroll / 1000).toFixed(0)}K</div>
+          <div className="text-2xl font-extrabold text-slate-900 mt-1">Rs. {(totalPayroll / 1000).toFixed(0)}K</div>
           <span className="text-xs text-slate-500">Annual cost</span>
         </div>
       </div>
@@ -188,7 +188,7 @@ export default function EmployeesPage() {
                         </span>
                       </td>
                       <td className="px-4 py-4 text-slate-700 font-semibold">{emp.position}</td>
-                      <td className="px-4 py-4 font-bold text-slate-900">${emp.salary.toLocaleString()}</td>
+                      <td className="px-4 py-4 font-bold text-slate-900">Rs. {emp.salary.toLocaleString()}</td>
                       <td className="px-4 py-4">
                         <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-bold border ${sc.cls}`}>
                           <span className={`h-1.5 w-1.5 rounded-full ${sc.dot}`} />

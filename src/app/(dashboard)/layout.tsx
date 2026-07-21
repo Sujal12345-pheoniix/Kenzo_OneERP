@@ -22,6 +22,10 @@ import {
   Clock,
   TrendingUp,
   ChevronRight,
+  Sun,
+  Moon,
+  Sparkles,
+  Zap,
 } from "lucide-react";
 
 /* ─────────────────────────── Types ─────────────────────────── */
@@ -54,8 +58,8 @@ function getMenuGroups(role: string): MenuGroup[] {
         {
           label: "Finance & Reports",
           items: [
-            { name: "Finance Overview",     href: "/dashboard/finance",    icon: DollarSign },
-            { name: "Analytics & Reports",  href: "/dashboard/analytics",  icon: BarChart3  },
+            { name: "Finance Overview",    href: "/dashboard/finance",    icon: DollarSign },
+            { name: "Analytics & Reports", href: "/dashboard/analytics",  icon: BarChart3  },
           ],
         },
         {
@@ -128,9 +132,9 @@ function getMenuGroups(role: string): MenuGroup[] {
 
     default: // DEVELOPER, PROJECT_MANAGER, EMPLOYEE
       return [
-        { label: "My Workspace",  items: [{ name: "My Dashboard",       href: "/dashboard",         icon: LayoutDashboard }] },
-        { label: "My Work",       items: [{ name: "My Projects",         href: "/dashboard/projects", icon: FolderKanban   }] },
-        { label: "My Records",    items: [{ name: "Attendance & Leave",  href: "/dashboard/hrms",     icon: Clock          }] },
+        { label: "My Workspace", items: [{ name: "My Dashboard",       href: "/dashboard",         icon: LayoutDashboard }] },
+        { label: "My Work",      items: [{ name: "My Projects",         href: "/dashboard/projects", icon: FolderKanban   }] },
+        { label: "My Records",   items: [{ name: "Attendance & Leave",  href: "/dashboard/hrms",     icon: Clock          }] },
         {
           label: "Company",
           items: [{ name: "Company Notices", href: "/dashboard/notices", icon: Bell }],
@@ -144,38 +148,69 @@ function getMenuGroups(role: string): MenuGroup[] {
 }
 
 /* ─────────────────────── Role badge config ─────────────────── */
-const roleConfig: Record<string, { label: string; badgeCls: string; dotCls: string; avatarCls: string }> = {
-  COMPANY_ADMIN:   { label: "Company Admin",        badgeCls: "text-rose-700 bg-rose-50 border-rose-200",       dotCls: "bg-rose-500",    avatarCls: "from-rose-50 to-rose-100 border-rose-200 text-rose-700"       },
-  SUPER_ADMIN:     { label: "Super Admin",           badgeCls: "text-rose-700 bg-rose-50 border-rose-200",       dotCls: "bg-rose-500",    avatarCls: "from-rose-50 to-rose-100 border-rose-200 text-rose-700"       },
-  CEO:             { label: "Chief Executive Officer",badgeCls: "text-amber-700 bg-amber-50 border-amber-200",   dotCls: "bg-amber-500",   avatarCls: "from-amber-50 to-amber-100 border-amber-200 text-amber-700"   },
-  HR:              { label: "HR Manager",            badgeCls: "text-violet-700 bg-violet-50 border-violet-200", dotCls: "bg-violet-500",  avatarCls: "from-violet-50 to-violet-100 border-violet-200 text-violet-700"},
-  DEVELOPER:       { label: "Developer",             badgeCls: "text-sky-700 bg-sky-50 border-sky-200",          dotCls: "bg-sky-500",     avatarCls: "from-sky-50 to-sky-100 border-sky-200 text-sky-700"           },
-  PROJECT_MANAGER: { label: "Project Manager",       badgeCls: "text-emerald-700 bg-emerald-50 border-emerald-200", dotCls: "bg-emerald-500", avatarCls: "from-emerald-50 to-emerald-100 border-emerald-200 text-emerald-700" },
-  EMPLOYEE:        { label: "Employee",              badgeCls: "text-slate-600 bg-slate-50 border-slate-200",    dotCls: "bg-slate-400",   avatarCls: "from-slate-50 to-slate-100 border-slate-200 text-slate-700"   },
-  FINANCE:         { label: "Finance Manager",       badgeCls: "text-teal-700 bg-teal-50 border-teal-200",       dotCls: "bg-teal-500",    avatarCls: "from-teal-50 to-teal-100 border-teal-200 text-teal-700"       },
+const roleConfig: Record<string, { label: string; color: string; dot: string }> = {
+  COMPANY_ADMIN:   { label: "Company Admin",         color: "#ef4444", dot: "#ef4444" },
+  SUPER_ADMIN:     { label: "Super Admin",            color: "#ef4444", dot: "#ef4444" },
+  CEO:             { label: "Chief Executive Officer",color: "#f59e0b", dot: "#f59e0b" },
+  HR:              { label: "HR Manager",             color: "#8b5cf6", dot: "#8b5cf6" },
+  DEVELOPER:       { label: "Developer",              color: "#0ea5e9", dot: "#0ea5e9" },
+  PROJECT_MANAGER: { label: "Project Manager",        color: "#10b981", dot: "#10b981" },
+  EMPLOYEE:        { label: "Employee",               color: "#6366f1", dot: "#6366f1" },
+  FINANCE:         { label: "Finance Manager",        color: "#14b8a6", dot: "#14b8a6" },
 };
 
-/* ───────────────────── Ping Dot Component ───────────────────── */
-/**
- * Radar-ping style unread indicator.
- * hasHigh = true → red (urgent)  |  false → amber (normal)
- */
+/* ───────────────────── Notice Ping Dot ─────────────────────── */
 function NoticePingDot({ hasHigh }: { hasHigh: boolean }) {
   return (
     <span className="relative flex h-2.5 w-2.5 ml-auto shrink-0">
-      {/* Expanding ring */}
       <span
         className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-70 ${
           hasHigh ? "bg-red-400" : "bg-amber-400"
         }`}
       />
-      {/* Solid core */}
       <span
         className={`relative inline-flex rounded-full h-2.5 w-2.5 ${
           hasHigh ? "bg-red-500" : "bg-amber-400"
         }`}
       />
     </span>
+  );
+}
+
+/* ──────────────────────── Theme Toggle ──────────────────────── */
+function ThemeToggle() {
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const current = document.documentElement.getAttribute("data-theme");
+    setIsDark(current === "dark");
+  }, []);
+
+  const toggle = () => {
+    const next = isDark ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try { localStorage.setItem("kenzo_theme", next); } catch {}
+    setIsDark(!isDark);
+  };
+
+  return (
+    <button
+      onClick={toggle}
+      className="theme-toggle"
+      title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+      aria-label="Toggle theme"
+    >
+      <span
+        className="theme-toggle-icon"
+        style={{ transform: isDark ? "rotate(0deg)" : "rotate(180deg)" }}
+      >
+        {isDark ? (
+          <Sun className="h-4 w-4" style={{ color: "var(--accent-warning)" }} />
+        ) : (
+          <Moon className="h-4 w-4" style={{ color: "var(--accent-violet)" }} />
+        )}
+      </span>
+    </button>
   );
 }
 
@@ -199,28 +234,65 @@ function SidebarContent({
 }) {
   const menuGroups = getMenuGroups(user?.role || "EMPLOYEE");
   const rc = roleConfig[user?.role] || roleConfig.EMPLOYEE;
+  const initials = user?.name?.slice(0, 2).toUpperCase() || "KZ";
 
   return (
-    <div className="flex flex-col h-full overflow-hidden">
-      {/* Logo */}
-      <div className="px-5 py-4 flex items-center justify-center border-b border-slate-100/80 shrink-0">
-        <img src="/logo.png" alt="Kenzo OneERP" className="h-9 w-auto object-contain" />
+    <div className="flex flex-col h-full overflow-hidden" style={{ background: "var(--bg-sidebar)" }}>
+      {/* ── Logo ── */}
+      <div
+        className="px-5 py-4 flex items-center justify-between shrink-0"
+        style={{ borderBottom: "1px solid var(--border-base)" }}
+      >
+        <img src="/logo.png" alt="Kenzo OneERP" className="h-8 w-auto object-contain" />
+        <div className="flex items-center gap-1.5">
+          <ThemeToggle />
+          <div
+            className="h-2 w-2 rounded-full animate-pulse"
+            style={{ background: "var(--accent-success)" }}
+            title="System Online"
+          />
+        </div>
       </div>
 
-      {/* Workspace badge */}
-      <div className="px-4 py-3 border-b border-slate-100/80 bg-slate-50/60 shrink-0">
-        <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-[0.12em] mb-0.5">
-          Active Workspace
+      {/* ── Workspace badge ── */}
+      <div
+        className="px-4 py-3 shrink-0"
+        style={{
+          borderBottom: "1px solid var(--border-base)",
+          background: "var(--bg-card-alt)",
+        }}
+      >
+        <div className="flex items-center gap-1.5 mb-0.5">
+          <Zap className="h-2.5 w-2.5" style={{ color: "var(--accent-primary)" }} />
+          <span
+            className="text-[9px] font-black uppercase tracking-[0.18em]"
+            style={{ color: "var(--text-muted)" }}
+          >
+            Active Workspace
+          </span>
+        </div>
+        <span
+          className="block text-xs font-bold truncate"
+          style={{ color: "var(--text-primary)" }}
+        >
+          {user?.tenant?.name}
         </span>
-        <span className="block text-xs font-bold text-slate-800 truncate">{user?.tenant?.name}</span>
-        <span className="block text-[10px] text-sky-600 font-semibold truncate">{user?.tenant?.domain}</span>
+        <span
+          className="block text-[10px] font-semibold truncate"
+          style={{ color: "var(--accent-secondary)" }}
+        >
+          {user?.tenant?.domain}
+        </span>
       </div>
 
-      {/* Nav groups */}
+      {/* ── Nav groups ── */}
       <nav className="flex-1 px-3 py-3 overflow-y-auto">
         {menuGroups.map((group, gi) => (
-          <div key={gi} className={gi > 0 ? "mt-3" : ""}>
-            <p className="px-2 mb-1 text-[9px] font-extrabold uppercase tracking-[0.18em] text-slate-400 select-none">
+          <div key={gi} className={gi > 0 ? "mt-4" : ""}>
+            <p
+              className="px-2 mb-1.5 text-[9px] font-black uppercase tracking-[0.18em] select-none"
+              style={{ color: "var(--text-muted)" }}
+            >
               {group.label}
             </p>
             <div className="space-y-0.5">
@@ -231,7 +303,6 @@ function SidebarContent({
                   item.href === "/dashboard"
                     ? pathname === "/dashboard"
                     : pathname.startsWith(item.href);
-                // Show ping dot only on Notice Board when unread & NOT currently on that page
                 const showDot = isNotices && hasUnread && !active;
 
                 return (
@@ -242,29 +313,51 @@ function SidebarContent({
                       if (isNotices) onNoticeRead();
                       onLinkClick?.();
                     }}
-                    className={`group flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all duration-150 cursor-pointer ${
+                    className="group flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12.5px] font-semibold transition-all duration-200 cursor-pointer relative overflow-hidden"
+                    style={
                       active
-                        ? "bg-sky-600 text-white shadow-sm shadow-sky-600/20"
-                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                    }`}
+                        ? {
+                            background: "var(--sidebar-active-bg)",
+                            color: "var(--sidebar-active-text)",
+                            boxShadow: "0 3px 14px var(--glow-primary)",
+                          }
+                        : {
+                            color: "var(--text-secondary)",
+                          }
+                    }
+                    onMouseEnter={(e) => {
+                      if (!active) {
+                        (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)";
+                        (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active) {
+                        (e.currentTarget as HTMLElement).style.background = "";
+                        (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+                      }
+                    }}
                   >
-                    {/* Icon — when unread & active, show bell with subtle glow */}
-                    <span className="relative shrink-0">
-                      <Icon
-                        className={`h-[15px] w-[15px] transition-colors ${
-                          active ? "text-white" : "text-slate-400 group-hover:text-slate-600"
-                        }`}
+                    {/* Left accent bar on active */}
+                    {active && (
+                      <span
+                        className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-4 rounded-full"
+                        style={{ background: "rgba(255,255,255,0.6)" }}
                       />
-                    </span>
+                    )}
+
+                    <Icon
+                      className="h-[15px] w-[15px] shrink-0 transition-transform duration-200 group-hover:scale-110"
+                      style={{ opacity: active ? 1 : 0.7 }}
+                    />
 
                     <span className="leading-none truncate flex-1">{item.name}</span>
 
-                    {/* Ping dot OR chevron */}
                     {showDot ? (
                       <NoticePingDot hasHigh={hasHighPriority} />
                     ) : (
                       active && (
-                        <ChevronRight className="h-3 w-3 ml-auto text-white/60 shrink-0" />
+                        <ChevronRight className="h-3 w-3 ml-auto shrink-0" style={{ opacity: 0.6 }} />
                       )
                     )}
                   </Link>
@@ -275,29 +368,51 @@ function SidebarContent({
         ))}
       </nav>
 
-      {/* User footer */}
-      <div className="px-3 py-3 border-t border-slate-100/80 bg-white/60 shrink-0">
+      {/* ── User footer ── */}
+      <div
+        className="px-3 py-3 shrink-0"
+        style={{
+          borderTop: "1px solid var(--border-base)",
+          background: "var(--bg-card-alt)",
+        }}
+      >
         <div className="flex items-center gap-2.5 px-1 mb-2.5">
+          {/* Avatar circle */}
           <div
-            className={`h-8 w-8 rounded-lg bg-gradient-to-br ${rc.avatarCls} border flex items-center justify-center font-bold text-[11px] shrink-0`}
+            className="h-9 w-9 rounded-xl flex items-center justify-center font-black text-[11px] text-white shrink-0 shadow-md"
+            style={{ background: `linear-gradient(135deg, ${rc.color} 0%, ${rc.dot} 100%)` }}
           >
-            {user?.name?.slice(0, 2).toUpperCase()}
+            {initials}
           </div>
           <div className="min-w-0 flex-1">
-            <span className="block text-[12px] font-bold text-slate-800 truncate leading-tight">
+            <span
+              className="block text-[12px] font-bold truncate leading-tight"
+              style={{ color: "var(--text-primary)" }}
+            >
               {user?.name}
             </span>
             <span
-              className={`inline-flex items-center gap-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${rc.badgeCls} mt-0.5`}
+              className="inline-flex items-center gap-1 text-[9px] font-bold mt-0.5"
+              style={{ color: rc.color }}
             >
-              <span className={`h-1.5 w-1.5 rounded-full shrink-0 ${rc.dotCls}`} />
+              <span
+                className="h-1.5 w-1.5 rounded-full shrink-0"
+                style={{ background: rc.dot }}
+              />
               {rc.label}
             </span>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] font-semibold text-red-500 hover:bg-red-50 cursor-pointer transition-colors"
+          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-[12px] font-semibold cursor-pointer transition-all"
+          style={{ color: "var(--accent-danger)" }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "rgba(239,68,68,0.08)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLElement).style.background = "";
+          }}
         >
           <LogOut className="h-3.5 w-3.5" />
           Logout Session
@@ -314,17 +429,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router   = useRouter();
   const pathname = usePathname();
 
-  const [user,           setUser]           = useState<any>(null);
-  const [loading,        setLoading]        = useState(true);
-  const [sidebarOpen,    setSidebarOpen]    = useState(false);
-  const [hasUnread,      setHasUnread]      = useState(false);
-  const [hasHighPriority,setHasHighPriority]= useState(false);
+  const [user,            setUser]            = useState<any>(null);
+  const [loading,         setLoading]         = useState(true);
+  const [sidebarOpen,     setSidebarOpen]     = useState(false);
+  const [hasUnread,       setHasUnread]       = useState(false);
+  const [hasHighPriority, setHasHighPriority] = useState(false);
 
-  /* ── Mark notices as read (updates localStorage + state) ── */
+  /* ── Mark notices as read ── */
   const markNoticesRead = useCallback(() => {
-    try {
-      localStorage.setItem(LS_KEY, new Date().toISOString());
-    } catch { /* localStorage may be unavailable in SSR edge cases */ }
+    try { localStorage.setItem(LS_KEY, new Date().toISOString()); } catch {}
     setHasUnread(false);
     setHasHighPriority(false);
   }, []);
@@ -346,7 +459,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       let anyHigh = false;
 
       if (!lastSeen) {
-        // First time — all notices are "new"
         anyNew  = notices.length > 0;
         anyHigh = notices.some((n: any) => n.priority === "HIGH");
       } else {
@@ -358,7 +470,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       setHasUnread(anyNew);
       setHasHighPriority(anyHigh);
-    } catch { /* silently ignore */ }
+    } catch {}
   }, []);
 
   /* ── Auth + initial notice check ── */
@@ -371,7 +483,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       .then((data) => {
         if (data.authenticated) {
           setUser(data.user);
-          checkUnread(); // initial check after login
+          checkUnread();
         } else {
           router.push("/");
         }
@@ -380,14 +492,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       .catch(() => { router.push("/"); });
   }, [router, checkUnread]);
 
-  /* ── Poll for new notices every 60 seconds (live indicator) ── */
+  /* ── Poll for new notices every 60 seconds ── */
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(checkUnread, 60_000);
     return () => clearInterval(interval);
   }, [user, checkUnread]);
 
-  /* ── Auto-clear dot when user navigates to /dashboard/notices ── */
+  /* ── Auto-clear dot when navigating to notices ── */
   useEffect(() => {
     if (pathname === "/dashboard/notices" && hasUnread) {
       markNoticesRead();
@@ -401,10 +513,38 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (loading) {
     return (
-      <div className="flex-1 min-h-screen flex flex-col items-center justify-center bg-slate-50">
-        <Loader2 className="h-10 w-10 text-sky-600 animate-spin" />
-        <span className="text-slate-500 text-sm mt-4 font-semibold tracking-wide">
+      <div
+        className="flex-1 min-h-screen flex flex-col items-center justify-center"
+        style={{ background: "var(--bg-base)" }}
+      >
+        {/* Animated brand loader */}
+        <div className="relative flex items-center justify-center">
+          <div
+            className="h-16 w-16 rounded-2xl flex items-center justify-center shadow-2xl"
+            style={{ background: "var(--gradient-brand)" }}
+          >
+            <Sparkles className="h-7 w-7 text-white animate-pulse" />
+          </div>
+          <div
+            className="absolute h-20 w-20 rounded-2xl border-2 animate-spin"
+            style={{
+              borderColor: "var(--accent-primary)",
+              borderTopColor: "transparent",
+              animationDuration: "1.2s",
+            }}
+          />
+        </div>
+        <span
+          className="text-sm mt-5 font-semibold tracking-wide"
+          style={{ color: "var(--text-muted)" }}
+        >
           Loading Your Portal...
+        </span>
+        <span
+          className="text-xs mt-1"
+          style={{ color: "var(--accent-primary)" }}
+        >
+          Kenzo OneERP
         </span>
       </div>
     );
@@ -420,11 +560,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50 text-slate-900">
-      {/* Ambient background */}
+    <div
+      className="flex h-screen overflow-hidden"
+      style={{ background: "var(--bg-base)" }}
+    >
+      {/* Ambient background blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-20 -left-20 w-80 h-80 rounded-full bg-sky-500/4 blur-3xl" />
-        <div className="absolute -bottom-20 -right-20 w-80 h-80 rounded-full bg-indigo-500/4 blur-3xl" />
+        <div
+          className="ambient-blob w-96 h-96 -top-20 -left-20"
+          style={{ background: "var(--accent-primary)", opacity: 0.04 }}
+        />
+        <div
+          className="ambient-blob w-96 h-96 -bottom-20 -right-20"
+          style={{ background: "var(--accent-secondary)", opacity: 0.04 }}
+        />
+        <div
+          className="ambient-blob w-64 h-64 top-1/2 left-1/3"
+          style={{ background: "var(--accent-violet)", opacity: 0.02 }}
+        />
       </div>
 
       {/* Desktop Sidebar */}
@@ -436,10 +589,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="md:hidden absolute top-4 left-4 z-30">
         <button
           onClick={() => setSidebarOpen(!sidebarOpen)}
-          className="relative p-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 cursor-pointer shadow-sm hover:shadow-md transition-all"
+          className="relative p-2.5 rounded-xl cursor-pointer transition-all shadow-lg"
+          style={{
+            background: "var(--bg-card)",
+            border: "1px solid var(--border-base)",
+            color: "var(--text-primary)",
+          }}
         >
           {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-          {/* Mini ping indicator on mobile hamburger when unread */}
           {hasUnread && !sidebarOpen && (
             <span className="absolute -top-1 -right-1 flex h-3 w-3">
               <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${hasHighPriority ? "bg-red-400" : "bg-amber-400"}`} />
@@ -453,10 +610,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {sidebarOpen && (
         <div className="md:hidden fixed inset-0 z-20 flex">
           <div
-            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm"
+            className="fixed inset-0 backdrop-blur-sm"
+            style={{ background: "rgba(0,0,0,0.5)" }}
             onClick={() => setSidebarOpen(false)}
           />
-          <aside className="relative flex flex-col w-60 h-full bg-white border-r border-slate-200 z-30 overflow-hidden">
+          <aside
+            className="relative flex flex-col w-60 h-full z-30 overflow-hidden"
+            style={{
+              background: "var(--bg-sidebar)",
+              borderRight: "1px solid var(--border-base)",
+            }}
+          >
             {user && (
               <SidebarContent
                 {...sidebarProps}
@@ -469,6 +633,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
       {/* Main content */}
       <main className="flex-1 flex flex-col h-full overflow-y-auto relative z-10">
+        {/* Top bar with theme toggle (mobile visible) */}
+        <div
+          className="hidden md:flex items-center justify-end px-8 py-3 shrink-0 md:hidden"
+          style={{
+            borderBottom: "1px solid var(--border-base)",
+            background: "var(--bg-card)",
+          }}
+        >
+          <ThemeToggle />
+        </div>
         <div className="flex-1 px-5 py-6 md:px-8 md:py-8">{children}</div>
       </main>
     </div>

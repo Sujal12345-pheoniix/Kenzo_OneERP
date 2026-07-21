@@ -35,14 +35,14 @@ export default function CompaniesPage() {
   const companyStats = [
     { label: "Total Employees", value: metrics?.employees || 0, icon: Users, color: "bg-violet-50 text-violet-600" },
     { label: "Active Projects", value: metrics?.activeProjects || 0, icon: FolderKanban, color: "bg-sky-50 text-sky-600" },
-    { label: "Annual Revenue", value: `$${(metrics?.revenue || 0).toLocaleString()}`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600" },
-    { label: "Deal Pipeline", value: `$${(metrics?.pipeline || 0).toLocaleString()}`, icon: TrendingUp, color: "bg-amber-50 text-amber-600" },
+    { label: "Annual Revenue", value: `Rs. ${(metrics?.revenue || 0).toLocaleString()}`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600" },
+    { label: "Deal Pipeline", value: `Rs. ${(metrics?.pipeline || 0).toLocaleString()}`, icon: TrendingUp, color: "bg-amber-50 text-amber-600" },
   ];
 
   const highlights = [
-    { label: "MRR", value: `$${((metrics?.mrr) || 0).toLocaleString()}`, up: true },
-    { label: "ARR", value: `$${((metrics?.arr) || 0).toLocaleString()}`, up: true },
-    { label: "Net Profit", value: `$${((metrics?.profit) || 0).toLocaleString()}`, up: (metrics?.profit || 0) > 0 },
+    { label: "MRR", value: `Rs. ${((metrics?.mrr) || 0).toLocaleString()}`, up: true },
+    { label: "ARR", value: `Rs. ${((metrics?.arr) || 0).toLocaleString()}`, up: true },
+    { label: "Net Profit", value: `Rs. ${((metrics?.profit) || 0).toLocaleString()}`, up: (metrics?.profit || 0) > 0 },
   ];
 
   return (

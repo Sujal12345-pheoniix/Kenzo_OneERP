@@ -646,7 +646,7 @@ export default function HRMSDashboard() {
           </div>
           <div className="glass-panel p-6">
             <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Annual Payroll Commits</span>
-            <div className="text-2xl font-extrabold text-slate-900 mb-1">${payrollTotal.toLocaleString()}</div>
+            <div className="text-2xl font-extrabold text-slate-900 mb-1">Rs. {payrollTotal.toLocaleString()}</div>
             <span className="text-slate-500 text-xs font-medium">Base package expenditure</span>
           </div>
           <div className="glass-panel p-6">
@@ -688,7 +688,7 @@ export default function HRMSDashboard() {
                           </span>
                         </td>
                         <td className="py-3.5 text-slate-500">{emp.user?.email || emp.email}</td>
-                        <td className="py-3.5 text-right font-semibold text-slate-900">${emp.salary.toLocaleString()}</td>
+                        <td className="py-3.5 text-right font-semibold text-slate-900">Rs. {emp.salary.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -779,7 +779,7 @@ export default function HRMSDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Annual Salary ($)</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Annual Salary (Rs.)</label>
                   <input
                     type="number" required value={salary} onChange={(e) => setSalary(e.target.value)}
                     placeholder="e.g. 120000"

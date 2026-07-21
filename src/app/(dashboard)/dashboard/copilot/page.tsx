@@ -46,7 +46,7 @@ export default function CopilotHub() {
     "Draft a project roadmap task list for Jitendar Saini",
     "List all employee emails and roles in the company",
     "Show current financial margins and outstanding billing values",
-    "Find leads with values over $50,000 in CRM pipelines",
+    "Find leads with values over Rs. 50,000 in CRM pipelines",
   ];
 
   return (

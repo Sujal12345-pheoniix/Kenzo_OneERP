@@ -61,3 +61,70 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function POST(req: NextRequest) {
+  try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { tenantId } = session;
+    const body = await req.json();
+    const { type, description, amount, category, clientName, customerName, status, dueDate, issueDate, invoiceNo } = body;
+
+    if (type === "INVOICE") {
+      const invCustomer = customerName || clientName;
+      if (!invCustomer || amount === undefined || isNaN(Number(amount))) {
+        return NextResponse.json({ error: "Missing invoice client name or amount" }, { status: 400 });
+      }
+      const newInvoice = await db.invoice.create({
+        data: {
+          tenantId,
+          invoiceNo: invoiceNo || `INV-${Date.now().toString().slice(-6)}`,
+          customerName: invCustomer,
+          amount: parseFloat(amount),
+          status: status || "SENT",
+          issueDate: issueDate ? new Date(issueDate) : new Date(),
+          dueDate: dueDate ? new Date(dueDate) : new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
+        },
+      });
+
+      await db.activity.create({
+        data: {
+          tenantId,
+          message: `Invoice created for ${invCustomer} (Rs. ${amount})`,
+          type: "FINANCE",
+        },
+      });
+
+      return NextResponse.json(newInvoice);
+    } else {
+      if (!description || amount === undefined || isNaN(Number(amount))) {
+        return NextResponse.json({ error: "Missing expense description or amount" }, { status: 400 });
+      }
+      const newExpense = await db.expense.create({
+        data: {
+          tenantId,
+          description,
+          amount: parseFloat(amount),
+          category: category || "OPERATIONAL",
+          status: status || "APPROVED",
+          date: new Date(),
+        },
+      });
+
+      await db.activity.create({
+        data: {
+          tenantId,
+          message: `Expense recorded: ${description} (Rs. ${amount})`,
+          type: "FINANCE",
+        },
+      });
+
+      return NextResponse.json(newExpense);
+    }
+  } catch (error) {
+    console.error("Finance POST Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+

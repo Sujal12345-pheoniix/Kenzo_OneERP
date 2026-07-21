@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
     await db.activity.create({
       data: {
         tenantId,
-        message: `Project created: ${name} (Budget: $${budget})`,
+        message: `Project created: ${name} (Budget: Rs. ${budget})`,
         type: "PROJECT",
       },
     });
