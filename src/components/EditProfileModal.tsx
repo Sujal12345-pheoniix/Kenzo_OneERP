@@ -245,7 +245,7 @@ export default function EditProfileModal({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter full name"
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-white dark:placeholder:text-white placeholder:opacity-90 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
               />
             </div>
 
@@ -259,7 +259,7 @@ export default function EditProfileModal({
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
                   placeholder="e.g. Company Admin, Manager"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-white dark:placeholder:text-white placeholder:opacity-90 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                 />
               </div>
 
@@ -272,7 +272,7 @@ export default function EditProfileModal({
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. 9999740587"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-white dark:placeholder:text-white placeholder:opacity-90 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
                 />
               </div>
             </div>
@@ -286,7 +286,7 @@ export default function EditProfileModal({
                 onChange={(e) => setBio(e.target.value)}
                 rows={2}
                 placeholder="Short bio or motto..."
-                className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-sky-500 outline-none transition-all resize-none"
+                className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-white dark:placeholder:text-white placeholder:opacity-90 focus:ring-2 focus:ring-sky-500 outline-none transition-all resize-none"
               />
             </div>
 
@@ -298,7 +298,7 @@ export default function EditProfileModal({
                 type="text"
                 disabled
                 value={user.email}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-500 cursor-not-allowed"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white opacity-90 cursor-not-allowed"
               />
             </div>
           </div>
@@ -325,7 +325,7 @@ export default function EditProfileModal({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimum 6 characters"
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white outline-none"
+                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-white dark:placeholder:text-white outline-none"
                   />
                 </div>
               </div>

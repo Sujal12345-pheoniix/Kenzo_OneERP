@@ -318,17 +318,29 @@ button, a, [role="button"] {
   color: #475569 !important;
 }
 
-/* Dark mode inputs (using var(--bg-input)): text bright white, placeholder light slate */
+/* Dark mode inputs & profile forms: text bright white, placeholder pure white */
 [data-theme="dark"] input:not(.bg-white),
 [data-theme="dark"] textarea:not(.bg-white),
 [data-theme="dark"] select:not(.bg-white) {
   background-color: var(--bg-input) !important;
-  color: #f8fafc !important;
+  color: #ffffff !important;
 }
 
-[data-theme="dark"] input:not(.bg-white)::placeholder,
-[data-theme="dark"] textarea:not(.bg-white)::placeholder {
-  color: #94a3b8 !important;
+[data-theme="dark"] input::placeholder,
+[data-theme="dark"] textarea::placeholder,
+[data-theme="dark"] select::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: #ffffff !important;
+  opacity: 0.95 !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+[data-theme="dark"] input:disabled,
+[data-theme="dark"] textarea:disabled {
+  color: #ffffff !important;
+  opacity: 0.9 !important;
+  -webkit-text-fill-color: #ffffff !important;
 }
 
 /* Select options dropdown list */
