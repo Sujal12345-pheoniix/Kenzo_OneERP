@@ -244,7 +244,12 @@ function SidebarContent({
         className="px-5 py-4 flex items-center justify-between shrink-0"
         style={{ borderBottom: "1px solid var(--border-base)" }}
       >
-        <img src="/logo.png" alt="Kenzo OneERP" className="h-8 w-auto object-contain" />
+        <div className="flex items-center gap-2.5 cursor-pointer">
+          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-sky-500/20">
+            <span className="text-lg select-none">💎</span>
+          </div>
+          <span className="text-xl font-black tracking-wider text-slate-900 dark:text-white uppercase">KORE</span>
+        </div>
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
           <div

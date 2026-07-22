@@ -726,15 +726,15 @@ export default function HRMSDashboard() {
                 </div>
 
                 {calcLeaveDays() > 0 && (
-                  <div className="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-300 font-bold text-xs flex items-center justify-between border border-sky-100 dark:border-sky-800">
-                    <span>Duration Calculated:</span>
-                    <span>{calcLeaveDays()} {calcLeaveDays() === 1 ? "Day" : "Days"}</span>
+                  <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 text-black dark:text-white font-black text-xs flex items-center justify-between border-2 border-black dark:border-white shadow-md">
+                    <span className="font-black text-black dark:text-white uppercase tracking-wider text-xs">Duration Calculated:</span>
+                    <span className="font-black text-black dark:text-white text-sm bg-slate-100 dark:bg-slate-800 px-3 py-1 rounded-xl border border-black dark:border-white">{calcLeaveDays()} {calcLeaveDays() === 1 ? "Day" : "Days"}</span>
                   </div>
                 )}
 
                 <div>
-                  <label className="form-label">Reason for Leave</label>
-                  <textarea required value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} rows={3} placeholder="Please explain reason for requesting leave..." className="form-input" style={{ resize: "none" }} />
+                  <label className="form-label font-black text-black dark:text-white">Reason for Leave</label>
+                  <textarea required value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} rows={3} placeholder="Please explain reason for requesting leave..." className="form-input text-black font-semibold" style={{ resize: "none" }} />
                 </div>
 
                 <button type="submit" disabled={leaveSubmitting} className="btn-primary w-full py-3">
@@ -749,25 +749,25 @@ export default function HRMSDashboard() {
             <div className="glass-panel p-6 h-full">
               <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
                 <div>
-                  <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>My Leave Application History</h3>
-                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>Status of your submitted leave applications</p>
+                  <h3 className="text-base font-black text-black dark:text-white">My Leave Application History</h3>
+                  <p className="text-xs font-bold text-slate-700 dark:text-slate-300">Status of your submitted leave applications</p>
                 </div>
-                <span className="badge status-info">{leavesList.length} Total Requests</span>
+                <span className="badge status-info font-black">{leavesList.length} Total Requests</span>
               </div>
 
               <div className="overflow-x-auto">
                 <table className="premium-table">
                   <thead>
                     <tr>
-                      <th>Leave Type &amp; Reason</th>
-                      <th>Dates &amp; Days</th>
-                      <th className="text-center">Approval Status</th>
+                      <th className="font-black text-black dark:text-white">Leave Type &amp; Reason</th>
+                      <th className="font-black text-black dark:text-white">Dates &amp; Days</th>
+                      <th className="text-center font-black text-black dark:text-white">Approval Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {leavesList.length === 0 ? (
                       <tr>
-                        <td colSpan={3} className="text-center py-8" style={{ color: "var(--text-muted)" }}>No leave applications submitted yet.</td>
+                        <td colSpan={3} className="text-center py-8 font-bold text-black dark:text-white">No leave applications submitted yet.</td>
                       </tr>
                     ) : (
                       leavesList.map((leave: any) => {
@@ -775,14 +775,14 @@ export default function HRMSDashboard() {
                         return (
                           <tr key={leave.id}>
                             <td>
-                              <span className="badge status-info mb-1">{leave.type}</span>
-                              <p className="text-xs font-medium text-slate-700 dark:text-slate-300 max-w-xs">{leave.reason}</p>
+                              <span className="badge status-info font-black mb-1 text-black">{leave.type}</span>
+                              <p className="text-xs font-black text-black dark:text-white max-w-xs">{leave.reason}</p>
                             </td>
-                            <td style={{ color: "var(--text-muted)" }}>
-                              <span className="font-bold text-xs block text-slate-800 dark:text-slate-200">
-                                {new Date(leave.startDate).toLocaleDateString()} – {new Date(leave.endDate).toLocaleDateString()}
+                            <td>
+                              <span className="font-black text-xs block text-black dark:text-white">
+                                {new Date(leave.startDate).toLocaleDateString("en-GB")} to {new Date(leave.endDate).toLocaleDateString("en-GB")}
                               </span>
-                              <span className="text-[11px] font-semibold text-sky-600">({days} {days === 1 ? "day" : "days"})</span>
+                              <span className="text-xs font-black text-emerald-700 dark:text-emerald-400">({days} {days === 1 ? "day" : "days"})</span>
                             </td>
                             <td className="text-center">
                               <span className={`px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1 ${

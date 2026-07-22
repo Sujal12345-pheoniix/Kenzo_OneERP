@@ -80,6 +80,10 @@ export default function ExecutiveHub() {
   const [latestTask, setLatestTask] = useState<any>(null);
   const [showTaskPopup, setShowTaskPopup] = useState(false);
 
+  // Real database tasks and projects state for employee dashboard
+  const [realTasks, setRealTasks] = useState<any[]>([]);
+  const [realProjects, setRealProjects] = useState<any[]>([]);
+
   const fetchSessionAndData = async () => {
     try {
       // 1. Fetch Session
@@ -93,33 +97,44 @@ export default function ExecutiveHub() {
         const dashJson = await dashRes.json();
         setData(dashJson);
 
-        // 3. Fetch Assigned Tasks for Notification Popup — STRICTLY FILTERED TO LOGGED IN USER
+        // 3. Fetch Real Tasks and Projects
         try {
-          const tasksRes = await fetch("/api/projects/tasks");
+          const [tasksRes, projRes] = await Promise.all([
+            fetch("/api/projects/tasks"),
+            fetch("/api/projects"),
+          ]);
           if (tasksRes.ok) {
             const tasksList = await tasksRes.json();
-            if (Array.isArray(tasksList) && tasksList.length > 0) {
-              const currentUserId = sessionJson.user.id;
-              const currentUserEmail = sessionJson.user.email;
-              const currentUserName = (sessionJson.user.name || "").trim().toLowerCase();
+            if (Array.isArray(tasksList)) {
+              setRealTasks(tasksList);
+              if (tasksList.length > 0) {
+                const currentUserId = sessionJson.user.id;
+                const currentUserEmail = sessionJson.user.email;
+                const currentUserName = (sessionJson.user.name || "").trim().toLowerCase();
 
-              const myAssignedTask = tasksList.find((t: any) => {
-                if (!t || t.status === "DONE" || !t.assignee) return false;
-                const matchUserId = t.assignee.userId === currentUserId;
-                const matchEmail = t.assignee.email === currentUserEmail || t.assignee.user?.email === currentUserEmail;
-                const empFullName = `${t.assignee.firstName || ''} ${t.assignee.lastName || ''}`.trim().toLowerCase();
-                const matchName = empFullName === currentUserName;
-                return matchUserId || matchEmail || matchName;
-              });
+                const myAssignedTask = tasksList.find((t: any) => {
+                  if (!t || t.status === "DONE" || !t.assignee) return false;
+                  const matchUserId = t.assignee.userId === currentUserId;
+                  const matchEmail = t.assignee.email === currentUserEmail || t.assignee.user?.email === currentUserEmail;
+                  const empFullName = `${t.assignee.firstName || ''} ${t.assignee.lastName || ''}`.trim().toLowerCase();
+                  const matchName = empFullName === currentUserName;
+                  return matchUserId || matchEmail || matchName;
+                });
 
-              if (myAssignedTask) {
-                setLatestTask(myAssignedTask);
-                setShowTaskPopup(true);
-              } else {
-                setLatestTask(null);
-                setShowTaskPopup(false);
+                if (myAssignedTask) {
+                  setLatestTask(myAssignedTask);
+                  setShowTaskPopup(true);
+                } else {
+                  setLatestTask(null);
+                  setShowTaskPopup(false);
+                }
               }
             }
+          }
+          if (projRes.ok) {
+            const projJson = await projRes.json();
+            const pList = Array.isArray(projJson) ? projJson : (projJson.projects || []);
+            setRealProjects(pList);
           }
         } catch (e) {
           console.error("Task popup fetch error:", e);
@@ -1021,32 +1036,30 @@ export default function ExecutiveHub() {
   }
 
   // Render Employee / PM / Developer Dashboard
+  const userTasksList = realTasks;
+  const doneTasksList = userTasksList.filter((t: any) => t.status === "DONE");
+  const inProgressTasksList = userTasksList.filter((t: any) => t.status === "IN_PROGRESS");
+  const reviewTasksList = userTasksList.filter((t: any) => t.status === "REVIEW");
+  const todoTasksList = userTasksList.filter((t: any) => t.status === "TODO");
+
   const taskStatusSummary = [
-    { name: "Stuck", value: 2, color: "#ef4444" },
-    { name: "In Progress", value: 3, color: "#f59e0b" },
-    { name: "In Review", value: 3, color: "#3b82f6" },
-    { name: "Completed", value: 5, color: "#10b981" },
+    { name: "To Do", value: todoTasksList.length, color: "#6366f1" },
+    { name: "In Progress", value: inProgressTasksList.length, color: "#f59e0b" },
+    { name: "In Review", value: reviewTasksList.length, color: "#3b82f6" },
+    { name: "Completed", value: doneTasksList.length, color: "#10b981" },
   ];
 
   const ongoingTasksData = [
-    { name: "Mon", tasks: 12 },
-    { name: "Tue", tasks: 18 },
-    { name: "Wed", tasks: 28 },
-    { name: "Thu", tasks: 15 },
-    { name: "Fri", tasks: 22 },
-    { name: "Sat", tasks: 8 },
-    { name: "Sun", tasks: 10 },
+    { name: "To Do", tasks: todoTasksList.length },
+    { name: "In Progress", tasks: inProgressTasksList.length },
+    { name: "In Review", tasks: reviewTasksList.length },
+    { name: "Completed", tasks: doneTasksList.length },
   ];
 
-  const salesRevenueData = [
-    { name: "Mon", value: 120 },
-    { name: "Tue", value: 180 },
-    { name: "Wed", value: 145 },
-    { name: "Thu", value: 210 },
-    { name: "Fri", value: 160 },
-    { name: "Sat", value: 200 },
-    { name: "Sun", value: 150 },
-  ];
+  const projectProgressData = (realProjects.length > 0 ? realProjects : [{ name: "Operations", budget: 100000 }]).map((p: any) => ({
+    name: p.name ? (p.name.length > 10 ? p.name.slice(0, 10) + "..." : p.name) : "Project",
+    value: p.budget || 50000,
+  }));
 
   return (
     <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto text-slate-800 animate-fadeIn">
@@ -1056,7 +1069,7 @@ export default function ExecutiveHub() {
           <div className="flex items-center gap-2 text-sky-600 font-bold text-xs uppercase tracking-widest">
             <Briefcase className="h-4 w-4" /> Personal Workspace
           </div>
-          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">Workspace Portal & Projects</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-1">Workspace Portal &amp; Projects</h1>
           <p className="text-slate-500 text-sm mt-0.5">Manage tasks, timelines, growth statistics, and project progress logs.</p>
         </div>
         <div className="px-4 py-2 rounded-xl bg-sky-50 border border-sky-150 text-sky-600 text-xs font-bold shadow-sm flex items-center gap-1.5">
@@ -1069,29 +1082,29 @@ export default function ExecutiveHub() {
         <div className="glass-panel p-5 flex flex-col justify-between">
           <span className="text-slate-450 text-[10px] font-bold uppercase tracking-wider block">Completed Tasks</span>
           <div className="flex justify-between items-end mt-2">
-            <span className="text-2xl font-extrabold text-slate-950">43 Tasks</span>
-            <span className="text-[10px] font-bold text-emerald-600 flex items-center"><ArrowUpRight className="h-3 w-3" /> 37.8%</span>
+            <span className="text-2xl font-extrabold text-slate-950">{doneTasksList.length} Tasks</span>
+            <span className="text-[10px] font-bold text-emerald-600 flex items-center"><ArrowUpRight className="h-3 w-3" /> Real-time</span>
           </div>
         </div>
         <div className="glass-panel p-5 flex flex-col justify-between">
-          <span className="text-slate-450 text-[10px] font-bold uppercase tracking-wider block">Avg Task Time</span>
+          <span className="text-slate-450 text-[10px] font-bold uppercase tracking-wider block">Active Tasks</span>
           <div className="flex justify-between items-end mt-2">
-            <span className="text-2xl font-extrabold text-slate-950">73 mins</span>
-            <span className="text-[10px] font-bold text-red-500 flex items-center"><ArrowDownRight className="h-3 w-3" /> 37.8%</span>
+            <span className="text-2xl font-extrabold text-slate-950">{inProgressTasksList.length + todoTasksList.length} Tasks</span>
+            <span className="text-[10px] font-bold text-sky-600 flex items-center"><ArrowUpRight className="h-3 w-3" /> In Work</span>
           </div>
         </div>
         <div className="glass-panel p-5 flex flex-col justify-between">
-          <span className="text-slate-450 text-[10px] font-bold uppercase tracking-wider block">Tasks By Client</span>
+          <span className="text-slate-450 text-[10px] font-bold uppercase tracking-wider block">Total Workspace Tasks</span>
           <div className="flex justify-between items-end mt-2">
-            <span className="text-2xl font-extrabold text-slate-950">83 Tasks</span>
-            <span className="text-[10px] font-bold text-red-500 flex items-center"><ArrowDownRight className="h-3 w-3" /> 37.8%</span>
+            <span className="text-2xl font-extrabold text-slate-950">{userTasksList.length} Tasks</span>
+            <span className="text-[10px] font-bold text-sky-600 flex items-center"><ArrowUpRight className="h-3 w-3" /> Total</span>
           </div>
         </div>
         <div className="glass-panel p-5 flex flex-col justify-between">
-          <span className="text-slate-450 text-[10px] font-bold uppercase tracking-wider block">Recurring Projects</span>
+          <span className="text-slate-450 text-[10px] font-bold uppercase tracking-wider block">Active Projects</span>
           <div className="flex justify-between items-end mt-2">
-            <span className="text-2xl font-extrabold text-slate-950">36 Projects</span>
-            <span className="text-[10px] font-bold text-emerald-600 flex items-center"><ArrowUpRight className="h-3 w-3" /> 37.8%</span>
+            <span className="text-2xl font-extrabold text-slate-950">{realProjects.length} Projects</span>
+            <span className="text-[10px] font-bold text-emerald-600 flex items-center"><ArrowUpRight className="h-3 w-3" /> Scope</span>
           </div>
         </div>
       </div>
@@ -1102,7 +1115,7 @@ export default function ExecutiveHub() {
         <div className="glass-panel p-6">
           <h3 className="text-base font-bold text-slate-900 mb-4 flex justify-between items-center">
             <span>Ongoing Tasks Volume</span>
-            <span className="text-xs font-semibold text-slate-400">Weekly View</span>
+            <span className="text-xs font-semibold text-slate-400">Real-time Breakdown</span>
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
@@ -1111,26 +1124,26 @@ export default function ExecutiveHub() {
                 <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
                 <YAxis stroke="#94a3b8" fontSize={11} />
                 <Tooltip />
-                <Bar dataKey="tasks" fill="#0284c7" radius={[4, 4, 0, 0]} name="Completed Tasks" />
+                <Bar dataKey="tasks" fill="#0284c7" radius={[4, 4, 0, 0]} name="Tasks Count" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Sales & Revenue Line Chart */}
+        {/* Corporate Revenue / Project Activity Line Chart */}
         <div className="glass-panel p-6">
           <h3 className="text-base font-bold text-slate-900 mb-4 flex justify-between items-center">
-            <span>Corporate Revenue Activity</span>
-            <span className="text-xs font-semibold text-slate-400">Weekly View</span>
+            <span>Project Budget Breakdown</span>
+            <span className="text-xs font-semibold text-slate-400">Real Data</span>
           </h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={salesRevenueData}>
+              <LineChart data={projectProgressData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
                 <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
                 <YAxis stroke="#94a3b8" fontSize={11} />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2.5} name="Revenue (Rs.)" />
+                <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2.5} name="Budget (Rs.)" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -1161,14 +1174,14 @@ export default function ExecutiveHub() {
               <div key={i} className="flex items-center gap-1.5 text-xs font-semibold">
                 <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: item.color }} />
                 <span className="text-slate-500">{item.name}</span>
-                <span className="text-slate-800 ml-auto">{item.value}</span>
+                <span className="text-slate-800 ml-auto font-bold">{item.value}</span>
               </div>
             ))}
           </div>
         </div>
 
         <div className="lg:col-span-2 glass-panel p-6">
-          <h3 className="text-base font-bold text-slate-900 mb-4">Successful Tasks Overview</h3>
+          <h3 className="text-base font-bold text-slate-900 mb-4">Assigned Tasks Overview</h3>
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs border-collapse">
               <thead>
@@ -1180,30 +1193,32 @@ export default function ExecutiveHub() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                <tr className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 font-bold text-slate-850">Populate Ledger Table</td>
-                  <td className="py-3 text-slate-500">Formulate and write financial transaction journal lists...</td>
-                  <td className="py-3 text-slate-650">May 5, 2026</td>
-                  <td className="py-3 text-right">
-                    <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 font-bold text-[9px]">Completed</span>
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 font-bold text-slate-850">Optimizing API Responses</td>
-                  <td className="py-3 text-slate-500">Refactoring Next.js server actions and caching layers...</td>
-                  <td className="py-3 text-slate-650">June 18, 2026</td>
-                  <td className="py-3 text-right">
-                    <span className="px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 font-bold text-[9px]">In Progress</span>
-                  </td>
-                </tr>
-                <tr className="hover:bg-slate-50/50 transition-colors">
-                  <td className="py-3 font-bold text-slate-850">Theme System Integration</td>
-                  <td className="py-3 text-slate-500">Tailoring Tailwind styles and border gloss overrides...</td>
-                  <td className="py-3 text-slate-650">June 24, 2026</td>
-                  <td className="py-3 text-right">
-                    <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 font-bold text-[9px]">In Review</span>
-                  </td>
-                </tr>
+                {userTasksList.length === 0 ? (
+                  <tr>
+                    <td colSpan={4} className="py-8 text-center text-slate-400 font-extrabold text-xs">
+                      No tasks assigned to your workspace yet. Assigned tasks will update here in real time.
+                    </td>
+                  </tr>
+                ) : (
+                  userTasksList.map((t: any) => (
+                    <tr key={t.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="py-3 font-extrabold text-slate-900 text-xs">{t.title}</td>
+                      <td className="py-3 text-slate-500 font-medium text-xs line-clamp-1 max-w-xs">{t.description || "Operational task scope"}</td>
+                      <td className="py-3 text-slate-600 font-bold text-xs">
+                        {t.dueDate ? new Date(t.dueDate).toLocaleDateString("en-GB") : "Immediate"}
+                      </td>
+                      <td className="py-3 text-right">
+                        <span className={`px-2.5 py-1 rounded-full font-black text-[9px] ${
+                          t.status === "DONE" ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
+                          t.status === "IN_PROGRESS" ? "bg-amber-50 text-amber-600 border border-amber-100" :
+                          t.status === "REVIEW" ? "bg-sky-50 text-sky-600 border border-sky-100" : "bg-slate-100 text-slate-600"
+                        }`}>
+                          {t.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

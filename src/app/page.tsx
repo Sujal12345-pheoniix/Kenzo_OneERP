@@ -79,7 +79,12 @@ export default function Home() {
           className="flex flex-col items-center mb-8 pb-6"
           style={{ borderBottom: "1px solid var(--border-base)" }}
         >
-          <img src="/logo.png" alt="Kenzo Logo" className="h-12 w-auto object-contain mb-3 drop-shadow" />
+          <div className="flex items-center gap-3 mb-3 cursor-pointer">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
+              <span className="text-2xl select-none">💎</span>
+            </div>
+            <span className="text-3xl font-black tracking-widest text-slate-900 uppercase">KORE</span>
+          </div>
           <p className="text-base font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
             The ERP System - Manage Everything
           </p>
