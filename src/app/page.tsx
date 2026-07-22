@@ -80,10 +80,12 @@ export default function Home() {
           style={{ borderBottom: "1px solid var(--border-base)" }}
         >
           <div className="flex items-center gap-3 mb-3 cursor-pointer">
-            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/25">
+            <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/30 border border-sky-300/30">
               <span className="text-2xl select-none">💎</span>
             </div>
-            <span className="text-3xl font-black tracking-widest text-slate-900 uppercase">KORE</span>
+            <span className="text-4xl font-black tracking-widest uppercase bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm">
+              KORE
+            </span>
           </div>
           <p className="text-base font-black tracking-tight" style={{ color: "var(--text-primary)" }}>
             The ERP System - Manage Everything

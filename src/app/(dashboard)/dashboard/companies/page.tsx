@@ -65,10 +65,12 @@ export default function CompaniesPage() {
           {/* Logo & name (Replacing boxed icon image 1 with clean wide logo image 2) */}
           <div className="flex flex-col items-center md:items-start gap-4 shrink-0">
             <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-sky-500/20">
+              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-sky-500/25 border border-sky-300/30">
                 <span className="text-2xl select-none">💎</span>
               </div>
-              <span className="text-3xl font-black tracking-widest text-slate-900 dark:text-white uppercase">KORE</span>
+              <span className="text-4xl font-black tracking-widest uppercase bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm">
+                KORE
+              </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[9px] font-bold rounded-full flex items-center gap-1">

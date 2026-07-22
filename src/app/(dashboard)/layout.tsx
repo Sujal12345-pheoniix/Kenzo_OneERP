@@ -245,10 +245,12 @@ function SidebarContent({
         style={{ borderBottom: "1px solid var(--border-base)" }}
       >
         <div className="flex items-center gap-2.5 cursor-pointer">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-sky-500/20">
+          <div className="h-8.5 w-8.5 rounded-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-sky-500/25 border border-sky-300/30">
             <span className="text-lg select-none">💎</span>
           </div>
-          <span className="text-xl font-black tracking-wider text-slate-900 dark:text-white uppercase">KORE</span>
+          <span className="text-2xl font-black tracking-widest uppercase bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm">
+            KORE
+          </span>
         </div>
         <div className="flex items-center gap-1.5">
           <ThemeToggle />
