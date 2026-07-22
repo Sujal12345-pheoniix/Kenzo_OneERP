@@ -288,15 +288,16 @@ button, a, [role="button"] {
 [data-theme="dark"] select {
   background-color: var(--bg-input) !important;
   color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
   border-color: rgba(129, 140, 248, 0.2) !important;
 }
 
 [data-theme="dark"] input::placeholder,
 [data-theme="dark"] textarea::placeholder,
 [data-theme="dark"] select::placeholder {
-  color: #ffffff !important;
-  opacity: 0.95 !important;
-  -webkit-text-fill-color: #ffffff !important;
+  color: #94a3b8 !important;
+  opacity: 0.85 !important;
+  -webkit-text-fill-color: #94a3b8 !important;
 }
 
 [data-theme="dark"] input:disabled,

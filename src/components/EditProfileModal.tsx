@@ -144,41 +144,41 @@ export default function EditProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md animate-fadeIn">
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-scaleUp">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fadeIn">
+      <div className="bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-scaleUp text-white">
         {/* Modal Header */}
-        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-950/40">
+        <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
           <div className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
               <Sparkles className="h-4.5 w-4.5" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-slate-900 dark:text-white tracking-tight">
+              <h2 className="text-lg font-black text-white tracking-tight">
                 Edit My Profile
               </h2>
-              <p className="text-xs font-bold text-slate-400">
+              <p className="text-xs font-bold text-slate-300">
                 Customize photo, details, and security settings
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="h-8 w-8 rounded-full bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 flex items-center justify-center text-slate-500 dark:text-slate-400 transition-all cursor-pointer"
+            className="h-8 w-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-300 transition-all cursor-pointer"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {savedMsg && (
-          <div className="mx-6 mt-4 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-black rounded-2xl flex items-center gap-2 animate-bounce-short">
-            <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0" />
+          <div className="mx-6 mt-4 p-3 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-black rounded-2xl flex items-center gap-2 animate-bounce-short">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
             {savedMsg}
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
           {/* Avatar Section */}
-          <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-sky-50/50 dark:bg-slate-800/40 border border-sky-100/80 dark:border-slate-800">
+          <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-slate-800/60 border border-slate-700/80">
             <div
               className="relative group cursor-pointer"
               onClick={() => fileInputRef.current?.click()}
@@ -190,14 +190,14 @@ export default function EditProfileModal({
                   className="h-20 w-20 rounded-2xl object-cover shadow-lg border-2 border-sky-400/80 group-hover:opacity-90 transition-all"
                 />
               ) : (
-                <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-rose-500 via-sky-500 to-blue-600 flex items-center justify-center font-black text-2xl text-white shadow-lg border-2 border-white dark:border-slate-800">
+                <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-rose-500 via-sky-500 to-blue-600 flex items-center justify-center font-black text-2xl text-white shadow-lg border-2 border-slate-700">
                   {initials}
                 </div>
               )}
               <div className="absolute inset-0 bg-slate-900/40 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
                 <Camera className="h-6 w-6 text-white drop-shadow" />
               </div>
-              <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-md border-2 border-white dark:border-slate-900">
+              <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-md border-2 border-slate-900">
                 <Camera className="h-3.5 w-3.5" />
               </div>
             </div>
@@ -222,13 +222,13 @@ export default function EditProfileModal({
                 <button
                   type="button"
                   onClick={handleRemoveAvatar}
-                  className="px-3 py-1.5 rounded-xl bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 font-bold text-xs transition-all cursor-pointer"
+                  className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-all cursor-pointer"
                 >
                   Remove
                 </button>
               )}
             </div>
-            <span className="text-[10px] text-slate-400 font-medium">
+            <span className="text-[10px] text-slate-300 font-medium">
               JPG, PNG, GIF up to 5MB
             </span>
           </div>
@@ -236,8 +236,8 @@ export default function EditProfileModal({
           {/* User Information */}
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <User className="h-3.5 w-3.5 text-sky-500" /> Full Display Name
+              <label className="block text-xs font-black text-white uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <User className="h-3.5 w-3.5 text-sky-400" /> Full Display Name
               </label>
               <input
                 type="text"
@@ -245,40 +245,40 @@ export default function EditProfileModal({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="Enter full name"
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-white dark:placeholder:text-white placeholder:opacity-90 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700 text-xs font-bold text-white placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20 outline-none transition-all"
               />
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                  <Briefcase className="h-3.5 w-3.5 text-violet-500" /> Job Position / Role Title
+                <label className="block text-xs font-black text-white uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Briefcase className="h-3.5 w-3.5 text-violet-400" /> Job Position / Role Title
                 </label>
                 <input
                   type="text"
                   value={position}
                   onChange={(e) => setPosition(e.target.value)}
                   placeholder="e.g. Company Admin, Manager"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-white dark:placeholder:text-white placeholder:opacity-90 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700 text-xs font-bold text-white placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20 outline-none transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                  <Phone className="h-3.5 w-3.5 text-emerald-500" /> Phone Number
+                <label className="block text-xs font-black text-white uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5 text-emerald-400" /> Phone Number
                 </label>
                 <input
                   type="text"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="e.g. 9999740587"
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-white dark:placeholder:text-white placeholder:opacity-90 focus:ring-2 focus:ring-sky-500 outline-none transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700 text-xs font-bold text-white placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20 outline-none transition-all"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-black text-white uppercase tracking-wider mb-1.5">
                 Bio / Tagline
               </label>
               <textarea
@@ -286,38 +286,38 @@ export default function EditProfileModal({
                 onChange={(e) => setBio(e.target.value)}
                 rows={2}
                 placeholder="Short bio or motto..."
-                className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-semibold text-slate-900 dark:text-white placeholder:text-white dark:placeholder:text-white placeholder:opacity-90 focus:ring-2 focus:ring-sky-500 outline-none transition-all resize-none"
+                className="w-full px-4 py-2 rounded-xl bg-slate-800/90 border border-slate-700 text-xs font-semibold text-white placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20 outline-none transition-all resize-none"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                <ShieldCheck className="h-3.5 w-3.5 text-rose-500" /> Email Address
+              <label className="block text-xs font-black text-white uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                <ShieldCheck className="h-3.5 w-3.5 text-rose-400" /> Email Address
               </label>
               <input
                 type="text"
                 disabled
                 value={user.email}
-                className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white opacity-90 cursor-not-allowed"
+                className="w-full px-4 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs font-bold text-white opacity-90 cursor-not-allowed"
               />
             </div>
           </div>
 
           {/* Change Password Toggle */}
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+          <div className="pt-2 border-t border-slate-800">
             <button
               type="button"
               onClick={() => setShowPasswordSection(!showPasswordSection)}
-              className="text-xs font-black text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1.5 cursor-pointer"
+              className="text-xs font-black text-sky-400 hover:underline flex items-center gap-1.5 cursor-pointer"
             >
               <Lock className="h-3.5 w-3.5" />
               {showPasswordSection ? "Cancel Password Change" : "Change Password"}
             </button>
 
             {showPasswordSection && (
-              <div className="mt-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 space-y-3 animate-fadeIn">
+              <div className="mt-3 p-3 rounded-2xl bg-slate-800/60 border border-slate-700 space-y-3 animate-fadeIn">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-600 dark:text-slate-400 mb-1">
+                  <label className="block text-[11px] font-bold text-slate-300 mb-1">
                     New Security Password
                   </label>
                   <input
@@ -325,7 +325,7 @@ export default function EditProfileModal({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimum 6 characters"
-                    className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-900 dark:text-white placeholder:text-white dark:placeholder:text-white outline-none"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white placeholder:text-slate-400 outline-none"
                   />
                 </div>
               </div>
@@ -337,7 +337,7 @@ export default function EditProfileModal({
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-black transition-all cursor-pointer"
+              className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-black transition-all cursor-pointer"
             >
               Cancel
             </button>
