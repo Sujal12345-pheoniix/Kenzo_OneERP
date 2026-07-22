@@ -27,7 +27,9 @@ import {
   Sparkles,
   Zap,
   ArrowUpRight,
+  Edit3,
 } from "lucide-react";
+import EditProfileModal from "@/components/EditProfileModal";
 
 /* ─────────────────────────── Types ─────────────────────────── */
 type MenuItem  = { name: string; href: string; icon: React.ElementType };
@@ -224,6 +226,7 @@ function SidebarContent({
   hasUnread,
   hasHighPriority,
   onNoticeRead,
+  onOpenEditProfile,
 }: {
   user: any;
   pathname: string;
@@ -232,6 +235,7 @@ function SidebarContent({
   hasUnread: boolean;
   hasHighPriority: boolean;
   onNoticeRead: () => void;
+  onOpenEditProfile?: () => void;
 }) {
   const menuGroups = getMenuGroups(user?.role || "EMPLOYEE");
   const rc = roleConfig[user?.role] || roleConfig.EMPLOYEE;
@@ -376,7 +380,7 @@ function SidebarContent({
         ))}
       </nav>
 
-      {/* ── User footer ── */}
+      {/* ── User footer (Clickable to Edit Profile) ── */}
       <div
         className="px-3 py-3 shrink-0"
         style={{
@@ -384,17 +388,32 @@ function SidebarContent({
           background: "var(--bg-card-alt)",
         }}
       >
-        <div className="flex items-center gap-2.5 px-1 mb-2.5">
-          {/* Avatar circle */}
-          <div
-            className="h-9 w-9 rounded-xl flex items-center justify-center font-black text-[11px] text-white shrink-0 shadow-md"
-            style={{ background: `linear-gradient(135deg, ${rc.color} 0%, ${rc.dot} 100%)` }}
-          >
-            {initials}
-          </div>
+        <div
+          onClick={onOpenEditProfile}
+          title="Click to edit profile photo and details"
+          className="flex items-center gap-2.5 p-2 rounded-2xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700/80 group mb-2.5 relative"
+        >
+          {/* Avatar circle or Custom Photo */}
+          {user?.avatar ? (
+            <img
+              src={user.avatar}
+              alt={user.name}
+              className="h-9 w-9 rounded-xl object-cover shrink-0 shadow-md border-2 border-sky-400/80 group-hover:scale-105 transition-transform"
+            />
+          ) : (
+            <div
+              className="h-9 w-9 rounded-xl flex items-center justify-center font-black text-[11px] text-white shrink-0 shadow-md relative group-hover:scale-105 transition-transform"
+              style={{ background: `linear-gradient(135deg, ${rc.color} 0%, ${rc.dot} 100%)` }}
+            >
+              {initials}
+              <span className="absolute -bottom-1 -right-1 h-3.5 w-3.5 rounded-full bg-sky-500 text-white flex items-center justify-center text-[7px] border border-white dark:border-slate-900 shadow">
+                ✏️
+              </span>
+            </div>
+          )}
           <div className="min-w-0 flex-1">
             <span
-              className="block text-[12px] font-bold truncate leading-tight"
+              className="block text-[12px] font-extrabold truncate leading-tight group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors"
               style={{ color: "var(--text-primary)" }}
             >
               {user?.name}
@@ -407,9 +426,10 @@ function SidebarContent({
                 className="h-1.5 w-1.5 rounded-full shrink-0"
                 style={{ background: rc.dot }}
               />
-              {user?.employee?.position || rc.label}
+              {user?.position || user?.employee?.position || rc.label}
             </span>
           </div>
+          <Edit3 className="h-3.5 w-3.5 text-slate-400 group-hover:text-sky-500 transition-colors shrink-0" />
         </div>
         <button
           onClick={handleLogout}
@@ -444,6 +464,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [hasHighPriority, setHasHighPriority] = useState(false);
   const [latestTask,      setLatestTask]      = useState<any>(null);
   const [showTaskPopup,   setShowTaskPopup]   = useState(false);
+  const [showEditProfileModal, setShowEditProfileModal] = useState(false);
 
   const checkAssignedTaskPopup = useCallback(async (curUser: any) => {
     if (!curUser) return;
@@ -521,9 +542,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       })
       .then((data) => {
         if (data.authenticated) {
-          setUser(data.user);
+          const savedProfile = (() => {
+            try {
+              const s = localStorage.getItem("kore_user_profile");
+              return s ? JSON.parse(s) : null;
+            } catch { return null; }
+          })();
+          const mergedUser = savedProfile ? { ...data.user, ...savedProfile } : data.user;
+          setUser(mergedUser);
           checkUnread();
-          checkAssignedTaskPopup(data.user);
+          checkAssignedTaskPopup(mergedUser);
         } else {
           router.push("/");
         }
@@ -600,6 +628,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     hasUnread,
     hasHighPriority,
     onNoticeRead: markNoticesRead,
+    onOpenEditProfile: () => setShowEditProfileModal(true),
   };
 
   return (
@@ -659,6 +688,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <img src="/logo.png" alt="Kenzo OneERP" className="h-7 w-auto object-contain" />
 
         <div className="flex items-center gap-2">
+          <div
+            onClick={() => setShowEditProfileModal(true)}
+            className="flex items-center gap-1.5 p-1 rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-all border border-transparent hover:border-slate-200 dark:hover:border-slate-700"
+            title="Edit My Profile"
+          >
+            {user?.avatar ? (
+              <img src={user.avatar} alt={user.name} className="h-7 w-7 rounded-lg object-cover border border-sky-400 shadow-sm" />
+            ) : (
+              <div className="h-7 w-7 rounded-lg bg-gradient-to-br from-rose-500 to-sky-600 text-white font-black text-[10px] flex items-center justify-center shadow-sm">
+                {user?.name?.slice(0, 2).toUpperCase() || "KZ"}
+              </div>
+            )}
+          </div>
           <ThemeToggle />
         </div>
       </div>
@@ -692,6 +734,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <main className="flex-1 flex flex-col h-full overflow-y-auto relative z-10 pt-16 md:pt-0">
         <div className="flex-1 px-4 py-5 md:px-8 md:py-8">{children}</div>
       </main>
+
+      {/* Edit Profile Modal (Accessible across all dashboards) */}
+      <EditProfileModal
+        isOpen={showEditProfileModal}
+        onClose={() => setShowEditProfileModal(false)}
+        user={user}
+        onSave={(updatedUser) => setUser(updatedUser)}
+      />
 
       {/* Assigned Task Pop-Up (Hovering & 30s Zoom Pulse — ONLY ON MY DASHBOARD /dashboard) */}
       {pathname === "/dashboard" && showTaskPopup && latestTask && (
