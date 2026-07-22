@@ -9,30 +9,30 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ authenticated: false }, { status: 401 });
     }
 
-    const tenant = await db.tenant.findUnique({
-      where: { id: session.tenantId },
-    });
-
     const dbUser = await db.user.findUnique({
       where: { id: session.userId },
-      include: { employee: true },
+      include: { tenant: true, employee: true },
     });
 
-    const tenantSettings: any = tenant?.settings || {};
+    if (!dbUser) {
+      return NextResponse.json({ authenticated: false }, { status: 401 });
+    }
+
+    const tenantSettings: any = dbUser.tenant?.settings || {};
     const userProfile = tenantSettings.userProfiles?.[session.userId] || {};
 
     return NextResponse.json({
       authenticated: true,
       user: {
-        id: session.userId,
-        email: session.email,
-        name: userProfile.name || dbUser?.name || session.name,
-        role: session.role,
-        position: userProfile.position || dbUser?.employee?.position || session.role,
+        id: dbUser.id,
+        email: dbUser.email,
+        name: dbUser.name,
+        role: dbUser.role,
+        position: dbUser.employee?.position || userProfile.position || dbUser.role,
         phone: userProfile.phone || "",
         avatar: userProfile.avatar || "",
-        tenant,
-        employee: dbUser?.employee,
+        tenant: dbUser.tenant,
+        employee: dbUser.employee,
       },
     });
   } catch (error) {

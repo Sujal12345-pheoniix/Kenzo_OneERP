@@ -542,13 +542,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       })
       .then((data) => {
         if (data.authenticated) {
+          // Clear legacy un-scoped key to prevent cross-account profile contamination
+          try { localStorage.removeItem("kore_user_profile"); } catch {}
+
           const savedProfile = (() => {
             try {
-              const s = localStorage.getItem("kore_user_profile");
+              const s = localStorage.getItem(`kore_user_profile_${data.user.id}`);
               return s ? JSON.parse(s) : null;
             } catch { return null; }
           })();
-          const mergedUser = savedProfile ? { ...data.user, ...savedProfile } : data.user;
+
+          // Always preserve authentic server user identity (id, email, name, role)
+          const mergedUser = savedProfile ? {
+            ...data.user,
+            avatar: savedProfile.avatar || data.user.avatar,
+            phone: savedProfile.phone || data.user.phone,
+            position: savedProfile.position || data.user.position,
+            bio: savedProfile.bio || data.user.bio,
+          } : data.user;
+
           setUser(mergedUser);
           checkUnread();
           checkAssignedTaskPopup(mergedUser);

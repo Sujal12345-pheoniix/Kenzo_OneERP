@@ -109,16 +109,19 @@ export default function EditProfileModal({
         };
 
         try {
-          localStorage.setItem(
-            "kore_user_profile",
-            JSON.stringify({
-              name: finalUser.name,
-              phone: finalUser.phone,
-              position: finalUser.position,
-              bio: finalUser.bio,
-              avatar: finalUser.avatar,
-            })
-          );
+          localStorage.removeItem("kore_user_profile");
+          if (user?.id) {
+            localStorage.setItem(
+              `kore_user_profile_${user.id}`,
+              JSON.stringify({
+                name: finalUser.name,
+                phone: finalUser.phone,
+                position: finalUser.position,
+                bio: finalUser.bio,
+                avatar: finalUser.avatar,
+              })
+            );
+          }
         } catch (e) {}
 
         onSave(finalUser);
