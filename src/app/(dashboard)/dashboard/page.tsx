@@ -327,7 +327,7 @@ export default function ExecutiveHub() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {[
             { label: 'Total Members', value: adminUsers.length || metrics.employees, sub: 'Active directory user nodes', grad: 'linear-gradient(135deg,#0ea5e9,#38bdf8)', glow: 'rgba(14,165,233,0.2)', icon: Users },
-            { label: 'Operational Inflow', value: `Rs. ${metrics.revenue.toLocaleString()}`, sub: 'Paid invoices cash-inflow', grad: 'linear-gradient(135deg,#10b981,#34d399)', glow: 'rgba(16,185,129,0.2)', icon: DollarSign },
+            { label: 'Operational Inflow', value: `₹${metrics.revenue.toLocaleString()}`, sub: 'Paid invoices cash-inflow', grad: 'linear-gradient(135deg,#10b981,#34d399)', glow: 'rgba(16,185,129,0.2)', icon: DollarSign },
             { label: 'Active Initiatives', value: metrics.activeProjects, sub: 'Current running projects', grad: 'linear-gradient(135deg,#8b5cf6,#a78bfa)', glow: 'rgba(139,92,246,0.2)', icon: FolderKanban },
             { label: 'Audit Trail', value: `${recentAuditLogs.length} logs`, sub: 'Recent security transactions', grad: 'linear-gradient(135deg,#f59e0b,#fbbf24)', glow: 'rgba(245,158,11,0.2)', icon: ShieldCheck },
           ].map((kpi, i) => {
@@ -392,7 +392,7 @@ export default function ExecutiveHub() {
                       <div className="font-semibold text-xs" style={{ color: 'var(--text-primary)' }}>{u.employee?.position || 'N/A'}</div>
                       <div className="text-[10px]" style={{ color: 'var(--text-muted)' }}>{u.employee?.department || 'N/A'}</div>
                     </td>
-                    <td className="font-bold" style={{ color: 'var(--accent-success)' }}>Rs. {(u.employee?.salary || 0).toLocaleString()}/yr</td>
+                    <td className="font-bold" style={{ color: 'var(--accent-success)' }}>₹{(u.employee?.salary || 0).toLocaleString()}/yr</td>
                     <td>
                       <div className="flex items-center justify-end gap-2">
                         <button
@@ -586,7 +586,7 @@ export default function ExecutiveHub() {
                     />
                   </div>
                   <div>
-                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Salary (Rs.)</label>
+                    <label className="block text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Salary (₹)</label>
                     <input
                       type="number"
                       required
@@ -690,7 +690,7 @@ export default function ExecutiveHub() {
           <div className="p-6 rounded-3xl bg-emerald-50/70 border border-emerald-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
               <span className="text-emerald-700 text-xs font-bold uppercase tracking-wider block">Total Capital Inflow</span>
-              <span className="text-3xl font-extrabold text-emerald-950 tracking-tight mt-2 block">Rs. 8.7M</span>
+              <span className="text-3xl font-extrabold text-emerald-950 tracking-tight mt-2 block">₹8.7M</span>
             </div>
             <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-emerald-600">
               <ArrowUpRight className="h-3.5 w-3.5" /> 12.5% vs last month
@@ -698,7 +698,7 @@ export default function ExecutiveHub() {
           </div>
           <div className="glass-panel p-5">
               <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">Monthly Burn</span>
-              <span className="text-3xl font-extrabold text-rose-950 tracking-tight mt-2 block">Rs. 285K/mo</span>
+              <span className="text-3xl font-extrabold text-rose-950 tracking-tight mt-2 block">₹285K/mo</span>
           </div>
           <div className="p-6 rounded-3xl bg-violet-50/70 border border-violet-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
@@ -712,7 +712,7 @@ export default function ExecutiveHub() {
           <div className="p-6 rounded-3xl bg-rose-50/70 border border-rose-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
               <span className="text-rose-700 text-xs font-bold uppercase tracking-wider block">Quarterly Burn Rate</span>
-              <span className="text-3xl font-extrabold text-rose-950 tracking-tight mt-2 block">Rs. 285K/mo</span>
+              <span className="text-3xl font-extrabold text-rose-950 tracking-tight mt-2 block">₹285K/mo</span>
             </div>
             <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-rose-600">
               <ArrowDownRight className="h-3.5 w-3.5" /> 5.5% decreased
@@ -740,20 +740,20 @@ export default function ExecutiveHub() {
                   <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
                   <YAxis stroke="#94a3b8" fontSize={11} />
                   <Tooltip />
-                  <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" name="Revenue (Rs. M)" />
+                  <Area type="monotone" dataKey="revenue" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorRevenue)" name="Revenue (₹ M)" />
                   <Legend />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
             <div className="grid grid-cols-3 gap-4 mt-4 text-center text-xs font-bold text-slate-500">
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span>Q1 Target (Rs. 1.25M)</span>
+                <span>Q1 Target (₹1.25M)</span>
               </div>
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span>Q2 Target (Rs. 1.5M)</span>
+                <span>Q2 Target (₹1.5M)</span>
               </div>
               <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <span>Q3 Target (Rs. 1.8M)</span>
+                <span>Q3 Target (₹1.8M)</span>
               </div>
             </div>
           </div>
@@ -839,7 +839,7 @@ export default function ExecutiveHub() {
                       <span className="text-slate-500 text-xs">{exp.description}</span>
                     </div>
                     <div className="flex items-center gap-4">
-                      <span className="text-base font-extrabold text-slate-900">Rs. {exp.amount}</span>
+                      <span className="text-base font-extrabold text-slate-900">₹{exp.amount}</span>
                       <div className="flex gap-2">
                         <button
                           disabled={actionLoading !== null}
@@ -1143,7 +1143,7 @@ export default function ExecutiveHub() {
                 <XAxis dataKey="name" stroke="#94a3b8" fontSize={11} />
                 <YAxis stroke="#94a3b8" fontSize={11} />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2.5} name="Budget (Rs.)" />
+                <Line type="monotone" dataKey="value" stroke="#10b981" strokeWidth={2.5} name="Budget (₹)" />
               </LineChart>
             </ResponsiveContainer>
           </div>

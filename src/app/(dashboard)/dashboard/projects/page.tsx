@@ -355,7 +355,7 @@ export default function ProjectsDashboard() {
                     </div>
 
                     <div className="flex items-center justify-between text-[11px] pt-1 font-medium" style={{ color: "var(--text-muted)" }}>
-                      <span>Budget: Rs. {(proj.budget || 0).toLocaleString()}</span>
+                      <span>Budget: ₹{(proj.budget || 0).toLocaleString()}</span>
                       <span>Start: {proj.startDate ? new Date(proj.startDate).toLocaleDateString() : "Immediate"}</span>
                     </div>
                   </div>
@@ -716,7 +716,7 @@ export default function ProjectsDashboard() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="form-label">Budget (Rs.)</label>
+                  <label className="form-label">Budget (₹)</label>
                   <input type="number" required value={projBudget} onChange={(e) => setProjBudget(e.target.value)} placeholder="150000" className="form-input" />
                 </div>
                 <div>

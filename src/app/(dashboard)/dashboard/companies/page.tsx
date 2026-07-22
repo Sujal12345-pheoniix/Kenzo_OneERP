@@ -36,14 +36,14 @@ export default function CompaniesPage() {
   const companyStats = [
     { label: "Total Employees", value: metrics?.employees || 0, icon: Users, color: "bg-violet-50 text-violet-600", href: "/dashboard/employees" },
     { label: "Active Projects", value: metrics?.activeProjects || 0, icon: FolderKanban, color: "bg-sky-50 text-sky-600", href: "/dashboard/projects" },
-    { label: "Annual Revenue", value: `Rs. ${(metrics?.revenue || 0).toLocaleString()}`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600", href: "/dashboard/finance" },
-    { label: "Deal Pipeline", value: `Rs. ${(metrics?.pipeline || 0).toLocaleString()}`, icon: TrendingUp, color: "bg-amber-50 text-amber-600", href: "/dashboard/crm" },
+    { label: "Annual Revenue", value: `₹${(metrics?.revenue || 0).toLocaleString()}`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600", href: "/dashboard/finance" },
+    { label: "Deal Pipeline", value: `₹${(metrics?.pipeline || 0).toLocaleString()}`, icon: TrendingUp, color: "bg-amber-50 text-amber-600", href: "/dashboard/crm" },
   ];
 
   const highlights = [
-    { label: "MRR", value: `Rs. ${((metrics?.mrr) || 0).toLocaleString()}`, up: true, href: "/dashboard/finance" },
-    { label: "ARR", value: `Rs. ${((metrics?.arr) || 0).toLocaleString()}`, up: true, href: "/dashboard/finance" },
-    { label: "Net Profit", value: `Rs. ${((metrics?.profit) || 0).toLocaleString()}`, up: (metrics?.profit || 0) > 0, href: "/dashboard/finance" },
+    { label: "MRR", value: `₹${((metrics?.mrr) || 0).toLocaleString()}`, up: true, href: "/dashboard/finance" },
+    { label: "ARR", value: `₹${((metrics?.arr) || 0).toLocaleString()}`, up: true, href: "/dashboard/finance" },
+    { label: "Net Profit", value: `₹${((metrics?.profit) || 0).toLocaleString()}`, up: (metrics?.profit || 0) > 0, href: "/dashboard/finance" },
   ];
 
   return (
@@ -62,10 +62,10 @@ export default function CompaniesPage() {
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-sky-500/4 blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row gap-6 relative z-10">
-          {/* Logo & name (Replacing KORE with clean wide image2 logo.png in company overview) */}
+          {/* Logo & name (Clean logo image wrapper) */}
           <div className="flex flex-col items-center md:items-start gap-3 shrink-0">
-            <div className="p-3 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-md flex items-center justify-center">
-              <img src="/logo.png" alt="Kenzo Infosystems" className="h-14 sm:h-16 w-auto object-contain drop-shadow-sm" />
+            <div className="p-3 rounded-2xl bg-white border border-slate-200 shadow-md flex items-center justify-center">
+              <img src="/logo.png" alt="Kenzo Infosystems" className="h-14 sm:h-16 w-auto object-contain" />
             </div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-150 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 text-[10px] font-extrabold rounded-full flex items-center gap-1">

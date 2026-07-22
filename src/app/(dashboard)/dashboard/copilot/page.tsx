@@ -43,7 +43,7 @@ export default function CopilotHub() {
   const presetQueries = [
     "Draft a project roadmap task list for the team",
     "Show current financial margins and billing values",
-    "Find leads with values over Rs. 50,000 in CRM",
+    "Find leads with values over ₹50,000 in CRM",
     "Summarise active project delivery status",
   ];
 

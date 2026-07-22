@@ -65,7 +65,7 @@ const PremiumTooltip = ({ active, payload, label }: any) => {
       )}
       {payload.map((p: any, i: number) => (
         <p key={i} className="font-semibold" style={{ color: p.color }}>
-          {p.name}: {typeof p.value === "number" && p.name?.toLowerCase().includes("salary") || p.name?.toLowerCase().includes("revenue") || p.name?.toLowerCase().includes("target") ? `Rs. ${Number(p.value).toLocaleString()}` : p.value}
+          {p.name}: {typeof p.value === "number" && p.name?.toLowerCase().includes("salary") || p.name?.toLowerCase().includes("revenue") || p.name?.toLowerCase().includes("target") ? `₹${Number(p.value).toLocaleString()}` : p.value}
         </p>
       ))}
     </div>
@@ -116,7 +116,7 @@ function RevenueChart({ data, type }: { data: any[]; type: ChartType }) {
         <ReScatterChart>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border-card)" />
           <XAxis type="number" dataKey="x" name="Month" {...commonAxisProps} tickFormatter={(v) => data[v-1]?.month || ""} domain={[0.5, data.length + 0.5]} />
-          <YAxis type="number" dataKey="y" name="Revenue" {...commonAxisProps} tickFormatter={(v) => `Rs.${(v/1000).toFixed(0)}k`} />
+          <YAxis type="number" dataKey="y" name="Revenue" {...commonAxisProps} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
           <ZAxis dataKey="z" range={[40, 200]} name="Target" />
           <Tooltip content={<PremiumTooltip />} cursor={{ strokeDasharray: "3 3" }} />
           <Scatter data={scatterData} fill="#6366f1" />
@@ -141,7 +141,7 @@ function RevenueChart({ data, type }: { data: any[]; type: ChartType }) {
           </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border-card)" vertical={false} />
           <XAxis dataKey="month" {...commonAxisProps} />
-          <YAxis {...commonAxisProps} tickFormatter={(v) => `Rs.${(v/1000).toFixed(0)}k`} />
+          <YAxis {...commonAxisProps} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
           <Tooltip content={<PremiumTooltip />} />
           <Legend formatter={(v) => <span style={{ color: "var(--text-secondary)", fontSize: 11 }}>{v}</span>} />
           <Bar dataKey="revenue" name="Revenue" fill="url(#barRevGrad)" radius={[6, 6, 0, 0]} />
@@ -157,7 +157,7 @@ function RevenueChart({ data, type }: { data: any[]; type: ChartType }) {
         <LineChart data={data}>
           <CartesianGrid strokeDasharray="3 3" stroke="var(--border-card)" />
           <XAxis dataKey="month" {...commonAxisProps} />
-          <YAxis {...commonAxisProps} tickFormatter={(v) => `Rs.${(v/1000).toFixed(0)}k`} />
+          <YAxis {...commonAxisProps} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
           <Tooltip content={<PremiumTooltip />} />
           <Legend formatter={(v) => <span style={{ color: "var(--text-secondary)", fontSize: 11 }}>{v}</span>} />
           <Line type="monotone" dataKey="revenue" name="Revenue" stroke="#6366f1" strokeWidth={3} dot={{ fill: "#6366f1", r: 5, strokeWidth: 0 }} activeDot={{ r: 7 }} />
@@ -183,7 +183,7 @@ function RevenueChart({ data, type }: { data: any[]; type: ChartType }) {
         </defs>
         <CartesianGrid strokeDasharray="3 3" stroke="var(--border-card)" />
         <XAxis dataKey="month" {...commonAxisProps} />
-        <YAxis {...commonAxisProps} tickFormatter={(v) => `Rs.${(v/1000).toFixed(0)}k`} />
+        <YAxis {...commonAxisProps} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
         <Tooltip content={<PremiumTooltip />} />
         <Legend formatter={(v) => <span style={{ color: "var(--text-secondary)", fontSize: 11 }}>{v}</span>} />
         <Area type="monotone" dataKey="revenue" name="Revenue" stroke="#6366f1" strokeWidth={2.5} fill="url(#areaRevGrad)" />
@@ -238,7 +238,7 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
                         {d.employees}
                       </span>
                     </td>
-                    <td style={{ color: "var(--accent-success)" }}>Rs. {(d.avgSalary || 0).toLocaleString()}</td>
+                    <td style={{ color: "var(--accent-success)" }}>₹{(d.avgSalary || 0).toLocaleString()}</td>
                   </tr>
                 ))}
               </tbody>
@@ -386,7 +386,7 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
                           <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
                         ))}
                       </Pie>
-                      <Tooltip content={<PremiumTooltip />} formatter={(v: any) => [`Rs. ${Number(v).toLocaleString()}`, ""]} />
+                      <Tooltip content={<PremiumTooltip />} formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, ""]} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -397,7 +397,7 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
                         <div className="h-3 w-3 rounded-full shrink-0" style={{ background: PALETTE[i % PALETTE.length] }} />
                         <span className="text-sm font-semibold truncate max-w-[120px]" style={{ color: "var(--text-secondary)" }}>{item.name}</span>
                       </div>
-                      <span className="text-sm font-black" style={{ color: "var(--text-primary)" }}>Rs. {item.value.toLocaleString()}</span>
+                      <span className="text-sm font-black" style={{ color: "var(--text-primary)" }}>₹{item.value.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
@@ -416,7 +416,7 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
                               <span className="font-semibold" style={{ color: "var(--text-primary)" }}>{item.name}</span>
                             </span>
                           </td>
-                          <td className="font-bold" style={{ color: "var(--accent-success)" }}>Rs. {item.value.toLocaleString()}</td>
+                          <td className="font-bold" style={{ color: "var(--accent-success)" }}>₹{item.value.toLocaleString()}</td>
                           <td style={{ color: "var(--text-muted)" }}>{((item.value / total) * 100).toFixed(1)}%</td>
                         </tr>
                       );
@@ -443,8 +443,8 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-card)" vertical={false} />
                 <XAxis dataKey="name" {...commonAxisProps} />
-                <YAxis {...commonAxisProps} tickFormatter={(v) => `Rs.${(v/1000).toFixed(0)}k`} />
-                <Tooltip content={<PremiumTooltip />} formatter={(v: any) => [`Rs. ${Number(v).toLocaleString()}`, ""]} />
+                <YAxis {...commonAxisProps} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
+                <Tooltip content={<PremiumTooltip />} formatter={(v: any) => [`₹${Number(v).toLocaleString()}`, ""]} />
                 <Bar dataKey="avgSalary" name="Avg Salary" fill="url(#salGrad)" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -456,7 +456,7 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
                 {departmentData.map((d: any, i: number) => (
                   <tr key={i}>
                     <td className="font-semibold" style={{ color: "var(--text-primary)" }}>{d.name}</td>
-                    <td className="font-black" style={{ color: "var(--accent-success)" }}>Rs. {(d.avgSalary || 0).toLocaleString()}</td>
+                    <td className="font-black" style={{ color: "var(--accent-success)" }}>₹{(d.avgSalary || 0).toLocaleString()}</td>
                     <td>
                       <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold" style={{ background: "var(--bg-hover)", color: "var(--accent-primary)" }}>
                         {d.employees}
@@ -534,7 +534,7 @@ export default function AnalyticsPage() {
   const summaryCards = [
     {
       label: "Total Revenue",
-      value: `Rs. ${summary.totalRevenue.toLocaleString()}`,
+      value: `₹${summary.totalRevenue.toLocaleString()}`,
       icon: DollarSign,
       gradient: "linear-gradient(135deg, #10b981, #34d399)",
       glow: "rgba(16,185,129,0.2)",
@@ -542,7 +542,7 @@ export default function AnalyticsPage() {
     },
     {
       label: "Net Profit",
-      value: `Rs. ${summary.netProfit.toLocaleString()}`,
+      value: `₹${summary.netProfit.toLocaleString()}`,
       icon: TrendingUp,
       gradient: "linear-gradient(135deg, #6366f1, #818cf8)",
       glow: "rgba(99,102,241,0.2)",

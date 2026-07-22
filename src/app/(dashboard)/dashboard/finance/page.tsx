@@ -151,23 +151,23 @@ export default function FinanceDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
         <div className="stat-card">
           <span className="form-label mb-1">Total Invoiced Revenue</span>
-          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-success)" }}>Rs. {totalRevenue.toLocaleString()}</div>
+          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-success)" }}>₹{totalRevenue.toLocaleString()}</div>
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>Cleared receipts</span>
         </div>
         <div className="stat-card">
           <span className="form-label mb-1">Outstanding Invoices</span>
-          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-warning)" }}>Rs. {pendingRevenue.toLocaleString()}</div>
+          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-warning)" }}>₹{pendingRevenue.toLocaleString()}</div>
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>Awaiting client payment</span>
         </div>
         <div className="stat-card">
           <span className="form-label mb-1">Operational Expenses</span>
-          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-danger)" }}>Rs. {totalExpenses.toLocaleString()}</div>
+          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-danger)" }}>₹{totalExpenses.toLocaleString()}</div>
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>Recorded company spending</span>
         </div>
         <div className="stat-card">
           <span className="form-label mb-1">Net Cash Position</span>
           <div className="text-2xl font-black mb-1" style={{ color: netIncome >= 0 ? "var(--accent-success)" : "var(--accent-danger)" }}>
-            Rs. {netIncome.toLocaleString()}
+            ₹{netIncome.toLocaleString()}
           </div>
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>Cleared profit margin</span>
         </div>
@@ -209,7 +209,7 @@ export default function FinanceDashboard() {
                       placeholder="e.g. Acme Corp" className="form-input" />
                   </div>
                   <div>
-                    <label className="form-label">Value (Rs.)</label>
+                    <label className="form-label">Value (₹)</label>
                     <input type="number" required value={invAmount} onChange={(e) => setInvAmount(e.target.value)}
                       placeholder="e.g. 50000" className="form-input" />
                   </div>
@@ -258,7 +258,7 @@ export default function FinanceDashboard() {
                         <td className="font-bold" style={{ color: "var(--accent-primary)" }}>{inv.invoiceNo || inv.id.slice(0,8)}</td>
                         <td className="font-semibold">{inv.customerName || "N/A"}</td>
                         <td style={{ color: "var(--text-muted)" }}>{new Date(inv.issueDate || inv.createdAt).toLocaleDateString()}</td>
-                        <td className="text-right font-black" style={{ color: "var(--accent-success)" }}>Rs. {(inv.amount || 0).toLocaleString()}</td>
+                        <td className="text-right font-black" style={{ color: "var(--accent-success)" }}>₹{(inv.amount || 0).toLocaleString()}</td>
                         <td className="text-center">
                           <span className={`badge ${
                             inv.status === "PAID" ? "status-active" : inv.status === "OVERDUE" ? "status-danger" : "status-pending"
@@ -304,7 +304,7 @@ export default function FinanceDashboard() {
                       placeholder="e.g. Cloud Server Subscriptions" className="form-input" />
                   </div>
                   <div>
-                    <label className="form-label">Debit Value (Rs.)</label>
+                    <label className="form-label">Debit Value (₹)</label>
                     <input type="number" required value={spendAmount} onChange={(e) => setSpendAmount(e.target.value)}
                       placeholder="e.g. 12500" className="form-input" />
                   </div>
@@ -351,7 +351,7 @@ export default function FinanceDashboard() {
                           <span className="badge status-info">{exp.category}</span>
                         </td>
                         <td style={{ color: "var(--text-muted)" }}>{new Date(exp.date || exp.createdAt).toLocaleDateString()}</td>
-                        <td className="text-right font-black" style={{ color: "var(--accent-danger)" }}>Rs. {(exp.amount || 0).toLocaleString()}</td>
+                        <td className="text-right font-black" style={{ color: "var(--accent-danger)" }}>₹{(exp.amount || 0).toLocaleString()}</td>
                       </tr>
                     ))
                   )}
@@ -385,7 +385,7 @@ export default function FinanceDashboard() {
               </div>
 
               <div>
-                <label className="form-label">Amount (Rs.)</label>
+                <label className="form-label">Amount (₹)</label>
                 <input type="number" required value={amount} onChange={(e) => setAmount(e.target.value)}
                   placeholder="e.g. 15000" className="form-input" />
               </div>

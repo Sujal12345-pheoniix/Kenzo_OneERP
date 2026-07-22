@@ -89,12 +89,12 @@ export default function EmployeesPage() {
         </div>
         <div className="stat-card">
           <span className="form-label mb-1">Avg. Salary</span>
-          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-secondary)" }}>Rs. {avgSalary.toLocaleString()}</div>
+          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-secondary)" }}>₹{avgSalary.toLocaleString()}</div>
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>Annual average</span>
         </div>
         <div className="stat-card">
           <span className="form-label mb-1">Total Payroll</span>
-          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-primary)" }}>Rs. {(totalPayroll / 1000).toFixed(0)}K</div>
+          <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-primary)" }}>₹{(totalPayroll / 1000).toFixed(0)}K</div>
           <span className="text-xs" style={{ color: "var(--text-muted)" }}>Annual package commitment</span>
         </div>
       </div>
@@ -182,7 +182,7 @@ export default function EmployeesPage() {
                         </span>
                       </td>
                       <td className="font-semibold" style={{ color: "var(--text-secondary)" }}>{emp.position}</td>
-                      <td className="font-black" style={{ color: "var(--accent-success)" }}>Rs. {emp.salary.toLocaleString()}</td>
+                      <td className="font-black" style={{ color: "var(--accent-success)" }}>₹{emp.salary.toLocaleString()}</td>
                       <td>
                         <span className="badge" style={{ background: sc.bg, color: sc.color }}>
                           {emp.status}

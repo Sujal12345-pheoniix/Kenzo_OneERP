@@ -81,12 +81,12 @@ export default function CRMDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="glass-panel p-6">
           <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">CRM Pipeline Value</span>
-          <div className="text-2xl font-extrabold text-slate-900 mb-1">Rs. {pipelineTotal.toLocaleString()}</div>
+          <div className="text-2xl font-extrabold text-slate-900 mb-1">₹{pipelineTotal.toLocaleString()}</div>
           <span className="text-slate-500 text-xs font-medium">Unconverted target values</span>
         </div>
         <div className="glass-panel p-6">
           <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block mb-2">Contracts Won Value</span>
-          <div className="text-2xl font-extrabold text-emerald-600 mb-1">Rs. {wonTotal.toLocaleString()}</div>
+          <div className="text-2xl font-extrabold text-emerald-600 mb-1">₹{wonTotal.toLocaleString()}</div>
           <span className="text-slate-500 text-xs font-medium">Fully closed sales accounts</span>
         </div>
         <div className="glass-panel p-6">
@@ -119,7 +119,7 @@ export default function CRMDashboard() {
                         <span className="text-xs text-slate-500">{lead.company}</span>
                       </td>
                       <td className="py-3.5 text-slate-500">{lead.email}</td>
-                      <td className="py-3.5 text-right font-semibold text-slate-900">Rs. {lead.value.toLocaleString()}</td>
+                      <td className="py-3.5 text-right font-semibold text-slate-900">₹{lead.value.toLocaleString()}</td>
                       <td className="py-3.5 text-center">
                         <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
                           lead.status === "WON"
@@ -181,7 +181,7 @@ export default function CRMDashboard() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Estimated Value (Rs.)</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1.5">Estimated Value (₹)</label>
                 <input
                   type="number"
                   required

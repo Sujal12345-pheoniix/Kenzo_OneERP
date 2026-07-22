@@ -682,7 +682,7 @@ export default function HRMSDashboard() {
           </div>
           <div className="stat-card">
             <span className="form-label mb-1">Annual Payroll</span>
-            <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-success)" }}>Rs. {payrollTotal.toLocaleString()}</div>
+            <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-success)" }}>₹{payrollTotal.toLocaleString()}</div>
             <span className="text-xs" style={{ color: "var(--text-muted)" }}>Base package commitment</span>
           </div>
           <div className="stat-card">
@@ -869,7 +869,7 @@ export default function HRMSDashboard() {
                           </span>
                         </td>
                         <td style={{ color: "var(--text-muted)" }}>{emp.user?.email || emp.email}</td>
-                        <td className="text-right font-black" style={{ color: "var(--accent-success)" }}>Rs. {emp.salary.toLocaleString()}</td>
+                        <td className="text-right font-black" style={{ color: "var(--accent-success)" }}>₹{emp.salary.toLocaleString()}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -1010,7 +1010,7 @@ export default function HRMSDashboard() {
                   </select>
                 </div>
                 <div>
-                  <label className="form-label">Annual Salary (Rs.)</label>
+                  <label className="form-label">Annual Salary (₹)</label>
                   <input type="number" required value={salary} onChange={(e) => setSalary(e.target.value)} placeholder="e.g. 120000" className="form-input" />
                 </div>
                 <button type="submit" disabled={formLoading} className="btn-primary w-full mt-2" style={{ padding: "0.85rem" }}>
