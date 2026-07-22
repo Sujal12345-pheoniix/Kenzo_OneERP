@@ -62,19 +62,14 @@ export default function CompaniesPage() {
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-sky-500/4 blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row gap-6 relative z-10">
-          {/* Logo & name (Replacing boxed icon image 1 with clean wide logo image 2) */}
-          <div className="flex flex-col items-center md:items-start gap-4 shrink-0">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-2xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center shadow-md shadow-sky-500/25 border border-sky-300/30">
-                <span className="text-2xl select-none">💎</span>
-              </div>
-              <span className="text-4xl font-black tracking-widest uppercase bg-gradient-to-r from-sky-500 via-blue-600 to-indigo-600 bg-clip-text text-transparent drop-shadow-sm">
-                KORE
-              </span>
+          {/* Logo & name (Replacing KORE with clean wide image2 logo.png in company overview) */}
+          <div className="flex flex-col items-center md:items-start gap-3 shrink-0">
+            <div className="p-3 rounded-2xl bg-white/90 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 shadow-md flex items-center justify-center">
+              <img src="/logo.png" alt="Kenzo Infosystems" className="h-14 sm:h-16 w-auto object-contain drop-shadow-sm" />
             </div>
             <div className="flex items-center gap-2">
-              <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[9px] font-bold rounded-full flex items-center gap-1">
-                <CheckCircle2 className="h-3 w-3" /> VERIFIED ENTITY
+              <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-150 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 dark:border-emerald-800 text-[10px] font-extrabold rounded-full flex items-center gap-1">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> VERIFIED ENTITY
               </span>
             </div>
           </div>
