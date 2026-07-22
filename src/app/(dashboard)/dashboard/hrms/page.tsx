@@ -6,7 +6,7 @@ import {
   PlusCircle, Loader2, CalendarDays, CheckCircle2, Clock, X,
   ChevronLeft, ChevronRight, UserCheck, AlertCircle, Sparkles, ClipboardList,
   Briefcase, FileText, UserPlus, Eye, Filter, Check, ShieldAlert, Award,
-  Pencil, Trash2, ArrowUpRight, Zap
+  Pencil, Trash2, ArrowUpRight, Zap, XCircle, Send, Calendar
 } from "lucide-react";
 
 /* ─── Attendance color map ───────────────────────────────────── */
@@ -150,59 +150,49 @@ function AttendanceCalendar({ userRole }: { userRole: string }) {
         </button>
       </div>
 
-      {/* Day labels */}
-      <div className="grid grid-cols-7 gap-1 text-center">
+      {/* Days grid */}
+      <div className="grid grid-cols-7 gap-1.5 text-center">
         {DAY_LABELS.map((d) => (
-          <div key={d} className="text-xs font-extrabold uppercase py-1" style={{ color: "var(--text-muted)" }}>
+          <span key={d} className="text-[10px] font-black uppercase tracking-wider py-1" style={{ color: "var(--text-muted)" }}>
             {d}
-          </div>
+          </span>
         ))}
+
+        {Array.from({ length: startPad }).map((_, i) => (
+          <div key={`pad-${i}`} className="h-9" />
+        ))}
+
+        {Array.from({ length: totalDays }).map((_, i) => {
+          const dayNum  = i + 1;
+          const dateObj = new Date(calMonth.year, calMonth.month, dayNum);
+          const key     = dateObj.toDateString();
+          const status  = attMap[key];
+          const isToday = key === todayKey;
+
+          return (
+            <div
+              key={dayNum}
+              className={`h-9 rounded-xl flex items-center justify-center font-bold text-xs transition-all relative ${
+                isToday ? "ring-2 ring-sky-500 font-black" : ""
+              }`}
+              style={
+                status
+                  ? { background: "var(--sidebar-active-bg)", color: "var(--accent-primary)" }
+                  : { background: "var(--bg-input)", color: "var(--text-secondary)" }
+              }
+            >
+              {status && (
+                <span
+                  className={`absolute top-1 right-1 h-1.5 w-1.5 rounded-full ${
+                    ATTEND_STATUS_CONFIG[status]?.bg || "bg-sky-500"
+                  }`}
+                />
+              )}
+              {dayNum}
+            </div>
+          );
+        })}
       </div>
-
-      {/* Calendar grid */}
-      {loading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-6 w-6 animate-spin text-indigo-500" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-7 gap-1.5">
-          {Array.from({ length: startPad }).map((_, i) => (
-            <div key={`pad-${i}`} />
-          ))}
-          {Array.from({ length: totalDays }).map((_, i) => {
-            const dayNum  = i + 1;
-            const cellDate = new Date(calMonth.year, calMonth.month, dayNum);
-            const cellKey  = cellDate.toDateString();
-            const status   = attMap[cellKey];
-            const isToday  = cellKey === todayKey;
-            const isFuture = cellDate > today;
-            const isClickable = canMark && isToday && !markedToday && !marking;
-            const cfg = status ? ATTEND_STATUS_CONFIG[status] : null;
-
-            return (
-              <button
-                key={dayNum}
-                disabled={!isClickable}
-                onClick={isClickable ? markAttendance : undefined}
-                className={`relative aspect-square flex flex-col items-center justify-center rounded-xl text-xs font-bold transition-all ${
-                  isToday && !markedToday && canMark
-                    ? "btn-primary animate-pulse"
-                    : isToday && markedToday
-                    ? "status-active"
-                    : status
-                    ? `${cfg?.bg} text-white`
-                    : isFuture
-                    ? "opacity-40 cursor-not-allowed"
-                    : "cursor-default"
-                }`}
-                style={!status && !isToday ? { background: "var(--bg-input)", color: "var(--text-primary)", border: "1px solid var(--border-card)" } : undefined}
-              >
-                {dayNum}
-              </button>
-            );
-          })}
-        </div>
-      )}
 
       {/* Legend + Stats */}
       <div className="pt-3" style={{ borderTop: "1px solid var(--border-card)" }}>
@@ -231,6 +221,9 @@ export default function HRMSDashboard() {
   const [loading, setLoading]         = useState(true);
   const [userRole, setUserRole]       = useState("");
   const [sessionUser, setSessionUser] = useState<any>(null);
+
+  // Top Banner Notification State
+  const [topNotify, setTopNotify]     = useState("");
 
   // Task Popup state
   const [latestTask, setLatestTask]     = useState<any>(null);
@@ -283,20 +276,31 @@ export default function HRMSDashboard() {
   const [candCover, setCandCover] = useState("");
   const [appSubmitting, setAppSubmitting] = useState(false);
 
+  // Leave Management State (Real-time connected)
+  const [leavesList, setLeavesList]           = useState<any[]>([]);
+  const [leaveStartDate, setLeaveStartDate]   = useState("");
+  const [leaveEndDate, setLeaveEndDate]       = useState("");
+  const [leaveType, setLeaveType]             = useState("CASUAL");
+  const [leaveReason, setLeaveReason]         = useState("");
+  const [leaveSubmitting, setLeaveSubmitting] = useState(false);
+  const [leaveMsg, setLeaveMsg]               = useState<{ text: string; ok: boolean } | null>(null);
+
   const fetchHRData = async () => {
     try {
-      const [resSess, resHrms, resProj, resTasks, resApps] = await Promise.all([
+      const [resSess, resHrms, resProj, resTasks, resApps, resLeaves] = await Promise.all([
         fetch("/api/auth/session"),
         fetch("/api/hrms"),
         fetch("/api/projects"),
         fetch("/api/projects/tasks"),
         fetch("/api/hrms/applications"),
+        fetch("/api/leaves"),
       ]);
-      const jsonSess  = await resSess.json();
-      const jsonHrms  = await resHrms.json();
-      const jsonProj  = await resProj.json();
-      const jsonTasks = await resTasks.json();
-      const jsonApps  = await resApps.json();
+      const jsonSess   = await resSess.json();
+      const jsonHrms   = await resHrms.json();
+      const jsonProj   = await resProj.json();
+      const jsonTasks  = await resTasks.json();
+      const jsonApps   = await resApps.json();
+      const jsonLeaves = resLeaves.ok ? await resLeaves.json() : [];
 
       if (jsonSess.authenticated) {
         setUserRole(jsonSess.user.role);
@@ -309,9 +313,10 @@ export default function HRMSDashboard() {
       const allTasks = Array.isArray(jsonTasks) ? jsonTasks : [];
       setHrTasks(allTasks);
       setApplications(jsonApps.applications || []);
+      setLeavesList(Array.isArray(jsonLeaves) ? jsonLeaves : []);
 
-      if (projList.length > 0) setTaskProjId(projList[0].id);
-      if (jsonHrms.employees?.length > 0) setTaskAssigneeId(jsonHrms.employees[0].id);
+      if (projList.length > 0 && !taskProjId) setTaskProjId(projList[0].id);
+      if (jsonHrms.employees?.length > 0 && !taskAssigneeId) setTaskAssigneeId(jsonHrms.employees[0].id);
 
       // Check Task Notification Popup strictly for logged in user
       if (jsonSess.authenticated && allTasks.length > 0) {
@@ -343,6 +348,18 @@ export default function HRMSDashboard() {
 
   useEffect(() => {
     fetchHRData();
+
+    // Real-time sync interval every 4 seconds for instant leave updates
+    const interval = setInterval(() => {
+      fetch("/api/leaves")
+        .then((r) => r.json())
+        .then((data) => {
+          if (Array.isArray(data)) setLeavesList(data);
+        })
+        .catch(() => {});
+    }, 4000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleCreateEmployee = async (e: React.FormEvent) => {
@@ -384,9 +401,13 @@ export default function HRMSDashboard() {
       });
       if (res.ok) {
         setTaskTitle(""); setTaskDesc(""); setTaskDueDate("");
-        setTaskMsg("Task successfully assigned & published!");
+        setTaskMsg("task assigned successfully");
+        setTopNotify("task assigned successfully");
         await fetchHRData();
-        setTimeout(() => setTaskMsg(""), 3000);
+        setTimeout(() => {
+          setTaskMsg("");
+          setTopNotify("");
+        }, 4500);
       }
     } catch (err) {
       console.error("Assign task error:", err);
@@ -402,25 +423,9 @@ export default function HRMSDashboard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id: taskId, status: newStatus }),
       });
-      if (res.ok) {
-        await fetchHRData();
-      }
+      if (res.ok) await fetchHRData();
     } catch (err) {
       console.error("Update task status error:", err);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: string) => {
-    if (!confirm("Are you sure you want to delete this task?")) return;
-    try {
-      const res = await fetch(`/api/projects/tasks?id=${taskId}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        await fetchHRData();
-      }
-    } catch (err) {
-      console.error("Delete task error:", err);
     }
   };
 
@@ -463,6 +468,74 @@ export default function HRMSDashboard() {
     }
   };
 
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      const res = await fetch(`/api/projects/tasks?id=${taskId}`, { method: "DELETE" });
+      if (res.ok) await fetchHRData();
+    } catch (err) {
+      console.error("Delete task error:", err);
+    }
+  };
+
+  // Leave Form Handlers & Calculations
+  const calcLeaveDays = () => {
+    if (!leaveStartDate || !leaveEndDate) return 0;
+    const start = new Date(leaveStartDate);
+    const end = new Date(leaveEndDate);
+    const diff = end.getTime() - start.getTime();
+    if (diff < 0) return 0;
+    return Math.ceil(diff / (1000 * 3600 * 24)) + 1;
+  };
+
+  const handleApplyLeave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!leaveStartDate || !leaveEndDate || !leaveReason) return;
+    setLeaveSubmitting(true); setLeaveMsg(null);
+    try {
+      const res = await fetch("/api/leaves", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          startDate: leaveStartDate,
+          endDate: leaveEndDate,
+          type: leaveType,
+          reason: leaveReason,
+        }),
+      });
+      const json = await res.json();
+      if (res.ok) {
+        setLeaveStartDate(""); setLeaveEndDate(""); setLeaveReason("");
+        setLeaveMsg({ text: "✅ Leave application submitted successfully!", ok: true });
+        await fetchHRData();
+        setTimeout(() => setLeaveMsg(null), 4000);
+      } else {
+        setLeaveMsg({ text: json.error || "Failed to submit leave application", ok: false });
+      }
+    } catch (err) {
+      setLeaveMsg({ text: "Network error submitting leave request", ok: false });
+    } finally {
+      setLeaveSubmitting(false);
+    }
+  };
+
+  const handleUpdateLeaveStatus = async (leaveId: string, status: "APPROVED" | "REJECTED" | "PENDING") => {
+    try {
+      const res = await fetch("/api/leaves", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: leaveId, status }),
+      });
+      if (res.ok) {
+        const textMsg = status === "APPROVED" ? "Leave Application Approved!" : "Leave Application Rejected.";
+        setTopNotify(`✅ ${textMsg}`);
+        setTimeout(() => setTopNotify(""), 4000);
+        await fetchHRData();
+      }
+    } catch (err) {
+      console.error("Update leave status error:", err);
+    }
+  };
+
   const handleAddApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     setAppSubmitting(true);
@@ -485,7 +558,7 @@ export default function HRMSDashboard() {
         await fetchHRData();
       }
     } catch (err) {
-      console.error("Add application error:", err);
+      console.error("Add app error:", err);
     } finally {
       setAppSubmitting(false);
     }
@@ -519,7 +592,6 @@ export default function HRMSDashboard() {
   }
 
   const employees = data?.employees || [];
-  const leaves    = data?.leaves || [];
   const payrollTotal = employees.reduce((sum: number, e: any) => sum + e.salary, 0);
 
   const isPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "HR_MANAGER"].includes(userRole);
@@ -528,12 +600,20 @@ export default function HRMSDashboard() {
 
   // Recruitment Stats
   const totalApps    = applications.length;
-  const shortlisted  = applications.filter((a) => a.status === "SHORTLISTED").length;
-  const interviews   = applications.filter((a) => a.status === "INTERVIEW_SCHEDULED").length;
-  const hired        = applications.filter((a) => a.status === "HIRED").length;
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto pb-12 animate-fade-in-up" style={{ color: "var(--text-primary)" }}>
+    <div className="flex flex-col gap-6 w-full max-w-6xl mx-auto pb-12 animate-fade-in-up relative" style={{ color: "var(--text-primary)" }}>
+      {/* Top Banner Notification */}
+      {topNotify && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-emerald-600 text-white px-6 py-3.5 rounded-2xl shadow-2xl animate-bounce-short border border-emerald-400">
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-white" />
+          <span className="font-bold text-sm tracking-wide">{topNotify}</span>
+          <button onClick={() => setTopNotify("")} className="ml-2 opacity-80 hover:opacity-100 cursor-pointer">
+            <X className="h-4 w-4 text-white" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4" style={{ borderBottom: "1px solid var(--border-base)" }}>
         <div>
@@ -543,8 +623,8 @@ export default function HRMSDashboard() {
           </h1>
           <p className="text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
             {isPrivileged
-              ? "Staff directory, payroll, project assignments, and recruitment applicant portal."
-              : "Keep track of your daily attendance and manage your task checklist."}
+              ? "Staff directory, payroll, project assignments, leave approvals, and recruitment applicant portal."
+              : "Keep track of your daily attendance and submit leave applications."}
           </p>
         </div>
 
@@ -588,9 +668,9 @@ export default function HRMSDashboard() {
           <div className="stat-card">
             <span className="form-label mb-1">Pending Leaves</span>
             <div className="text-2xl font-black mb-1" style={{ color: "var(--accent-warning)" }}>
-              {leaves.filter((l: any) => l.status === "PENDING").length}
+              {leavesList.filter((l: any) => l.status === "PENDING").length}
             </div>
-            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Awaiting action</span>
+            <span className="text-xs" style={{ color: "var(--text-muted)" }}>Real-time awaiting action</span>
           </div>
           <div className="stat-card">
             <span className="form-label mb-1">Job Applications</span>
@@ -600,7 +680,133 @@ export default function HRMSDashboard() {
         </div>
       )}
 
+      {/* ATTENDANCE CALENDAR FOR EMPLOYEES */}
       {showCalendar && <AttendanceCalendar userRole={userRole} />}
+
+      {/* LEAVE APPLICATION SECTION FOR EMPLOYEES */}
+      {!isPrivileged && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Leave Application Form */}
+          <div className="lg:col-span-1">
+            <div className="glass-panel p-6 sticky top-6">
+              <div className="flex items-center gap-2 mb-3">
+                <Send className="h-5 w-5 text-sky-500" />
+                <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Send Leave Application</h3>
+              </div>
+              <p className="text-xs mb-4" style={{ color: "var(--text-muted)" }}>
+                Submit leave requests directly to Admin, CEO, and HR for real-time approval.
+              </p>
+
+              {leaveMsg && (
+                <div className={`p-3 rounded-xl mb-4 text-xs font-bold ${leaveMsg.ok ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" : "bg-red-500/10 text-red-600 border border-red-500/20"}`}>
+                  {leaveMsg.text}
+                </div>
+              )}
+
+              <form onSubmit={handleApplyLeave} className="flex flex-col gap-4">
+                <div>
+                  <label className="form-label">Leave Type</label>
+                  <select value={leaveType} onChange={(e) => setLeaveType(e.target.value)} className="form-select font-semibold">
+                    <option value="CASUAL">Casual Leave</option>
+                    <option value="SICK">Sick Leave</option>
+                    <option value="ANNUAL">Annual Leave</option>
+                    <option value="UNPAID">Unpaid Leave</option>
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="form-label">Start Date</label>
+                    <input type="date" required value={leaveStartDate} onChange={(e) => setLeaveStartDate(e.target.value)} className="form-input" />
+                  </div>
+                  <div>
+                    <label className="form-label">End Date</label>
+                    <input type="date" required value={leaveEndDate} onChange={(e) => setLeaveEndDate(e.target.value)} className="form-input" />
+                  </div>
+                </div>
+
+                {calcLeaveDays() > 0 && (
+                  <div className="p-2.5 rounded-xl bg-sky-50 dark:bg-sky-900/30 text-sky-600 dark:text-sky-300 font-bold text-xs flex items-center justify-between border border-sky-100 dark:border-sky-800">
+                    <span>Duration Calculated:</span>
+                    <span>{calcLeaveDays()} {calcLeaveDays() === 1 ? "Day" : "Days"}</span>
+                  </div>
+                )}
+
+                <div>
+                  <label className="form-label">Reason for Leave</label>
+                  <textarea required value={leaveReason} onChange={(e) => setLeaveReason(e.target.value)} rows={3} placeholder="Please explain reason for requesting leave..." className="form-input" style={{ resize: "none" }} />
+                </div>
+
+                <button type="submit" disabled={leaveSubmitting} className="btn-primary w-full py-3">
+                  {leaveSubmitting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit Leave Application"}
+                </button>
+              </form>
+            </div>
+          </div>
+
+          {/* My Leave Requests History */}
+          <div className="lg:col-span-2">
+            <div className="glass-panel p-6 h-full">
+              <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
+                <div>
+                  <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>My Leave Application History</h3>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>Status of your submitted leave applications</p>
+                </div>
+                <span className="badge status-info">{leavesList.length} Total Requests</span>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="premium-table">
+                  <thead>
+                    <tr>
+                      <th>Leave Type &amp; Reason</th>
+                      <th>Dates &amp; Days</th>
+                      <th className="text-center">Approval Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {leavesList.length === 0 ? (
+                      <tr>
+                        <td colSpan={3} className="text-center py-8" style={{ color: "var(--text-muted)" }}>No leave applications submitted yet.</td>
+                      </tr>
+                    ) : (
+                      leavesList.map((leave: any) => {
+                        const days = Math.ceil((new Date(leave.endDate).getTime() - new Date(leave.startDate).getTime()) / (1000 * 3600 * 24)) + 1;
+                        return (
+                          <tr key={leave.id}>
+                            <td>
+                              <span className="badge status-info mb-1">{leave.type}</span>
+                              <p className="text-xs font-medium text-slate-700 dark:text-slate-300 max-w-xs">{leave.reason}</p>
+                            </td>
+                            <td style={{ color: "var(--text-muted)" }}>
+                              <span className="font-bold text-xs block text-slate-800 dark:text-slate-200">
+                                {new Date(leave.startDate).toLocaleDateString()} – {new Date(leave.endDate).toLocaleDateString()}
+                              </span>
+                              <span className="text-[11px] font-semibold text-sky-600">({days} {days === 1 ? "day" : "days"})</span>
+                            </td>
+                            <td className="text-center">
+                              <span className={`px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1 ${
+                                leave.status === "APPROVED" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300" :
+                                leave.status === "REJECTED" ? "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 border border-red-300" :
+                                "bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 animate-pulse"
+                              }`}>
+                                {leave.status === "APPROVED" && <Check className="h-3 w-3" />}
+                                {leave.status === "REJECTED" && <XCircle className="h-3 w-3" />}
+                                {leave.status === "PENDING" && <Clock className="h-3 w-3" />}
+                                {leave.status}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* TAB 1: OVERVIEW & ROSTER */}
       {activeTab === "roster" && isPrivileged && (
@@ -641,41 +847,90 @@ export default function HRMSDashboard() {
               </div>
             </div>
 
-            {/* Leave list */}
+            {/* REAL-TIME LEAVE APPROVAL DASHBOARD FOR ADMIN, CEO, HR */}
             <div className="glass-panel p-6">
-              <h3 className="text-base font-black mb-4" style={{ color: "var(--text-primary)" }}>Leave Administration</h3>
+              <div className="flex items-center justify-between mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
+                <div>
+                  <h3 className="text-base font-black" style={{ color: "var(--text-primary)" }}>Real-time Leave Approval Management</h3>
+                  <p className="text-xs" style={{ color: "var(--text-muted)" }}>Review and approve/reject employee leave applications in real time</p>
+                </div>
+                <span className="px-2.5 py-1 bg-amber-500/10 border border-amber-500/20 text-amber-500 text-xs font-bold rounded-full flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5" />
+                  {leavesList.filter((l: any) => l.status === "PENDING").length} Pending
+                </span>
+              </div>
+
               <div className="overflow-x-auto">
                 <table className="premium-table">
                   <thead>
                     <tr>
-                      <th>Team Member</th>
-                      <th>Type</th>
-                      <th>Period</th>
-                      <th className="text-center">Status</th>
+                      <th>Employee</th>
+                      <th>Leave Type &amp; Reason</th>
+                      <th>Period &amp; Days</th>
+                      <th className="text-center">Real-time Approval Controls</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {leaves.length === 0 ? (
+                    {leavesList.length === 0 ? (
                       <tr>
-                        <td colSpan={4} className="text-center py-6" style={{ color: "var(--text-muted)" }}>No leave requests pending.</td>
+                        <td colSpan={4} className="text-center py-6" style={{ color: "var(--text-muted)" }}>No leave applications submitted yet.</td>
                       </tr>
                     ) : (
-                      leaves.map((leave: any) => (
-                        <tr key={leave.id}>
-                          <td className="font-bold">{leave.employee?.firstName} {leave.employee?.lastName}</td>
-                          <td><span className="badge status-info">{leave.type}</span></td>
-                          <td style={{ color: "var(--text-muted)" }}>
-                            {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
-                          </td>
-                          <td className="text-center">
-                            <span className={`badge ${
-                              leave.status === "APPROVED" ? "status-active" : leave.status === "REJECTED" ? "status-danger" : "status-pending"
-                            }`}>
-                              {leave.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))
+                      leavesList.map((leave: any) => {
+                        const days = Math.ceil((new Date(leave.endDate).getTime() - new Date(leave.startDate).getTime()) / (1000 * 3600 * 24)) + 1;
+                        return (
+                          <tr key={leave.id}>
+                            <td>
+                              <span className="font-bold block">{leave.employee?.firstName} {leave.employee?.lastName}</span>
+                              <span className="text-[11px] font-semibold text-sky-600">{leave.employee?.position || leave.employee?.department || "Staff Member"}</span>
+                            </td>
+                            <td>
+                              <span className="badge status-info mb-1">{leave.type}</span>
+                              <p className="text-xs font-medium text-slate-700 dark:text-slate-300 max-w-xs">{leave.reason}</p>
+                            </td>
+                            <td style={{ color: "var(--text-muted)" }}>
+                              <span className="font-bold text-xs block text-slate-800 dark:text-slate-200">
+                                {new Date(leave.startDate).toLocaleDateString()} to {new Date(leave.endDate).toLocaleDateString()}
+                              </span>
+                              <span className="text-[11px] font-semibold text-emerald-600">({days} {days === 1 ? "day" : "days"})</span>
+                            </td>
+                            <td className="text-center">
+                              {leave.status === "PENDING" ? (
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={() => handleUpdateLeaveStatus(leave.id, "APPROVED")}
+                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm transition-transform active:scale-95 cursor-pointer"
+                                  >
+                                    <Check className="h-3.5 w-3.5 text-white" /> Approve
+                                  </button>
+                                  <button
+                                    onClick={() => handleUpdateLeaveStatus(leave.id, "REJECTED")}
+                                    className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1 shadow-sm transition-transform active:scale-95 cursor-pointer"
+                                  >
+                                    <X className="h-3.5 w-3.5 text-white" /> Reject
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="flex items-center justify-center gap-2">
+                                  <span className={`px-3 py-1 rounded-full text-xs font-extrabold inline-flex items-center gap-1 ${
+                                    leave.status === "APPROVED" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300" :
+                                    "bg-red-100 text-red-700 dark:bg-red-950 dark:text-red-300 border border-red-300"
+                                  }`}>
+                                    {leave.status === "APPROVED" ? <Check className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                                    {leave.status}
+                                  </span>
+                                  <button
+                                    onClick={() => handleUpdateLeaveStatus(leave.id, "PENDING")}
+                                    className="text-[10px] text-slate-400 hover:text-slate-600 underline cursor-pointer"
+                                  >
+                                    Revert
+                                  </button>
+                                </div>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>

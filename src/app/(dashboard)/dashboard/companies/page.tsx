@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import Link from "next/link";
 import {
   Loader2, Building2, Globe, Users, FolderKanban, DollarSign,
-  MapPin, Calendar, Mail, Phone, CheckCircle2, ArrowUpRight, TrendingUp
+  MapPin, Calendar, Mail, Phone, CheckCircle2, ArrowUpRight, TrendingUp, ChevronRight
 } from "lucide-react";
 
 export default function CompaniesPage() {
@@ -33,16 +34,16 @@ export default function CompaniesPage() {
   const tenant = session?.tenant || {};
 
   const companyStats = [
-    { label: "Total Employees", value: metrics?.employees || 0, icon: Users, color: "bg-violet-50 text-violet-600" },
-    { label: "Active Projects", value: metrics?.activeProjects || 0, icon: FolderKanban, color: "bg-sky-50 text-sky-600" },
-    { label: "Annual Revenue", value: `Rs. ${(metrics?.revenue || 0).toLocaleString()}`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600" },
-    { label: "Deal Pipeline", value: `Rs. ${(metrics?.pipeline || 0).toLocaleString()}`, icon: TrendingUp, color: "bg-amber-50 text-amber-600" },
+    { label: "Total Employees", value: metrics?.employees || 0, icon: Users, color: "bg-violet-50 text-violet-600", href: "/dashboard/employees" },
+    { label: "Active Projects", value: metrics?.activeProjects || 0, icon: FolderKanban, color: "bg-sky-50 text-sky-600", href: "/dashboard/projects" },
+    { label: "Annual Revenue", value: `Rs. ${(metrics?.revenue || 0).toLocaleString()}`, icon: DollarSign, color: "bg-emerald-50 text-emerald-600", href: "/dashboard/finance" },
+    { label: "Deal Pipeline", value: `Rs. ${(metrics?.pipeline || 0).toLocaleString()}`, icon: TrendingUp, color: "bg-amber-50 text-amber-600", href: "/dashboard/crm" },
   ];
 
   const highlights = [
-    { label: "MRR", value: `Rs. ${((metrics?.mrr) || 0).toLocaleString()}`, up: true },
-    { label: "ARR", value: `Rs. ${((metrics?.arr) || 0).toLocaleString()}`, up: true },
-    { label: "Net Profit", value: `Rs. ${((metrics?.profit) || 0).toLocaleString()}`, up: (metrics?.profit || 0) > 0 },
+    { label: "MRR", value: `Rs. ${((metrics?.mrr) || 0).toLocaleString()}`, up: true, href: "/dashboard/finance" },
+    { label: "ARR", value: `Rs. ${((metrics?.arr) || 0).toLocaleString()}`, up: true, href: "/dashboard/finance" },
+    { label: "Net Profit", value: `Rs. ${((metrics?.profit) || 0).toLocaleString()}`, up: (metrics?.profit || 0) > 0, href: "/dashboard/finance" },
   ];
 
   return (
@@ -61,10 +62,10 @@ export default function CompaniesPage() {
         <div className="absolute top-0 right-0 w-64 h-64 rounded-full bg-sky-500/4 blur-3xl pointer-events-none" />
 
         <div className="flex flex-col md:flex-row gap-6 relative z-10">
-          {/* Logo & name */}
-          <div className="flex flex-col items-center md:items-start gap-4">
-            <div className="h-20 w-20 rounded-2xl bg-gradient-to-br from-sky-50 to-indigo-100 border border-sky-100 flex items-center justify-center shadow-sm">
-              <img src="/logo.png" alt="Kenzo" className="h-12 w-auto object-contain" />
+          {/* Logo & name (Replacing boxed icon image 1 with clean wide logo image 2) */}
+          <div className="flex flex-col items-center md:items-start gap-4 shrink-0">
+            <div className="p-2 rounded-xl bg-white/80 border border-slate-100 shadow-sm flex items-center justify-center">
+              <img src="/logo.png" alt="Kenzo Infosystems" className="h-14 sm:h-16 w-auto object-contain" />
             </div>
             <div className="flex items-center gap-2">
               <span className="px-2.5 py-1 bg-emerald-50 border border-emerald-100 text-emerald-700 text-[9px] font-bold rounded-full flex items-center gap-1">
@@ -89,7 +90,7 @@ export default function CompaniesPage() {
               </div>
               <div className="flex items-center gap-2.5 text-xs text-slate-600 font-semibold">
                 <Mail className="h-4 w-4 text-sky-500 shrink-0" />
-                <span>contact@kenzo.com</span>
+                <a href="mailto:sales@kenzoinfosystems.com" className="hover:text-sky-600 hover:underline">sales@kenzoinfosystems.com</a>
               </div>
               <div className="flex items-center gap-2.5 text-xs text-slate-600 font-semibold">
                 <MapPin className="h-4 w-4 text-sky-500 shrink-0" />
@@ -101,7 +102,7 @@ export default function CompaniesPage() {
               </div>
               <div className="flex items-center gap-2.5 text-xs text-slate-600 font-semibold">
                 <Phone className="h-4 w-4 text-sky-500 shrink-0" />
-                <span>+91 98765 43210</span>
+                <a href="tel:9999740587" className="hover:text-sky-600 hover:underline">9999740587</a>
               </div>
               <div className="flex items-center gap-2.5 text-xs text-slate-600 font-semibold">
                 <Building2 className="h-4 w-4 text-sky-500 shrink-0" />
@@ -112,36 +113,47 @@ export default function CompaniesPage() {
         </div>
       </div>
 
-      {/* Metric cards */}
+      {/* Metric cards (Interactive Clickable Tabs) */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
         {companyStats.map((c, i) => {
           const Icon = c.icon;
           return (
-            <div key={i} className="glass-panel p-5 glass-card-glow">
+            <Link
+              key={i}
+              href={c.href}
+              className="glass-panel p-5 glass-card-glow cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:shadow-lg group relative"
+            >
               <div className="flex justify-between items-start mb-3">
-                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider">{c.label}</span>
-                <div className={`p-2 rounded-lg ${c.color}`}>
+                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider group-hover:text-sky-600 transition-colors">{c.label}</span>
+                <div className={`p-2 rounded-lg ${c.color} group-hover:scale-110 transition-transform`}>
                   <Icon className="h-4 w-4" />
                 </div>
               </div>
-              <div className="text-2xl font-extrabold text-slate-900">{c.value}</div>
-            </div>
+              <div className="text-2xl font-extrabold text-slate-900 flex items-center justify-between">
+                <span>{c.value}</span>
+                <ChevronRight className="h-4 w-4 text-slate-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
+              </div>
+            </Link>
           );
         })}
       </div>
 
-      {/* Financial highlights */}
+      {/* Financial highlights (Clickable Tabs to Finance Section) */}
       <div className="glass-panel p-6">
         <h3 className="text-base font-bold text-slate-900 mb-4">Financial Performance Highlights</h3>
         <div className="grid grid-cols-3 gap-6 divide-x divide-slate-100">
           {highlights.map((h, i) => (
-            <div key={i} className="flex flex-col items-center text-center px-2">
-              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1">{h.label}</span>
-              <span className="text-2xl font-extrabold text-slate-900">{h.value}</span>
+            <Link
+              key={i}
+              href={h.href}
+              className="flex flex-col items-center text-center px-2 cursor-pointer group hover:opacity-90 transition-opacity"
+            >
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1 group-hover:text-sky-600 transition-colors">{h.label}</span>
+              <span className="text-2xl font-extrabold text-slate-900 group-hover:scale-105 transition-transform">{h.value}</span>
               <div className={`flex items-center gap-1 mt-1 text-[10px] font-bold ${h.up ? "text-emerald-600" : "text-red-500"}`}>
                 <ArrowUpRight className="h-3 w-3" /> This period
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

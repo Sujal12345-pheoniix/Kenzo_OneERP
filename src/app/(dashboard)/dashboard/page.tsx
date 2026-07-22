@@ -1209,61 +1209,6 @@ export default function ExecutiveHub() {
           </div>
         </div>
       </div>
-
-      {/* Pop-Up Notification Modal for Assigned Work & Task */}
-      {showTaskPopup && latestTask && (
-        <div className="fixed bottom-6 right-6 z-50 max-w-md w-full bg-slate-900 text-white rounded-3xl p-5 shadow-2xl border border-slate-700 animate-in slide-in-from-bottom-5 duration-300 flex flex-col gap-3">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-            <div className="flex items-center gap-2 text-sky-400 font-extrabold text-xs uppercase tracking-wider">
-              <Zap className="h-4 w-4 animate-pulse text-amber-400" />
-              Assigned Work &amp; Task Pop-Up
-            </div>
-            <button
-              onClick={() => setShowTaskPopup(false)}
-              className="h-6 w-6 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white cursor-pointer"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-
-          <div>
-            <h4 className="font-extrabold text-sm text-white">{latestTask.title}</h4>
-            <p className="text-slate-400 text-xs mt-1 line-clamp-2">{latestTask.description || "Active task instructions attached to your project."}</p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 text-[10px] font-bold">
-            <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 border border-sky-500/30">
-              Project: {latestTask.project?.name || "Corporate Project"}
-            </span>
-            <span className={`px-2 py-0.5 rounded-full border ${
-              latestTask.priority === "URGENT" || latestTask.priority === "CRITICAL"
-                ? "bg-red-500/20 text-red-300 border-red-500/30"
-                : latestTask.priority === "NEW"
-                ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                : latestTask.priority === "UPDATING"
-                ? "bg-purple-500/20 text-purple-300 border-purple-500/30"
-                : "bg-amber-500/20 text-amber-300 border-amber-500/30"
-            }`}>
-              {latestTask.priority || "HIGH"}
-            </span>
-            {latestTask.assignee && (
-              <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
-                Assigned: {latestTask.assignee.firstName} {latestTask.assignee.lastName.slice(0, 1)}.
-              </span>
-            )}
-          </div>
-
-          <button
-            onClick={() => {
-              setShowTaskPopup(false);
-              router.push("/dashboard/projects");
-            }}
-            className="mt-1 w-full py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-lg shadow-sky-500/20 hover:scale-[1.02]"
-          >
-            <ArrowUpRight className="h-4 w-4" /> View Work &amp; Redirect to Task
-          </button>
-        </div>
-      )}
     </div>
   );
 }

@@ -686,8 +686,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="flex-1 px-4 py-5 md:px-8 md:py-8">{children}</div>
       </main>
 
-      {/* Global Assigned Task Pop-Up (Hovering & 30s Zoom Pulse across ALL Dashboards & HR Portal) */}
-      {showTaskPopup && latestTask && (
+      {/* Assigned Task Pop-Up (Hovering & 30s Zoom Pulse — ONLY ON MY DASHBOARD /dashboard) */}
+      {pathname === "/dashboard" && showTaskPopup && latestTask && (
         <div
           className="fixed bottom-6 right-6 z-50 w-full max-w-sm p-4 rounded-2xl shadow-2xl task-popup-floating flex flex-col gap-3"
           style={{

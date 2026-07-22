@@ -50,6 +50,7 @@ export default function ProjectsDashboard() {
   const [taskActionLoading, setTaskActionLoading] = useState<string | null>(null);
   const [taskSuccess, setTaskSuccess] = useState("");
   const [taskError, setTaskError]     = useState("");
+  const [topNotify, setTopNotify]     = useState("");
 
   // Edit Task Modal State
   const [editingTask, setEditingTask]       = useState<any>(null);
@@ -146,9 +147,13 @@ export default function ProjectsDashboard() {
       const resJson = await res.json();
       if (!res.ok) throw new Error(resJson.error || "Failed to create task");
       setTitle(""); setDescription(""); setDueDate("");
-      setTaskSuccess("Task created and published!");
+      setTaskSuccess("task assigned successfully");
+      setTopNotify("task assigned successfully");
       await loadData();
-      setTimeout(() => setTaskSuccess(""), 3500);
+      setTimeout(() => {
+        setTaskSuccess("");
+        setTopNotify("");
+      }, 4500);
     } catch (err: any) {
       setTaskError(err.message || "An error occurred");
     } finally {
@@ -273,7 +278,18 @@ export default function ProjectsDashboard() {
   ];
 
   return (
-    <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto pb-12 animate-fade-in-up" style={{ color: "var(--text-primary)" }}>
+    <div className="flex flex-col gap-8 w-full max-w-7xl mx-auto pb-12 animate-fade-in-up relative" style={{ color: "var(--text-primary)" }}>
+      {/* Top Banner Notification */}
+      {topNotify && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-emerald-600 text-white px-6 py-3.5 rounded-2xl shadow-2xl animate-bounce-short border border-emerald-400">
+          <CheckCircle2 className="h-5 w-5 shrink-0 text-white" />
+          <span className="font-bold text-sm tracking-wide">{topNotify}</span>
+          <button onClick={() => setTopNotify("")} className="ml-2 opacity-80 hover:opacity-100 cursor-pointer">
+            <X className="h-4 w-4 text-white" />
+          </button>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4" style={{ borderBottom: "1px solid var(--border-base)" }}>
         <div>
@@ -287,11 +303,13 @@ export default function ProjectsDashboard() {
             Manage schedules, track task lanes, and monitor resource assignments.
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setShowProjectModal(true)} className="btn-primary py-2.5 px-4 text-xs">
-            <FolderPlus className="h-4 w-4" /> + New Project Scope
-          </button>
-        </div>
+        {["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "HR_MANAGER"].includes(userRole) && (
+          <div className="flex items-center gap-3">
+            <button onClick={() => setShowProjectModal(true)} className="btn-primary py-2.5 px-4 text-xs">
+              <FolderPlus className="h-4 w-4" /> + New Project Scope
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Projects Overview Cards */}
