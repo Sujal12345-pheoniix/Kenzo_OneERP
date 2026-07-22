@@ -189,3 +189,69 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const session = await getSession(req);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+    const { role, userId, tenantId } = session;
+    const isPrivileged = ["COMPANY_ADMIN", "SUPER_ADMIN", "CEO", "HR", "HR_MANAGER"].includes(role);
+
+    const { searchParams } = new URL(req.url);
+    let id = searchParams.get("id");
+
+    if (!id) {
+      try {
+        const body = await req.json();
+        id = body.id;
+      } catch (e) {}
+    }
+
+    if (!id) {
+      return NextResponse.json({ error: "Leave ID is required" }, { status: 400 });
+    }
+
+    const leave = await db.leave.findUnique({
+      where: { id },
+      include: { employee: true },
+    });
+
+    if (!leave) {
+      return NextResponse.json({ error: "Leave application not found" }, { status: 404 });
+    }
+
+    if (leave.tenantId !== tenantId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Check ownership if not privileged
+    if (!isPrivileged) {
+      let emp = await db.employee.findFirst({
+        where: { userId, tenantId },
+      });
+
+      if (!emp) {
+        const userRec = await db.user.findUnique({ where: { id: userId } });
+        if (userRec) {
+          emp = await db.employee.findFirst({
+            where: { tenantId, user: { email: userRec.email } },
+          });
+        }
+      }
+
+      if (!emp || leave.employeeId !== emp.id) {
+        return NextResponse.json({ error: "Forbidden. You can only delete your own leave applications." }, { status: 403 });
+      }
+    }
+
+    await db.leave.delete({
+      where: { id },
+    });
+
+    return NextResponse.json({ success: true, id });
+  } catch (error) {
+    console.error("Leave DELETE Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}

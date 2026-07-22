@@ -10,6 +10,7 @@
 /* ── Light Mode Variables ── */
 :root,
 [data-theme="light"] {
+  color-scheme: light;
   --bg-base:        #f0f4ff;
   --bg-elevated:    #ffffff;
   --bg-card:        #ffffff;
@@ -53,6 +54,36 @@
 
   /* Select arrow — dark chevron */
   --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
+
+/* Light Mode Text Contrast Engine */
+[data-theme="light"] body,
+[data-theme="light"] main,
+[data-theme="light"] table,
+[data-theme="light"] .glass-panel,
+[data-theme="light"] .stat-card,
+[data-theme="light"] .form-label {
+  color: #0f172a;
+}
+
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4,
+[data-theme="light"] h5,
+[data-theme="light"] h6 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] input,
+[data-theme="light"] textarea,
+[data-theme="light"] select {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder {
+  color: #64748b !important;
 }
 
 /* ── Dark Mode Variables ── */

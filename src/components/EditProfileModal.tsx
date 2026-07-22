@@ -84,43 +84,60 @@ export default function EditProfileModal({
     e.preventDefault();
     setSaving(true);
 
-    const updatedUser = {
-      ...user,
-      name,
-      phone,
-      position,
-      bio,
-      avatar,
-      employee: {
-        ...user.employee,
-        position,
-        phone,
-      },
-    };
-
-    // Save to local storage for persistence across reloads
     try {
-      localStorage.setItem(
-        "kore_user_profile",
-        JSON.stringify({
+      const res = await fetch("/api/profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
           name,
           phone,
           position,
           bio,
           avatar,
-        })
-      );
-    } catch (e) {
-      console.error("LocalStorage save error", e);
-    }
+        }),
+      });
 
-    onSave(updatedUser);
-    setSaving(false);
-    setSavedMsg("Profile updated successfully!");
-    setTimeout(() => {
-      setSavedMsg("");
-      onClose();
-    }, 1200);
+      if (res.ok) {
+        const data = await res.json();
+        const finalUser = data.user || {
+          ...user,
+          name,
+          phone,
+          position,
+          bio,
+          avatar,
+        };
+
+        try {
+          localStorage.setItem(
+            "kore_user_profile",
+            JSON.stringify({
+              name: finalUser.name,
+              phone: finalUser.phone,
+              position: finalUser.position,
+              bio: finalUser.bio,
+              avatar: finalUser.avatar,
+            })
+          );
+        } catch (e) {}
+
+        onSave(finalUser);
+        setSavedMsg("Profile & Cloudinary photo saved across all devices!");
+      } else {
+        setSavedMsg("Updated profile locally.");
+        onSave({ ...user, name, phone, position, bio, avatar });
+      }
+    } catch (err) {
+      console.error("Profile save error:", err);
+      onSave({ ...user, name, phone, position, bio, avatar });
+      setSavedMsg("Profile saved.");
+    } finally {
+      setSaving(false);
+      setTimeout(() => {
+        setSavedMsg("");
+        onClose();
+      }, 1400);
+    }
   };
 
   return (

@@ -536,6 +536,26 @@ export default function HRMSDashboard() {
     }
   };
 
+  const handleDeleteLeave = async (leaveId: string) => {
+    if (!confirm("Are you sure you want to delete this leave application?")) return;
+    try {
+      const res = await fetch(`/api/leaves?id=${leaveId}`, {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setLeavesList((prev: any[]) => prev.filter((l) => l.id !== leaveId));
+        setTopNotify("Leave application deleted successfully");
+        setTimeout(() => setTopNotify(""), 4000);
+        await fetchHRData();
+      } else {
+        const json = await res.json();
+        alert(json.error || "Failed to delete leave application");
+      }
+    } catch (err) {
+      console.error("Delete leave error:", err);
+    }
+  };
+
   const handleAddApplication = async (e: React.FormEvent) => {
     e.preventDefault();
     setAppSubmitting(true);
@@ -762,12 +782,13 @@ export default function HRMSDashboard() {
                       <th className="font-black text-black dark:text-white">Leave Type &amp; Reason</th>
                       <th className="font-black text-black dark:text-white">Dates &amp; Days</th>
                       <th className="text-center font-black text-black dark:text-white">Approval Status</th>
+                      <th className="text-center font-black text-black dark:text-white">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {leavesList.length === 0 ? (
                       <tr>
-                        <td colSpan={3} className="text-center py-8 font-bold text-black dark:text-white">No leave applications submitted yet.</td>
+                        <td colSpan={4} className="text-center py-8 font-bold text-black dark:text-white">No leave applications submitted yet.</td>
                       </tr>
                     ) : (
                       leavesList.map((leave: any) => {
@@ -795,6 +816,15 @@ export default function HRMSDashboard() {
                                 {leave.status === "PENDING" && <Clock className="h-3 w-3" />}
                                 {leave.status}
                               </span>
+                            </td>
+                            <td className="text-center">
+                              <button
+                                onClick={() => handleDeleteLeave(leave.id)}
+                                title="Delete Leave Application"
+                                className="p-1.5 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors cursor-pointer border border-red-200 shadow-sm"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
                             </td>
                           </tr>
                         );
@@ -909,6 +939,13 @@ export default function HRMSDashboard() {
                                   >
                                     <X className="h-3.5 w-3.5 text-white" /> Reject
                                   </button>
+                                  <button
+                                    onClick={() => handleDeleteLeave(leave.id)}
+                                    title="Delete Leave Application"
+                                    className="p-1.5 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors cursor-pointer border border-red-200 shadow-sm"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </button>
                                 </div>
                               ) : (
                                 <div className="flex items-center justify-center gap-2">
@@ -924,6 +961,13 @@ export default function HRMSDashboard() {
                                     className="text-[10px] text-slate-400 hover:text-slate-600 underline cursor-pointer"
                                   >
                                     Revert
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeleteLeave(leave.id)}
+                                    title="Delete Leave Application"
+                                    className="p-1.5 rounded-lg bg-red-50 hover:bg-red-600 text-red-600 hover:text-white transition-colors cursor-pointer border border-red-200 shadow-sm ml-1"
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
                                   </button>
                                 </div>
                               )}
