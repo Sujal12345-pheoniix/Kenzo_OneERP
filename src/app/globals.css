@@ -62,7 +62,11 @@
 [data-theme="light"] table,
 [data-theme="light"] .glass-panel,
 [data-theme="light"] .stat-card,
-[data-theme="light"] .form-label {
+[data-theme="light"] .form-label,
+[data-theme="light"] p,
+[data-theme="light"] label,
+[data-theme="light"] td,
+[data-theme="light"] th {
   color: #0f172a;
 }
 
@@ -78,12 +82,23 @@
 [data-theme="light"] input,
 [data-theme="light"] textarea,
 [data-theme="light"] select {
+  background-color: #ffffff !important;
   color: #0f172a !important;
 }
 
 [data-theme="light"] input::placeholder,
-[data-theme="light"] textarea::placeholder {
+[data-theme="light"] textarea::placeholder,
+[data-theme="light"] select::placeholder {
   color: #64748b !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #64748b !important;
+}
+
+[data-theme="light"] input:disabled,
+[data-theme="light"] textarea:disabled {
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  -webkit-text-fill-color: #334155 !important;
 }
 
 /* ── Dark Mode Variables ── */
@@ -177,7 +192,20 @@ button, a, [role="button"] {
    Applies ONLY when [data-theme="dark"] is active
    ========================================================= */
 
-/* Replace dark text colors (text-slate-900, 800, 700, text-black) with BRIGHT WHITE */
+[data-theme="dark"] body,
+[data-theme="dark"] main,
+[data-theme="dark"] table,
+[data-theme="dark"] .glass-panel,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .form-label,
+[data-theme="dark"] p,
+[data-theme="dark"] label,
+[data-theme="dark"] td,
+[data-theme="dark"] th {
+  color: #f8fafc;
+}
+
+/* Replace dark text utility classes in dark mode with BRIGHT WHITE */
 [data-theme="dark"] .text-slate-900,
 [data-theme="dark"] .text-slate-800,
 [data-theme="dark"] .text-slate-700,
@@ -245,13 +273,6 @@ button, a, [role="button"] {
   color: #cbd5e1 !important;
 }
 
-/* Avatar backgrounds with light gradient in dark mode */
-[data-theme="dark"] .bg-gradient-to-br.from-slate-100 {
-  background: linear-gradient(135deg, #1e293b, #0f172a) !important;
-  border-color: #334155 !important;
-  color: #f8fafc !important;
-}
-
 /* Calendar grid in dark mode (HRMS Operations & Attendance & Leave) */
 [data-theme="dark"] .bg-slate-50,
 [data-theme="dark"] .bg-slate-50\/60,
@@ -261,76 +282,18 @@ button, a, [role="button"] {
   border-color: rgba(129, 140, 248, 0.12) !important;
 }
 
-/* =========================================================
-   EXCEPTIONS FOR WHITE & LIGHT PASTEL CONTAINERS / PLACEHOLDERS
-   "and in white placeholders keep text colour black"
-   ========================================================= */
-
-/* Pure white containers, badges, cards, buttons in dark mode */
-[data-theme="dark"] .bg-white,
-[data-theme="dark"] [class*="bg-white"] {
-  color: #0f172a !important;
-}
-
-[data-theme="dark"] .bg-white *,
-[data-theme="dark"] [class*="bg-white"] * {
-  color: #0f172a !important;
-}
-
-/* Light pastel badges (bg-emerald-50, bg-sky-50, bg-violet-50, bg-amber-50, bg-indigo-50, bg-rose-50, bg-teal-50) */
-[data-theme="dark"] [class*="bg-emerald-50"],
-[data-theme="dark"] [class*="bg-sky-50"],
-[data-theme="dark"] [class*="bg-violet-50"],
-[data-theme="dark"] [class*="bg-amber-50"],
-[data-theme="dark"] [class*="bg-indigo-50"],
-[data-theme="dark"] [class*="bg-rose-50"],
-[data-theme="dark"] [class*="bg-teal-50"] {
-  color: #0f172a !important;
-  font-weight: 700 !important;
-}
-
-[data-theme="dark"] [class*="bg-emerald-50"] *,
-[data-theme="dark"] [class*="bg-sky-50"] *,
-[data-theme="dark"] [class*="bg-violet-50"] *,
-[data-theme="dark"] [class*="bg-amber-50"] *,
-[data-theme="dark"] [class*="bg-indigo-50"] *,
-[data-theme="dark"] [class*="bg-rose-50"] *,
-[data-theme="dark"] [class*="bg-teal-50"] * {
-  color: #0f172a !important;
-}
-
-/* Input fields with white background (white placeholders/inputs):
-   Keep background white, text color black, placeholder text dark slate */
-[data-theme="dark"] input.bg-white,
-[data-theme="dark"] textarea.bg-white,
-[data-theme="dark"] select.bg-white,
-[data-theme="dark"] .bg-white input,
-[data-theme="dark"] .bg-white textarea,
-[data-theme="dark"] .bg-white select {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-}
-
-[data-theme="dark"] input.bg-white::placeholder,
-[data-theme="dark"] textarea.bg-white::placeholder,
-[data-theme="dark"] .bg-white input::placeholder,
-[data-theme="dark"] .bg-white textarea::placeholder {
-  color: #475569 !important;
-}
-
-/* Dark mode inputs & profile forms: text bright white, placeholder pure white */
-[data-theme="dark"] input:not(.bg-white),
-[data-theme="dark"] textarea:not(.bg-white),
-[data-theme="dark"] select:not(.bg-white) {
+/* Dark mode inputs & textareas */
+[data-theme="dark"] input,
+[data-theme="dark"] textarea,
+[data-theme="dark"] select {
   background-color: var(--bg-input) !important;
   color: #ffffff !important;
+  border-color: rgba(129, 140, 248, 0.2) !important;
 }
 
 [data-theme="dark"] input::placeholder,
 [data-theme="dark"] textarea::placeholder,
-[data-theme="dark"] select::placeholder,
-input::placeholder,
-textarea::placeholder {
+[data-theme="dark"] select::placeholder {
   color: #ffffff !important;
   opacity: 0.95 !important;
   -webkit-text-fill-color: #ffffff !important;
@@ -351,7 +314,7 @@ select option {
 
 [data-theme="dark"] select option {
   background-color: #0f1929 !important;
-  color: #f8fafc !important;
+  color: #ffffff !important;
 }
 
 /* =========================================================
