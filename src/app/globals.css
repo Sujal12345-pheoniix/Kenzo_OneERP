@@ -919,3 +919,81 @@ html, body {
   transform: scale(1.04) translateY(-6px) !important;
   box-shadow: 0 20px 50px rgba(14, 165, 233, 0.45), 0 0 30px rgba(99, 102, 241, 0.5) !important;
 }
+
+/* =========================================================
+   DEPARTMENT CARDS — STRICT THEME SCOPING
+   ========================================================= */
+
+/* Light Theme: Preserve original beautiful light pastel design */
+[data-theme="light"] .dept-card {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+}
+
+[data-theme="light"] .dept-icon-box {
+  background-color: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="light"] .dept-stat-box {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(203, 213, 225, 0.6) !important;
+}
+
+[data-theme="light"] .dept-card-title,
+[data-theme="light"] .dept-card-value {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .dept-card-sub,
+[data-theme="light"] .dept-card-label {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .dept-avatar-pill,
+[data-theme="light"] .dept-role-pill {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .dept-payroll-row {
+  border-top-color: rgba(203, 213, 225, 0.6) !important;
+}
+
+/* Dark Theme: Sleek dark glassmorphic cards with crisp white text */
+[data-theme="dark"] .dept-card {
+  background: linear-gradient(135deg, #0f1929 0%, #0a1020 100%) !important;
+  border-color: rgba(129, 140, 248, 0.15) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme="dark"] .dept-icon-box {
+  background-color: #1a273e !important;
+  border-color: rgba(129, 140, 248, 0.2) !important;
+}
+
+[data-theme="dark"] .dept-stat-box {
+  background-color: #131f35 !important;
+  border-color: rgba(129, 140, 248, 0.2) !important;
+}
+
+[data-theme="dark"] .dept-card-title,
+[data-theme="dark"] .dept-card-value {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .dept-card-sub,
+[data-theme="dark"] .dept-card-label {
+  color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .dept-avatar-pill,
+[data-theme="dark"] .dept-role-pill {
+  background-color: #1a273e !important;
+  border-color: rgba(129, 140, 248, 0.2) !important;
+  color: #f8fafc !important;
+}
+
+[data-theme="dark"] .dept-payroll-row {
+  border-top-color: rgba(129, 140, 248, 0.15) !important;
+}
