@@ -687,34 +687,34 @@ export default function ExecutiveHub() {
 
         {/* CEO Strategic KPI Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="p-6 rounded-3xl bg-emerald-50/70 border border-emerald-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
+          <div className="p-6 rounded-3xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
-              <span className="text-emerald-700 text-xs font-bold uppercase tracking-wider block">Total Capital Inflow</span>
-              <span className="text-3xl font-extrabold text-emerald-950 tracking-tight mt-2 block">₹8.7M</span>
+              <span className="text-emerald-700 dark:text-emerald-300 text-xs font-bold uppercase tracking-wider block">Total Capital Inflow</span>
+              <span className="text-3xl font-extrabold text-slate-900 dark:text-emerald-200 tracking-tight mt-2 block">₹8.7M</span>
             </div>
-            <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-emerald-600">
+            <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">
               <ArrowUpRight className="h-3.5 w-3.5" /> 12.5% vs last month
             </div>
           </div>
           <div className="glass-panel p-5">
               <span className="text-slate-400 text-xs font-bold uppercase tracking-wider block">Monthly Burn</span>
-              <span className="text-3xl font-extrabold text-rose-950 tracking-tight mt-2 block">₹285K/mo</span>
+              <span className="text-3xl font-extrabold text-slate-900 dark:text-rose-300 tracking-tight mt-2 block">₹285K/mo</span>
           </div>
-          <div className="p-6 rounded-3xl bg-violet-50/70 border border-violet-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
+          <div className="p-6 rounded-3xl bg-violet-50/70 dark:bg-violet-950/40 border border-violet-100 dark:border-violet-800 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
-              <span className="text-violet-700 text-xs font-bold uppercase tracking-wider block">Customer Retention</span>
-              <span className="text-3xl font-extrabold text-violet-950 tracking-tight mt-2 block">97.4%</span>
+              <span className="text-violet-700 dark:text-violet-300 text-xs font-bold uppercase tracking-wider block">Customer Retention</span>
+              <span className="text-3xl font-extrabold text-slate-900 dark:text-violet-200 tracking-tight mt-2 block">97.4%</span>
             </div>
-            <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-violet-600">
+            <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-violet-600 dark:text-violet-400">
               <CheckCircle2 className="h-3.5 w-3.5" /> 2.5% this quarter
             </div>
           </div>
-          <div className="p-6 rounded-3xl bg-rose-50/70 border border-rose-100 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
+          <div className="p-6 rounded-3xl bg-rose-50/70 dark:bg-rose-950/40 border border-rose-100 dark:border-rose-800 flex flex-col justify-between shadow-sm hover:shadow-md transition-all">
             <div>
-              <span className="text-rose-700 text-xs font-bold uppercase tracking-wider block">Quarterly Burn Rate</span>
-              <span className="text-3xl font-extrabold text-rose-950 tracking-tight mt-2 block">₹285K/mo</span>
+              <span className="text-rose-700 dark:text-rose-300 text-xs font-bold uppercase tracking-wider block">Quarterly Burn Rate</span>
+              <span className="text-3xl font-extrabold text-slate-900 dark:text-rose-200 tracking-tight mt-2 block">₹285K/mo</span>
             </div>
-            <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-rose-600">
+            <div className="flex items-center gap-1 mt-4 text-[10px] font-bold text-rose-600 dark:text-rose-400">
               <ArrowDownRight className="h-3.5 w-3.5" /> 5.5% decreased
             </div>
           </div>

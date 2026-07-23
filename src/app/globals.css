@@ -70,6 +70,27 @@
   color: #0f172a;
 }
 
+[data-theme="light"] .text-slate-900,
+[data-theme="light"] .text-slate-800,
+[data-theme="light"] .text-slate-700,
+[data-theme="light"] .text-slate-600,
+[data-theme="light"] .text-slate-500,
+[data-theme="light"] .text-slate-950,
+[data-theme="light"] .text-black,
+[data-theme="light"] .text-gray-900,
+[data-theme="light"] .text-gray-800,
+[data-theme="light"] .text-gray-700,
+[data-theme="light"] .text-emerald-950,
+[data-theme="light"] .text-rose-950,
+[data-theme="light"] .text-violet-950 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .text-slate-400,
+[data-theme="light"] .text-gray-400 {
+  color: #475569 !important;
+}
+
 [data-theme="light"] h1:not(.profile-modal-dark *),
 [data-theme="light"] h2:not(.profile-modal-dark *),
 [data-theme="light"] h3:not(.profile-modal-dark *),
@@ -84,6 +105,7 @@
 [data-theme="light"] select:not(.profile-modal-dark *) {
   background-color: #ffffff !important;
   color: #0f172a !important;
+  border-color: #cbd5e1 !important;
 }
 
 [data-theme="light"] input:not(.profile-modal-dark *)::placeholder,
@@ -223,7 +245,7 @@ button, a, [role="button"] {
 }
 
 /* =========================================================
-   DARK MODE — TEXT COLOR REPLACEMENT ENGINE
+   DARK MODE — TEXT & CONTAINER CONTRAST ENGINE
    Applies ONLY when [data-theme="dark"] is active
    ========================================================= */
 
@@ -240,7 +262,7 @@ button, a, [role="button"] {
   color: #f8fafc;
 }
 
-/* Replace dark text utility classes in dark mode with BRIGHT WHITE */
+/* Replace dark text utility classes in dark mode with BRIGHT PURE WHITE */
 [data-theme="dark"] .text-slate-900,
 [data-theme="dark"] .text-slate-800,
 [data-theme="dark"] .text-slate-700,
@@ -248,8 +270,11 @@ button, a, [role="button"] {
 [data-theme="dark"] .text-black,
 [data-theme="dark"] .text-gray-900,
 [data-theme="dark"] .text-gray-800,
-[data-theme="dark"] .text-gray-700 {
-  color: #f8fafc !important;
+[data-theme="dark"] .text-gray-700,
+[data-theme="dark"] .text-emerald-950,
+[data-theme="dark"] .text-violet-950,
+[data-theme="dark"] .text-rose-950 {
+  color: #ffffff !important;
 }
 
 /* Replace mid-slate text colors (text-slate-600, 500) with CRISP LIGHT SLATE */
@@ -273,7 +298,42 @@ button, a, [role="button"] {
 [data-theme="dark"] h4,
 [data-theme="dark"] h5,
 [data-theme="dark"] h6 {
-  color: #f8fafc !important;
+  color: #ffffff !important;
+}
+
+/* Container adaptors in Dark Mode */
+[data-theme="dark"] .bg-slate-50,
+[data-theme="dark"] .bg-slate-50\/50,
+[data-theme="dark"] .bg-slate-50\/60,
+[data-theme="dark"] .bg-slate-50\/70,
+[data-theme="dark"] .bg-slate-100,
+[data-theme="dark"] .bg-slate-200,
+[data-theme="dark"] .bg-sky-50,
+[data-theme="dark"] .bg-sky-50\/50,
+[data-theme="dark"] .bg-violet-50,
+[data-theme="dark"] .bg-violet-50\/50,
+[data-theme="dark"] .bg-violet-50\/70,
+[data-theme="dark"] .bg-emerald-50,
+[data-theme="dark"] .bg-emerald-50\/50,
+[data-theme="dark"] .bg-emerald-50\/70,
+[data-theme="dark"] .bg-rose-50,
+[data-theme="dark"] .bg-rose-50\/50,
+[data-theme="dark"] .bg-rose-50\/70,
+[data-theme="dark"] .bg-indigo-50,
+[data-theme="dark"] .bg-amber-50 {
+  background-color: #131f35 !important;
+  border-color: rgba(129, 140, 248, 0.2) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .bg-slate-50 *,
+[data-theme="dark"] .bg-slate-100 *,
+[data-theme="dark"] .bg-sky-50 *,
+[data-theme="dark"] .bg-violet-50 *,
+[data-theme="dark"] .bg-emerald-50 *,
+[data-theme="dark"] .bg-rose-50 *,
+[data-theme="dark"] .bg-amber-50 * {
+  color: #ffffff !important;
 }
 
 /* Table rows, headers & cells in dark mode */
@@ -306,15 +366,6 @@ button, a, [role="button"] {
 [data-theme="dark"] .recharts-default-legend {
   fill: #cbd5e1 !important;
   color: #cbd5e1 !important;
-}
-
-/* Calendar grid in dark mode (HRMS Operations & Attendance & Leave) */
-[data-theme="dark"] .bg-slate-50,
-[data-theme="dark"] .bg-slate-50\/60,
-[data-theme="dark"] .bg-slate-100 {
-  background-color: #131f35 !important;
-  color: #f8fafc !important;
-  border-color: rgba(129, 140, 248, 0.12) !important;
 }
 
 /* Dark mode inputs & textareas */
