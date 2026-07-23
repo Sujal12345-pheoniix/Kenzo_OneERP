@@ -24,12 +24,10 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 /* ─── Chart type definitions ─── */
-type ChartType = "area" | "line" | "bar" | "pie" | "histogram" | "scatter";
+type ChartType = "area" | "bar" | "pie" | "scatter";
 const CHART_TYPES: { type: ChartType; label: string; icon: string }[] = [
   { type: "area",      label: "Area",      icon: "〰" },
-  { type: "line",      label: "Line",      icon: "📈" },
   { type: "bar",       label: "Bar",       icon: "📊" },
-  { type: "histogram", label: "Histogram", icon: "📶" },
   { type: "pie",       label: "Pie",       icon: "🥧" },
   { type: "scatter",   label: "Scatter",   icon: "✦" },
 ];
@@ -125,7 +123,7 @@ function RevenueChart({ data, type }: { data: any[]; type: ChartType }) {
     );
   }
 
-  if (type === "histogram" || type === "bar") {
+  if (type === "bar") {
     return (
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={data} barCategoryGap="20%">
@@ -147,22 +145,6 @@ function RevenueChart({ data, type }: { data: any[]; type: ChartType }) {
           <Bar dataKey="revenue" name="Revenue" fill="url(#barRevGrad)" radius={[6, 6, 0, 0]} />
           <Bar dataKey="target" name="Target" fill="url(#barTgtGrad)" radius={[6, 6, 0, 0]} />
         </BarChart>
-      </ResponsiveContainer>
-    );
-  }
-
-  if (type === "line") {
-    return (
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border-card)" />
-          <XAxis dataKey="month" {...commonAxisProps} />
-          <YAxis {...commonAxisProps} tickFormatter={(v) => `₹${(v/1000).toFixed(0)}k`} />
-          <Tooltip content={<PremiumTooltip />} />
-          <Legend formatter={(v) => <span style={{ color: "var(--text-secondary)", fontSize: 11 }}>{v}</span>} />
-          <Line type="monotone" dataKey="revenue" name="Revenue" stroke="#6366f1" strokeWidth={3} dot={{ fill: "#6366f1", r: 5, strokeWidth: 0 }} activeDot={{ r: 7 }} />
-          <Line type="monotone" dataKey="target" name="Target" stroke="#0ea5e9" strokeWidth={2} strokeDasharray="6 3" dot={{ fill: "#0ea5e9", r: 4 }} />
-        </LineChart>
       </ResponsiveContainer>
     );
   }
