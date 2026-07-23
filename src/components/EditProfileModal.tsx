@@ -144,19 +144,19 @@ export default function EditProfileModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-md animate-fadeIn">
-      <div className="profile-modal-dark bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-scaleUp text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-md animate-fadeIn">
+      <div className="profile-modal-dark bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-scaleUp text-white flex flex-col max-h-[90vh] my-auto">
         {/* Modal Header */}
-        <div className="px-6 py-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+        <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60 shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
               <Sparkles className="h-4.5 w-4.5" />
             </div>
             <div>
-              <h2 className="text-lg font-black text-white tracking-tight">
+              <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
                 Edit My Profile
               </h2>
-              <p className="text-xs font-bold text-slate-300">
+              <p className="text-[11px] sm:text-xs font-bold text-slate-300">
                 Customize photo, details, and security settings
               </p>
             </div>
@@ -170,13 +170,13 @@ export default function EditProfileModal({
         </div>
 
         {savedMsg && (
-          <div className="mx-6 mt-4 p-3 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-black rounded-2xl flex items-center gap-2 animate-bounce-short">
+          <div className="mx-4 sm:mx-6 mt-4 p-3 bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-black rounded-2xl flex items-center gap-2 animate-bounce-short">
             <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
             {savedMsg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-5 max-h-[80vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="p-4 sm:p-6 space-y-5 flex-1 overflow-y-auto max-h-[75vh] sm:max-h-[80vh]">
           {/* Avatar Section */}
           <div className="flex flex-col items-center gap-3 p-4 rounded-2xl bg-slate-800/60 border border-slate-700/80">
             <div

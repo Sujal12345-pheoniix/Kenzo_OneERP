@@ -649,7 +649,7 @@ export default function HRMSDashboard() {
         </div>
 
         {isPrivileged && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap items-center gap-2 overflow-x-auto pb-1 max-w-full">
             <button
               onClick={() => setActiveTab("roster")}
               className={`chart-pill ${activeTab === "roster" ? "chart-pill-active" : ""}`}

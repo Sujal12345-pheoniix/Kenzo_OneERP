@@ -758,7 +758,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       {/* Assigned Task Pop-Up (Hovering & 30s Zoom Pulse — ONLY ON MY DASHBOARD /dashboard) */}
       {pathname === "/dashboard" && showTaskPopup && latestTask && (
         <div
-          className="fixed bottom-6 right-6 z-50 w-full max-w-sm p-4 rounded-2xl shadow-2xl task-popup-floating flex flex-col gap-3"
+          className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-6 sm:bottom-6 z-50 w-auto sm:w-full max-w-sm p-4 rounded-2xl shadow-2xl task-popup-floating flex flex-col gap-3"
           style={{
             background: "#0b1329",
             border: "1px solid rgba(99, 102, 241, 0.4)",
