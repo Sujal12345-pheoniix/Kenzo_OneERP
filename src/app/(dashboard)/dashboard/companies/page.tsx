@@ -160,22 +160,22 @@ export default function CompaniesPage() {
 
       {/* About section */}
       <div className="glass-panel p-6">
-        <h3 className="text-base font-bold text-slate-900 mb-4">About the Company</h3>
+        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-4">About the Company</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="p-4 rounded-2xl bg-sky-50/50 border border-sky-100">
+          <div className="p-4 rounded-2xl bg-sky-50/50 dark:bg-slate-800/80 border border-sky-100 dark:border-slate-700">
             <div className="text-2xl mb-2">🚀</div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">Mission</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">Empowering businesses with cutting-edge ERP solutions that simplify operations and drive sustainable growth.</p>
+            <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">Mission</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Empowering businesses with cutting-edge ERP solutions that simplify operations and drive sustainable growth.</p>
           </div>
-          <div className="p-4 rounded-2xl bg-violet-50/50 border border-violet-100">
+          <div className="p-4 rounded-2xl bg-violet-50/50 dark:bg-slate-800/80 border border-violet-100 dark:border-slate-700">
             <div className="text-2xl mb-2">🔭</div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">Vision</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">To become the most trusted enterprise technology partner for growing businesses across Asia Pacific by 2028.</p>
+            <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">Vision</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">To become the most trusted enterprise technology partner for growing businesses across Asia Pacific by 2028.</p>
           </div>
-          <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100">
+          <div className="p-4 rounded-2xl bg-emerald-50/50 dark:bg-slate-800/80 border border-emerald-100 dark:border-slate-700">
             <div className="text-2xl mb-2">💎</div>
-            <h4 className="font-bold text-slate-800 text-sm mb-1">Core Values</h4>
-            <p className="text-xs text-slate-500 leading-relaxed">Innovation, transparency, client-centricity, and continuous improvement in everything we deliver.</p>
+            <h4 className="font-bold text-slate-800 dark:text-white text-sm mb-1">Core Values</h4>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Innovation, transparency, client-centricity, and continuous improvement in everything we deliver.</p>
           </div>
         </div>
       </div>

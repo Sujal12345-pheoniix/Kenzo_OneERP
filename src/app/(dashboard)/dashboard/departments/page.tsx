@@ -10,14 +10,14 @@ import { BarChart, Bar, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGri
 
 /* ─── Department theming ───────────────────────────────────────── */
 const DEPT_THEME: Record<string, { icon: string; gradient: string; border: string; badge: string; accent: string }> = {
-  Employee:      { icon: "⚙️", gradient: "from-sky-50 to-blue-50",     border: "border-sky-100",    badge: "bg-sky-500",     accent: "text-sky-600" },
-  ENGINEERING:   { icon: "⚙️", gradient: "from-sky-50 to-blue-50",     border: "border-sky-100",    badge: "bg-sky-500",     accent: "text-sky-600" },
-  HR:            { icon: "👥", gradient: "from-violet-50 to-purple-50", border: "border-violet-100", badge: "bg-violet-500",  accent: "text-violet-600" },
-  FINANCE:       { icon: "💰", gradient: "from-emerald-50 to-green-50", border: "border-emerald-100",badge: "bg-emerald-500", accent: "text-emerald-600" },
-  SALES:         { icon: "📈", gradient: "from-amber-50 to-yellow-50",  border: "border-amber-100",  badge: "bg-amber-500",   accent: "text-amber-600" },
-  MANAGEMENT:    { icon: "🏢", gradient: "from-rose-50 to-red-50",      border: "border-rose-100",   badge: "bg-rose-500",    accent: "text-rose-600" },
-  ADMINISTRATION:{ icon: "📋", gradient: "from-indigo-50 to-indigo-50", border: "border-indigo-100", badge: "bg-indigo-500",  accent: "text-indigo-600" },
-  SUPPORT:       { icon: "🎧", gradient: "from-teal-50 to-cyan-50",     border: "border-teal-100",   badge: "bg-teal-500",    accent: "text-teal-600" },
+  Employee:      { icon: "⚙️", gradient: "from-sky-50 to-blue-50 dark:from-slate-900 dark:to-slate-950", border: "border-sky-100 dark:border-slate-800", badge: "bg-sky-500", accent: "text-sky-600 dark:text-sky-400" },
+  ENGINEERING:   { icon: "⚙️", gradient: "from-sky-50 to-blue-50 dark:from-slate-900 dark:to-slate-950", border: "border-sky-100 dark:border-slate-800", badge: "bg-sky-500", accent: "text-sky-600 dark:text-sky-400" },
+  HR:            { icon: "👥", gradient: "from-violet-50 to-purple-50 dark:from-slate-900 dark:to-slate-950", border: "border-violet-100 dark:border-slate-800", badge: "bg-violet-500", accent: "text-violet-600 dark:text-violet-400" },
+  FINANCE:       { icon: "💰", gradient: "from-emerald-50 to-green-50 dark:from-slate-900 dark:to-slate-950", border: "border-emerald-100 dark:border-slate-800", badge: "bg-emerald-500", accent: "text-emerald-600 dark:text-emerald-400" },
+  SALES:         { icon: "📈", gradient: "from-amber-50 to-yellow-50 dark:from-slate-900 dark:to-slate-950", border: "border-amber-100 dark:border-slate-800", badge: "bg-amber-500", accent: "text-amber-600 dark:text-amber-400" },
+  MANAGEMENT:    { icon: "🏢", gradient: "from-rose-50 to-red-50 dark:from-slate-900 dark:to-slate-950", border: "border-rose-100 dark:border-slate-800", badge: "bg-rose-500", accent: "text-rose-600 dark:text-rose-400" },
+  ADMINISTRATION:{ icon: "📋", gradient: "from-indigo-50 to-indigo-50 dark:from-slate-900 dark:to-slate-950", border: "border-indigo-100 dark:border-slate-800", badge: "bg-indigo-500", accent: "text-indigo-600 dark:text-indigo-400" },
+  SUPPORT:       { icon: "🎧", gradient: "from-teal-50 to-cyan-50 dark:from-slate-900 dark:to-slate-950", border: "border-teal-100 dark:border-slate-800", badge: "bg-teal-500", accent: "text-teal-600 dark:text-teal-400" },
 };
 
 const TASK_STATUS: Record<string, { cls: string; label: string; icon: React.ElementType }> = {
@@ -210,8 +210,8 @@ function EmployeeProfileModal({
 
   const displayDept = emp?.department === "ENGINEERING" ? "Employee" : emp?.department;
   const theme = DEPT_THEME[displayDept] || {
-    icon: "🏢", gradient: "from-slate-50 to-slate-50", border: "border-slate-100",
-    badge: "bg-slate-400", accent: "text-slate-600",
+    icon: "🏢", gradient: "from-slate-50 to-slate-50 dark:from-slate-900 dark:to-slate-950", border: "border-slate-100 dark:border-slate-800",
+    badge: "bg-slate-400", accent: "text-slate-600 dark:text-slate-400",
   };
 
   // Current projects (unique from tasks)
@@ -654,8 +654,8 @@ export default function DepartmentsPage() {
 
   const departments = Object.entries(deptMap).map(([name, data]) => ({
     name, ...data,
-    avgSalary: Math.round(data.totalSalary / data.count),
-    theme: DEPT_THEME[name] || { icon: "🏢", gradient: "from-slate-50 to-slate-50", border: "border-slate-100", badge: "bg-slate-400", accent: "text-slate-600" },
+    avgSalary: Math.round(data.totalSalary / (data.count || 1)),
+    theme: DEPT_THEME[name] || { icon: "🏢", gradient: "from-slate-50 to-slate-50 dark:from-slate-900 dark:to-slate-950", border: "border-slate-100 dark:border-slate-800", badge: "bg-slate-400", accent: "text-slate-600 dark:text-slate-400" },
   }));
 
   const chartData = departments.map((d) => ({
@@ -731,35 +731,35 @@ export default function DepartmentsPage() {
         {departments.map((dept) => (
           <div
             key={dept.name}
-            className={`rounded-2xl border p-5 bg-gradient-to-br ${dept.theme.gradient} ${dept.theme.border} hover:shadow-md transition-all`}
+            className={`rounded-2xl border p-5 bg-gradient-to-br ${dept.theme.gradient} ${dept.theme.border} shadow-sm hover:shadow-md transition-all`}
           >
             {/* Dept header */}
             <div className="flex items-center gap-3 mb-4">
-              <div className="h-10 w-10 rounded-xl bg-white shadow-sm flex items-center justify-center text-xl">
+              <div className="h-10 w-10 rounded-xl bg-white/90 dark:bg-slate-800/90 border border-slate-200/50 dark:border-slate-700 shadow-sm flex items-center justify-center text-xl">
                 {dept.theme.icon}
               </div>
               <div>
-                <h3 className="font-extrabold text-slate-900 text-sm">{dept.name}</h3>
-                <span className="text-[10px] text-slate-500 font-medium">{dept.count} members</span>
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">{dept.name}</h3>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium">{dept.count} members</span>
               </div>
               <div className={`ml-auto h-2 w-2 rounded-full ${dept.theme.badge}`} />
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-2 gap-3 mb-4">
-              <div className="bg-white/60 rounded-xl p-3">
-                <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider">Active</span>
-                <span className="block text-lg font-extrabold text-slate-900">{dept.active}</span>
+              <div className="bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/80 rounded-xl p-3 shadow-xs">
+                <span className="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active</span>
+                <span className="block text-lg font-extrabold text-slate-900 dark:text-white">{dept.active}</span>
               </div>
-              <div className="bg-white/60 rounded-xl p-3">
-                <span className="block text-slate-400 text-[10px] font-bold uppercase tracking-wider">Avg. Salary</span>
-                <span className="block text-lg font-extrabold text-slate-900">₹{(dept.avgSalary / 1000).toFixed(0)}k</span>
+              <div className="bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/80 rounded-xl p-3 shadow-xs">
+                <span className="block text-slate-500 dark:text-slate-400 text-[10px] font-bold uppercase tracking-wider">Avg. Salary</span>
+                <span className="block text-lg font-extrabold text-slate-900 dark:text-white">₹{(dept.avgSalary / 1000).toFixed(0)}k</span>
               </div>
             </div>
 
             {/* Member avatars — clickable for authorized roles */}
             <div className="mb-3">
-              <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-2">Team Members</span>
+              <span className="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Team Members</span>
               <div className="flex flex-wrap gap-1.5">
                 {dept.members.slice(0, 6).map((m: any, i: number) => {
                   const canClick = canClickAvatars;
@@ -768,9 +768,9 @@ export default function DepartmentsPage() {
                       key={i}
                       title={canClick ? `View ${m.firstName} ${m.lastName}'s profile` : `${m.firstName} ${m.lastName}`}
                       onClick={canClick ? () => setSelectedEmpId(m.id) : undefined}
-                      className={`h-7 w-7 rounded-lg bg-white border border-white shadow-sm flex items-center justify-center text-[10px] font-bold text-slate-700 select-none
+                      className={`h-7 w-7 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center text-[10px] font-bold text-slate-800 dark:text-slate-200 select-none
                         ${canClick
-                          ? "cursor-pointer hover:scale-110 hover:shadow-md hover:border-sky-300 hover:text-sky-700 transition-all duration-150 active:scale-95"
+                          ? "cursor-pointer hover:scale-110 hover:shadow-md hover:border-sky-400 hover:text-sky-600 dark:hover:text-sky-400 transition-all duration-150 active:scale-95"
                           : ""
                         }`}
                     >
@@ -779,13 +779,13 @@ export default function DepartmentsPage() {
                   );
                 })}
                 {dept.members.length > 6 && (
-                  <div className="h-7 w-7 rounded-lg bg-white/80 border border-white shadow-sm flex items-center justify-center text-[9px] font-bold text-slate-500">
+                  <div className="h-7 w-7 rounded-lg bg-white/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-center text-[9px] font-bold text-slate-600 dark:text-slate-400">
                     +{dept.members.length - 6}
                   </div>
                 )}
               </div>
               {canClickAvatars && (
-                <p className="text-[9px] text-slate-400 mt-1.5 font-medium">
+                <p className="text-[9px] text-slate-500 dark:text-slate-400 mt-1.5 font-medium">
                   ↑ Click avatar to view profile / assign tasks
                 </p>
               )}
@@ -793,15 +793,15 @@ export default function DepartmentsPage() {
 
             {/* Roles preview */}
             <div>
-              <span className="block text-[9px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">Roles</span>
+              <span className="block text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1.5">Roles</span>
               <div className="flex flex-wrap gap-1">
                 {dept.roles.slice(0, 4).map((role: string, i: number) => (
-                  <span key={i} className="px-2 py-0.5 bg-white/70 rounded-full text-[9px] font-semibold text-slate-600 border border-white">
+                  <span key={i} className="px-2 py-0.5 bg-white/90 dark:bg-slate-800/90 rounded-full text-[9px] font-semibold text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700">
                     {role}
                   </span>
                 ))}
                 {dept.roles.length > 4 && (
-                  <span className="px-2 py-0.5 bg-white/50 rounded-full text-[9px] font-semibold text-slate-500">
+                  <span className="px-2 py-0.5 bg-white/70 dark:bg-slate-800/70 rounded-full text-[9px] font-semibold text-slate-600 dark:text-slate-400">
                     +{dept.roles.length - 4} more
                   </span>
                 )}
@@ -809,9 +809,9 @@ export default function DepartmentsPage() {
             </div>
 
             {/* Payroll */}
-            <div className="mt-4 pt-3 border-t border-white/50 flex justify-between items-center">
-              <span className="text-slate-400 text-xs font-semibold">Total Dept Payroll</span>
-              <span className="text-sm font-extrabold text-slate-900">₹{dept.totalSalary.toLocaleString()}/yr</span>
+            <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-800 flex justify-between items-center">
+              <span className="text-slate-500 dark:text-slate-400 text-xs font-semibold">Total Dept Payroll</span>
+              <span className="text-sm font-extrabold text-slate-900 dark:text-white">₹{dept.totalSalary.toLocaleString()}/yr</span>
             </div>
           </div>
         ))}
