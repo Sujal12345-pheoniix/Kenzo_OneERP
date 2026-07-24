@@ -618,11 +618,11 @@ export default function ProjectsDashboard() {
 
       {/* Edit Task Modal */}
       {editingTask && (
-        <div className="modal-overlay flex items-center justify-center p-4 z-50">
-          <div className="modal-content p-6 w-full max-w-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
+          <div className="modal-content p-5 sm:p-6 w-full max-w-lg my-auto max-h-[88vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
               <div>
-                <h3 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>Edit Task</h3>
+                <h3 className="text-base sm:text-lg font-black" style={{ color: "var(--text-primary)" }}>Edit Task</h3>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>Update task instructions, priority, or assignee</p>
               </div>
               <button onClick={() => setEditingTask(null)} className="h-8 w-8 rounded-lg flex items-center justify-center cursor-pointer" style={{ background: "var(--bg-hover)", color: "var(--text-muted)" }}>
@@ -641,7 +641,7 @@ export default function ProjectsDashboard() {
                 <textarea value={editDesc} onChange={(e) => setEditDesc(e.target.value)} rows={3} className="form-input" style={{ resize: "none" }} />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="form-label">Target Project</label>
                   <select value={editProjId} onChange={(e) => setEditProjId(e.target.value)} className="form-select font-semibold">
@@ -657,7 +657,7 @@ export default function ProjectsDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="form-label">Priority</label>
                   <select value={editPriority} onChange={(e) => setEditPriority(e.target.value)} className="form-select font-semibold">
@@ -690,11 +690,11 @@ export default function ProjectsDashboard() {
 
       {/* Create Project Modal */}
       {showProjectModal && (
-        <div className="modal-overlay flex items-center justify-center p-4 z-50">
-          <div className="modal-content p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto animate-fadeIn">
+          <div className="modal-content p-5 sm:p-6 w-full max-w-md my-auto max-h-[88vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4 pb-3" style={{ borderBottom: "1px solid var(--border-card)" }}>
               <div>
-                <h3 className="text-lg font-black" style={{ color: "var(--text-primary)" }}>New Project Scope</h3>
+                <h3 className="text-base sm:text-lg font-black" style={{ color: "var(--text-primary)" }}>New Project Scope</h3>
                 <p className="text-xs" style={{ color: "var(--text-muted)" }}>Create a project container for tasks</p>
               </div>
               <button onClick={() => setShowProjectModal(false)} className="h-8 w-8 rounded-lg flex items-center justify-center cursor-pointer" style={{ background: "var(--bg-hover)", color: "var(--text-muted)" }}>
@@ -714,7 +714,7 @@ export default function ProjectsDashboard() {
                 <label className="form-label">Description</label>
                 <textarea value={projDesc} onChange={(e) => setProjDesc(e.target.value)} placeholder="Scope objectives..." rows={2} className="form-input" style={{ resize: "none" }} />
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="form-label">Budget (₹)</label>
                   <input type="number" required value={projBudget} onChange={(e) => setProjBudget(e.target.value)} placeholder="150000" className="form-input" />

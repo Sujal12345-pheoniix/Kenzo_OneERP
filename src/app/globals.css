@@ -856,13 +856,31 @@ html, body {
   overflow-x: hidden;
 }
 
-/* Mobile viewport adjustments */
+/* Mobile viewport adjustments & GPU performance acceleration */
+@media (max-width: 768px) {
+  .ambient-blob {
+    display: none !important; /* Disables heavy radial blur repaints on mobile GPU */
+  }
+
+  .glass-panel,
+  .sidebar-glass {
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    transform: translateZ(0); /* Enables mobile GPU hardware acceleration */
+  }
+
+  .modal-overlay {
+    backdrop-filter: blur(6px) !important;
+    -webkit-backdrop-filter: blur(6px) !important;
+  }
+}
+
 @media (max-width: 640px) {
   .modal-content {
     width: 95% !important;
     max-width: 100% !important;
     padding: 1.25rem !important;
-    max-height: 92vh !important;
+    max-height: 88vh !important;
     border-radius: 16px !important;
   }
 
