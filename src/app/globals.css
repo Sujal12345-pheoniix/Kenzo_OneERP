@@ -142,11 +142,23 @@
 .profile-modal-dark select,
 [data-theme="light"] .profile-modal-dark input,
 [data-theme="light"] .profile-modal-dark textarea,
-[data-theme="light"] .profile-modal-dark select {
+[data-theme="light"] .profile-modal-dark select,
+[data-theme="light"] .profile-modal-dark input:disabled,
+[data-theme="light"] .profile-modal-dark textarea:disabled,
+.profile-modal-dark input:disabled {
   background-color: #1e293b !important;
   color: #ffffff !important;
   -webkit-text-fill-color: #ffffff !important;
   border-color: #334155 !important;
+  opacity: 1 !important;
+}
+
+.profile-modal-dark input:disabled,
+[data-theme="light"] .profile-modal-dark input:disabled {
+  opacity: 0.85 !important;
+  background-color: #0f172a !important;
+  color: #cbd5e1 !important;
+  -webkit-text-fill-color: #cbd5e1 !important;
 }
 
 .profile-modal-dark input::placeholder,
@@ -156,6 +168,20 @@
   color: #94a3b8 !important;
   opacity: 0.85 !important;
   -webkit-text-fill-color: #94a3b8 !important;
+}
+
+/* Chrome/Safari/Edge Autofill Immunity for Profile Modal */
+.profile-modal-dark input:-webkit-autofill,
+.profile-modal-dark input:-webkit-autofill:hover,
+.profile-modal-dark input:-webkit-autofill:focus,
+.profile-modal-dark input:-webkit-autofill:active,
+[data-theme="light"] .profile-modal-dark input:-webkit-autofill,
+[data-theme="light"] .profile-modal-dark input:-webkit-autofill:hover,
+[data-theme="light"] .profile-modal-dark input:-webkit-autofill:focus,
+[data-theme="light"] .profile-modal-dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 30px #1e293b inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s !important;
 }
 
 /* ── Dark Mode Variables ── */

@@ -320,7 +320,7 @@ export default function EditProfileModal({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimum 6 characters"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-white placeholder:text-slate-400 outline-none"
+                    className="w-full px-4 py-2.5 rounded-xl bg-slate-800/90 border border-slate-700 text-xs font-bold text-white placeholder:text-slate-400 focus:border-sky-400 focus:ring-2 focus:ring-sky-500/20 outline-none transition-all"
                   />
                 </div>
               </div>
