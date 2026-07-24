@@ -184,7 +184,7 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
     case "headcount":
       return (
         <div className="animate-fade-in">
-          <div className="h-72 mb-6">
+          <div className="h-64 sm:h-72 mb-6">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={departmentData} layout="vertical" barCategoryGap="25%">
                 <defs>
@@ -195,14 +195,14 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-card)" horizontal={false} />
                 <XAxis type="number" {...commonAxisProps} />
-                <YAxis type="category" dataKey="name" {...commonAxisProps} width={90} />
+                <YAxis type="category" dataKey="name" {...commonAxisProps} width={75} />
                 <Tooltip content={<PremiumTooltip />} />
                 <Bar dataKey="employees" name="Employees" fill="url(#hcGrad)" radius={[0, 8, 8, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
           {/* Table */}
-          <div className="overflow-hidden rounded-xl" style={{ border: "1px solid var(--border-card)" }}>
+          <div className="overflow-x-auto max-w-full rounded-xl" style={{ border: "1px solid var(--border-card)" }}>
             <table className="premium-table">
               <thead>
                 <tr>
@@ -232,16 +232,16 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
     case "projects":
       return (
         <div className="animate-fade-in">
-          <div className="flex gap-6 mb-6">
-            <div className="h-72 flex-1">
+          <div className="flex flex-col sm:flex-row gap-6 mb-6 items-center">
+            <div className="h-64 sm:h-72 w-full sm:flex-1">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={projectStatusData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={55}
-                    outerRadius={90}
+                    innerRadius={45}
+                    outerRadius={80}
                     paddingAngle={4}
                     dataKey="value"
                   >
@@ -253,22 +253,22 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex-1 flex flex-col justify-center gap-3">
+            <div className="w-full sm:flex-1 flex flex-col justify-center gap-2.5">
               {projectStatusData.map((item: any, i: number) => {
                 const color = STATUS_COLORS[item.name] || PALETTE[i % PALETTE.length];
                 return (
-                  <div key={i} className="flex items-center justify-between">
+                  <div key={i} className="flex items-center justify-between p-2 rounded-xl" style={{ background: "var(--bg-input)" }}>
                     <div className="flex items-center gap-2">
                       <div className="h-3 w-3 rounded-full shrink-0" style={{ background: color }} />
-                      <span className="text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>{item.name}</span>
+                      <span className="text-xs sm:text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>{item.name}</span>
                     </div>
-                    <span className="text-sm font-black" style={{ color: "var(--text-primary)" }}>{item.value}</span>
+                    <span className="text-xs sm:text-sm font-black" style={{ color: "var(--text-primary)" }}>{item.value}</span>
                   </div>
                 );
               })}
             </div>
           </div>
-          <div className="overflow-hidden rounded-xl" style={{ border: "1px solid var(--border-card)" }}>
+          <div className="overflow-x-auto max-w-full rounded-xl" style={{ border: "1px solid var(--border-card)" }}>
             <table className="premium-table">
               <thead><tr><th>Status</th><th>Count</th><th>Share</th></tr></thead>
               <tbody>
@@ -321,7 +321,7 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
               );
             })}
           </div>
-          <div className="overflow-hidden rounded-xl" style={{ border: "1px solid var(--border-card)" }}>
+          <div className="overflow-x-auto max-w-full rounded-xl" style={{ border: "1px solid var(--border-card)" }}>
             <table className="premium-table">
               <thead><tr><th>Stage</th><th>Count</th><th>Conversion</th></tr></thead>
               <tbody>
@@ -359,11 +359,11 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
             </div>
           ) : (
             <>
-              <div className="flex gap-6 mb-6">
-                <div className="h-72 flex-1">
+              <div className="flex flex-col sm:flex-row gap-6 mb-6 items-center">
+                <div className="h-64 sm:h-72 w-full sm:flex-1">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
-                      <Pie data={expenseChartData} cx="50%" cy="50%" innerRadius={55} outerRadius={90} paddingAngle={4} dataKey="value">
+                      <Pie data={expenseChartData} cx="50%" cy="50%" innerRadius={45} outerRadius={80} paddingAngle={4} dataKey="value">
                         {expenseChartData.map((_: any, i: number) => (
                           <Cell key={i} fill={PALETTE[i % PALETTE.length]} />
                         ))}
@@ -372,19 +372,19 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="flex-1 flex flex-col justify-center gap-3">
+                <div className="w-full sm:flex-1 flex flex-col justify-center gap-2.5">
                   {expenseChartData.map((item: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between">
+                    <div key={i} className="flex items-center justify-between p-2 rounded-xl" style={{ background: "var(--bg-input)" }}>
                       <div className="flex items-center gap-2">
                         <div className="h-3 w-3 rounded-full shrink-0" style={{ background: PALETTE[i % PALETTE.length] }} />
-                        <span className="text-sm font-semibold truncate max-w-[120px]" style={{ color: "var(--text-secondary)" }}>{item.name}</span>
+                        <span className="text-xs sm:text-sm font-semibold truncate max-w-[120px]" style={{ color: "var(--text-secondary)" }}>{item.name}</span>
                       </div>
-                      <span className="text-sm font-black" style={{ color: "var(--text-primary)" }}>₹{item.value.toLocaleString()}</span>
+                      <span className="text-xs sm:text-sm font-black" style={{ color: "var(--text-primary)" }}>₹{item.value.toLocaleString()}</span>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="overflow-hidden rounded-xl" style={{ border: "1px solid var(--border-card)" }}>
+              <div className="overflow-x-auto max-w-full rounded-xl" style={{ border: "1px solid var(--border-card)" }}>
                 <table className="premium-table">
                   <thead><tr><th>Category</th><th>Amount</th><th>Share</th></tr></thead>
                   <tbody>
@@ -414,7 +414,7 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
     case "compensation":
       return (
         <div className="animate-fade-in">
-          <div className="h-72 mb-6">
+          <div className="h-64 sm:h-72 mb-6">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={departmentData} barCategoryGap="30%">
                 <defs>
@@ -431,7 +431,7 @@ function TabContent({ tab, data }: { tab: AnalyticsTab; data: any }) {
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="overflow-hidden rounded-xl" style={{ border: "1px solid var(--border-card)" }}>
+          <div className="overflow-x-auto max-w-full rounded-xl" style={{ border: "1px solid var(--border-card)" }}>
             <table className="premium-table">
               <thead><tr><th>Department</th><th>Avg Salary</th><th>Headcount</th></tr></thead>
               <tbody>

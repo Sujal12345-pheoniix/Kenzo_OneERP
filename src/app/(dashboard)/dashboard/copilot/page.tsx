@@ -49,27 +49,41 @@ export default function CopilotHub() {
 
   return (
     <div
-      className="flex flex-col gap-6 w-full max-w-4xl mx-auto animate-fade-in-up"
-      style={{ color: "var(--text-primary)", height: "calc(100vh - 90px)" }}
+      className="flex flex-col gap-4 sm:gap-6 w-full max-w-5xl mx-auto pb-4 animate-fade-in-up"
+      style={{ color: "var(--text-primary)" }}
     >
       {/* Header */}
-      <div className="pb-4" style={{ borderBottom: "1px solid var(--border-base)" }}>
+      <div className="pb-3" style={{ borderBottom: "1px solid var(--border-base)" }}>
         <div className="section-eyebrow"><Zap className="h-4 w-4" /> AI Intelligence</div>
-        <h1 className="text-3xl font-black tracking-tight flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
           Kenzo Copilot
           <span className="badge" style={{ background: "rgba(99,102,241,0.12)", color: "var(--accent-primary)", fontSize: "0.6rem" }}>
             ENTERPRISE BETA
           </span>
         </h1>
-        <p className="text-sm mt-1" style={{ color: "var(--text-muted)" }}>
+        <p className="text-xs sm:text-sm mt-0.5" style={{ color: "var(--text-muted)" }}>
           Cross-module context analysis, automated drafting, and real-time database queries.
         </p>
       </div>
 
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-4 gap-5">
+      {/* Mobile Horizontal Quick Prompts Scroll */}
+      <div className="lg:hidden flex items-center gap-2 overflow-x-auto pb-1 max-w-full scrollbar-none">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0">Quick Prompts:</span>
+        {presetQueries.map((q, idx) => (
+          <button
+            key={idx}
+            onClick={() => setInput(q)}
+            className="px-3 py-1.5 rounded-full text-xs font-semibold shrink-0 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 hover:border-sky-500 transition-all cursor-pointer"
+          >
+            ⚡ {q}
+          </button>
+        ))}
+      </div>
 
-        {/* Preset prompts */}
-        <div className="lg:col-span-1 flex flex-col gap-3">
+      <div className="flex-1 flex flex-col lg:grid lg:grid-cols-4 gap-5 min-h-[480px]">
+
+        {/* Desktop Sidebar Prompts */}
+        <div className="hidden lg:flex flex-col gap-3 lg:col-span-1">
           <div className="glass-panel p-5 flex flex-col gap-3">
             <span className="form-label">Quick Prompts</span>
             {presetQueries.map((q, idx) => (
@@ -111,20 +125,20 @@ export default function CopilotHub() {
         </div>
 
         {/* Chat window */}
-        <div className="lg:col-span-3 glass-panel p-5 flex flex-col min-h-0">
+        <div className="lg:col-span-3 glass-panel p-4 sm:p-5 flex flex-col min-h-[480px] sm:min-h-[520px] justify-between relative overflow-hidden">
           {/* Messages */}
-          <div className="flex-1 overflow-y-auto flex flex-col gap-4 mb-4 pr-1">
+          <div className="flex-1 overflow-y-auto flex flex-col gap-4 mb-4 pr-1 max-h-[55vh] lg:max-h-[480px]">
             {messages.map((m, idx) => {
               const isAi = m.sender === "AI";
               return (
                 <div
                   key={idx}
-                  className={`flex gap-3 max-w-[88%] animate-fade-in-up ${isAi ? "self-start" : "self-end flex-row-reverse"}`}
+                  className={`flex gap-3 max-w-[92%] sm:max-w-[85%] animate-fade-in-up ${isAi ? "self-start" : "self-end flex-row-reverse"}`}
                   style={{ animationDelay: `${idx * 30}ms` }}
                 >
                   {/* Avatar */}
                   <div
-                    className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+                    className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl flex items-center justify-center shrink-0"
                     style={
                       isAi
                         ? { background: "var(--gradient-brand)", boxShadow: "0 4px 12px var(--glow-primary)" }
@@ -132,13 +146,13 @@ export default function CopilotHub() {
                     }
                   >
                     {isAi
-                      ? <Bot className="h-4.5 w-4.5 text-white" />
-                      : <Sparkles className="h-4.5 w-4.5" style={{ color: "var(--accent-primary)" }} />}
+                      ? <Bot className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-white" />
+                      : <Sparkles className="h-4 w-4 sm:h-4.5 sm:w-4.5" style={{ color: "var(--accent-primary)" }} />}
                   </div>
 
                   {/* Bubble */}
                   <div
-                    className="px-4 py-3 rounded-2xl text-sm font-medium leading-relaxed"
+                    className="px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl text-xs sm:text-sm font-medium leading-relaxed"
                     style={
                       isAi
                         ? {
@@ -154,7 +168,7 @@ export default function CopilotHub() {
                           }
                     }
                   >
-                    <pre className="whitespace-pre-wrap font-sans" style={{ fontSize: "0.875rem" }}>{m.text}</pre>
+                    <pre className="whitespace-pre-wrap font-sans text-xs sm:text-sm">{m.text}</pre>
                   </div>
                 </div>
               );
@@ -162,37 +176,35 @@ export default function CopilotHub() {
 
             {loading && (
               <div className="flex gap-3 self-start items-center animate-fade-in">
-                <div className="h-9 w-9 rounded-xl flex items-center justify-center" style={{ background: "var(--gradient-brand)" }}>
-                  <Bot className="h-4.5 w-4.5 text-white" />
+                <div className="h-8 w-8 sm:h-9 sm:w-9 rounded-xl flex items-center justify-center" style={{ background: "var(--gradient-brand)" }}>
+                  <Bot className="h-4 w-4 sm:h-4.5 sm:w-4.5 text-white" />
                 </div>
-                <div className="px-4 py-3 rounded-2xl flex items-center gap-2" style={{ background: "var(--bg-card-alt)", border: "1.5px solid var(--border-card)" }}>
+                <div className="px-3.5 py-2.5 sm:px-4 sm:py-3 rounded-2xl flex items-center gap-2" style={{ background: "var(--bg-card-alt)", border: "1.5px solid var(--border-card)" }}>
                   <Loader2 className="h-4 w-4 animate-spin" style={{ color: "var(--accent-primary)" }} />
-                  <span className="text-sm font-semibold" style={{ color: "var(--text-muted)" }}>Compiling response...</span>
+                  <span className="text-xs sm:text-sm font-semibold" style={{ color: "var(--text-muted)" }}>Compiling response...</span>
                 </div>
               </div>
             )}
             <div ref={bottomRef} />
           </div>
 
-          {/* Input */}
+          {/* Sticky Input Bar at Bottom */}
           <form
             onSubmit={handleSend}
-            className="flex gap-3 pt-4 mt-auto"
-            style={{ borderTop: "1.5px solid var(--border-card)" }}
+            className="flex gap-2 sm:gap-3 pt-3 mt-auto sticky bottom-0 z-20 border-t border-slate-200/80 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md p-1.5 rounded-2xl shadow-sm"
           >
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={loading}
-              placeholder="Ask Copilot — e.g. Draft a financial summary report..."
-              className="form-input flex-1"
-              style={{ fontSize: "0.875rem" }}
+              placeholder="Ask Copilot — e.g. Draft a financial summary..."
+              className="form-input flex-1 text-xs sm:text-sm"
             />
             <button
               type="submit"
               disabled={loading || !input.trim()}
-              className="btn-primary px-5"
+              className="btn-primary px-4 sm:px-5 py-2 text-xs sm:text-sm shrink-0"
             >
               <Send className="h-4 w-4" />
             </button>
