@@ -148,18 +148,13 @@ export default function EditProfileModal({
       <div className="profile-modal-dark bg-slate-900 border border-slate-700/80 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden animate-scaleUp text-white flex flex-col max-h-[90vh] my-auto">
         {/* Modal Header */}
         <div className="px-5 py-4 sm:px-6 sm:py-5 border-b border-slate-800 flex items-center justify-between bg-slate-950/60 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-sky-400 via-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
-              <Sparkles className="h-4.5 w-4.5" />
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
-                Edit My Profile
-              </h2>
-              <p className="text-[11px] sm:text-xs font-bold text-slate-300">
-                Customize photo, details, and security settings
-              </p>
-            </div>
+          <div>
+            <h2 className="text-base sm:text-lg font-black text-white tracking-tight">
+              Edit My Profile
+            </h2>
+            <p className="text-[11px] sm:text-xs font-bold text-slate-300">
+              Customize photo, details, and security settings
+            </p>
           </div>
           <button
             onClick={onClose}
