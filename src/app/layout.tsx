@@ -43,6 +43,23 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+
+        {/* Kenzo Digital Adoption Platform Snippet */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="https://kenzo-dap.onrender.com/sdk.js" />
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var checkKenzo = setInterval(function() {
+              if (typeof Kenzo !== 'undefined') {
+                clearInterval(checkKenzo);
+                Kenzo.init({
+                  apiKey: "kenzo_project_1785139792154_key_z3u20",
+                  apiBaseUrl: "https://kenzo-dap.onrender.com/api/v1"
+                });
+              }
+            }, 50);
+          })();
+        ` }} />
       </head>
       <body className="min-h-full flex flex-col font-sans" style={{ backgroundColor: 'var(--bg-base)', color: 'var(--text-primary)' }}>
         {children}
