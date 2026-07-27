@@ -53,8 +53,12 @@ export default function RootLayout({
               if (typeof Kenzo !== 'undefined') {
                 clearInterval(checkKenzo);
                 Kenzo.init({
-                  apiKey: "kenzo_project_1785139792154_key_z3u20",
+                  apiKey: "kenzo_project_1785139787760_key_u1yaq",
                   apiBaseUrl: "https://kenzo-dap.onrender.com/api/v1"
+                }).then(function() {
+                  console.log("[KenzoDAP] Successfully initialized with project key kenzo_project_1785139787760_key_u1yaq");
+                }).catch(function(err) {
+                  console.warn("[KenzoDAP] Initialization notice:", err);
                 });
               }
             }, 50);
