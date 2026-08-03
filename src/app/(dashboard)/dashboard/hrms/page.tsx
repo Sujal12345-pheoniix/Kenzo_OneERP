@@ -1007,6 +1007,8 @@ export default function HRMSDashboard() {
                     <option value="HR_MANAGER">HR Manager</option>
                     <option value="COMPANY_ADMIN">Company Admin</option>
                     <option value="CEO">Chief Executive Officer</option>
+                    <option value="FIELD_SALES_EXECUTIVE">Field Sales Executive</option>
+                    <option value="JAM_DEV">JAM Dev</option>
                   </select>
                 </div>
                 <div>

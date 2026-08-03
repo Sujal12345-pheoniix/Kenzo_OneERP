@@ -555,6 +555,8 @@ export default function ExecutiveHub() {
                       <option value="CEO">CHIEF EXECUTIVE (CEO)</option>
                       <option value="COMPANY_ADMIN">COMPANY ADMIN</option>
                       <option value="FINANCE">FINANCE MANAGER</option>
+                      <option value="FIELD_SALES_EXECUTIVE">FIELD SALES EXECUTIVE</option>
+                      <option value="JAM_DEV">JAM DEV</option>
                     </select>
                   </div>
                   <div>

@@ -158,8 +158,10 @@ const roleConfig: Record<string, { label: string; color: string; dot: string }> 
   HR:              { label: "HR Manager",             color: "#8b5cf6", dot: "#8b5cf6" },
   DEVELOPER:       { label: "Developer",              color: "#0ea5e9", dot: "#0ea5e9" },
   PROJECT_MANAGER: { label: "Project Manager",        color: "#10b981", dot: "#10b981" },
-  EMPLOYEE:        { label: "Employee",               color: "#6366f1", dot: "#6366f1" },
-  FINANCE:         { label: "Finance Manager",        color: "#14b8a6", dot: "#14b8a6" },
+  EMPLOYEE:              { label: "Employee",               color: "#6366f1", dot: "#6366f1" },
+  FINANCE:               { label: "Finance Manager",        color: "#14b8a6", dot: "#14b8a6" },
+  FIELD_SALES_EXECUTIVE: { label: "Field Sales Executive", color: "#f97316", dot: "#f97316" },
+  JAM_DEV:               { label: "JAM Dev",               color: "#ec4899", dot: "#ec4899" },
 };
 
 /* ───────────────────── Notice Ping Dot ─────────────────────── */

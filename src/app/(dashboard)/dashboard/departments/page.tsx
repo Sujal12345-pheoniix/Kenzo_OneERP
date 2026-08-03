@@ -111,6 +111,24 @@ function EmployeeProfileModal({
   const [assignError, setAssignError] = useState("");
   const [assignSuccess, setAssignSuccess] = useState("");
 
+  // Form states for Employer Info (Admin only)
+  const [empName, setEmpName] = useState("");
+  const [empAddress, setEmpAddress] = useState("");
+  const [empPhone, setEmpPhone] = useState("");
+  const [empEmergPhone, setEmpEmergPhone] = useState("");
+  const [empPersonalEmail, setEmpPersonalEmail] = useState("");
+  const [empPermAddress, setEmpPermAddress] = useState("");
+  const [empCodeId, setEmpCodeId] = useState("");
+  const [govtIdType, setGovtIdType] = useState("Adhaar");
+  const [govtIdNumber, setGovtIdNumber] = useState("");
+  const [medicalIssues, setMedicalIssues] = useState("");
+  const [medication, setMedication] = useState("");
+  const [empInfoLoading, setEmpInfoLoading] = useState(false);
+  const [empInfoError, setEmpInfoError] = useState("");
+  const [empInfoSuccess, setEmpInfoSuccess] = useState("");
+
+  const isAdmin = userRole === "COMPANY_ADMIN" || userRole === "SUPER_ADMIN" || userRole === "CEO";
+
   const fetchEmployee = useCallback(() => {
     fetch(`/api/employees/${empId}`)
       .then((r) => r.json())
@@ -121,6 +139,22 @@ function EmployeeProfileModal({
   useEffect(() => {
     fetchEmployee();
   }, [fetchEmployee]);
+
+  useEffect(() => {
+    if (emp) {
+      setEmpName(emp.employerName || `${emp.firstName || ""} ${emp.lastName || ""}`.trim());
+      setEmpAddress(emp.address || "");
+      setEmpPhone(emp.phoneNumber || "");
+      setEmpEmergPhone(emp.emergencyNumber || "");
+      setEmpPersonalEmail(emp.personalEmail || emp.user?.email || "");
+      setEmpPermAddress(emp.permanentAddress || "");
+      setEmpCodeId(emp.empIdCode || emp.id?.substring(0, 8).toUpperCase() || "");
+      setGovtIdType(emp.govtIdType || "Adhaar");
+      setGovtIdNumber(emp.govtIdNumber || "");
+      setMedicalIssues(emp.medicalIssues || "");
+      setMedication(emp.medication || "");
+    }
+  }, [emp]);
 
   useEffect(() => {
     if (projects && projects.length > 0) {
@@ -134,6 +168,41 @@ function EmployeeProfileModal({
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, [onClose]);
+
+  const handleSaveEmpInfo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmpInfoLoading(true);
+    setEmpInfoError("");
+    setEmpInfoSuccess("");
+    try {
+      const res = await fetch(`/api/employees/${empId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          employerName: empName,
+          address: empAddress,
+          phoneNumber: empPhone,
+          emergencyNumber: empEmergPhone,
+          personalEmail: empPersonalEmail,
+          permanentAddress: empPermAddress,
+          empIdCode: empCodeId,
+          govtIdType,
+          govtIdNumber,
+          medicalIssues,
+          medication,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to update Employer Info");
+      setEmpInfoSuccess("Employer Info updated successfully!");
+      fetchEmployee();
+      setTimeout(() => setEmpInfoSuccess(""), 3000);
+    } catch (err: any) {
+      setEmpInfoError(err.message || "An error occurred");
+    } finally {
+      setEmpInfoLoading(false);
+    }
+  };
 
   const handleAssignTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -314,6 +383,167 @@ function EmployeeProfileModal({
                 </div>
               ))}
             </div>
+
+            {/* ── Employer Info (Admins Only: view, fill, edit) ── */}
+            {isAdmin && (
+              <div className="glass-panel p-5 border border-sky-100/80 bg-slate-50/50">
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <Building2 className="h-4 w-4" style={{ color: "var(--accent-primary)" }} />
+                    <h3 className="font-extrabold text-sm uppercase tracking-wider text-slate-800">Employer Info</h3>
+                  </div>
+                  <span className="text-[10px] font-extrabold px-2.5 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200/60 uppercase tracking-widest">
+                    Admins Only
+                  </span>
+                </div>
+
+                {empInfoError   && <div className="alert-danger mb-3">{empInfoError}</div>}
+                {empInfoSuccess && <div className="alert-success mb-3">{empInfoSuccess}</div>}
+
+                <form onSubmit={handleSaveEmpInfo} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="form-label">Name (String)</label>
+                    <input
+                      type="text"
+                      value={empName}
+                      onChange={(e) => setEmpName(e.target.value)}
+                      placeholder="e.g. Sujal Kumar"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">EMP_ID (String)</label>
+                    <input
+                      type="text"
+                      value={empCodeId}
+                      onChange={(e) => setEmpCodeId(e.target.value)}
+                      placeholder="e.g. EMP-2026-08"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Address (String)</label>
+                    <input
+                      type="text"
+                      value={empAddress}
+                      onChange={(e) => setEmpAddress(e.target.value)}
+                      placeholder="Current Residential Address"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Permanent Address (String)</label>
+                    <input
+                      type="text"
+                      value={empPermAddress}
+                      onChange={(e) => setEmpPermAddress(e.target.value)}
+                      placeholder="Permanent Home Address"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Number (number)</label>
+                    <input
+                      type="number"
+                      value={empPhone}
+                      onChange={(e) => setEmpPhone(e.target.value)}
+                      placeholder="Contact Number"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Emergency Number (number)</label>
+                    <input
+                      type="number"
+                      value={empEmergPhone}
+                      onChange={(e) => setEmpEmergPhone(e.target.value)}
+                      placeholder="Emergency Contact Number"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Personal Mail (mail)</label>
+                    <input
+                      type="email"
+                      value={empPersonalEmail}
+                      onChange={(e) => setEmpPersonalEmail(e.target.value)}
+                      placeholder="personal.mail@example.com"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Govt_ID Type</label>
+                    <select
+                      value={govtIdType}
+                      onChange={(e) => setGovtIdType(e.target.value)}
+                      className="form-select font-semibold"
+                    >
+                      <option value="Adhaar">Adhaar (number)</option>
+                      <option value="PAN">PAN (String)</option>
+                      <option value="Passport">Passport (String)</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="form-label">
+                      Govt_ID Value ({govtIdType === "Adhaar" ? "number" : "String"})
+                    </label>
+                    <input
+                      type={govtIdType === "Adhaar" ? "number" : "text"}
+                      value={govtIdNumber}
+                      onChange={(e) => setGovtIdNumber(e.target.value)}
+                      placeholder={
+                        govtIdType === "Adhaar"
+                          ? "Enter 12-digit Adhaar number"
+                          : govtIdType === "PAN"
+                          ? "Enter 10-character PAN string"
+                          : "Enter Passport string"
+                      }
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Medical Issues (String)</label>
+                    <input
+                      type="text"
+                      value={medicalIssues}
+                      onChange={(e) => setMedicalIssues(e.target.value)}
+                      placeholder="Health conditions / Allergies"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="form-label">Medication (String)</label>
+                    <input
+                      type="text"
+                      value={medication}
+                      onChange={(e) => setMedication(e.target.value)}
+                      placeholder="Ongoing medication details"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2 flex justify-end mt-1">
+                    <button
+                      type="submit"
+                      disabled={empInfoLoading}
+                      className="btn-primary py-2.5 px-6"
+                    >
+                      {empInfoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Employer Info"}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
 
             {/* ── Assign Task Option (Admin and CEO only) ── */}
             {canAssign && (

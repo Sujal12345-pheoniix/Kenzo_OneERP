@@ -57,6 +57,20 @@ model Employee {
   status       String   // e.g. "ACTIVE", "INACTIVE", "TERMINATED"
   salary       Float
   hireDate     DateTime @default(now())
+
+  // Employer Info (Admin managed)
+  employerName     String?
+  address          String?
+  phoneNumber      String?
+  emergencyNumber  String?
+  personalEmail    String?
+  permanentAddress String?
+  empIdCode        String?
+  govtIdType       String?  // "Adhaar", "PAN", "Passport"
+  govtIdNumber     String?
+  medicalIssues    String?
+  medication       String?
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

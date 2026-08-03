@@ -242,6 +242,8 @@ export default function NoticesPage() {
                     <option value="DEVELOPER">Developers</option>
                     <option value="PROJECT_MANAGER">Project Managers</option>
                     <option value="COMPANY_ADMIN">Admins Only</option>
+                    <option value="FIELD_SALES_EXECUTIVE">Field Sales Executives</option>
+                    <option value="JAM_DEV">JAM Devs</option>
                   </select>
                 </div>
                 <div>
