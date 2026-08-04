@@ -28,6 +28,7 @@ import {
   Zap,
   ArrowUpRight,
   Edit3,
+  Receipt,
 } from "lucide-react";
 import EditProfileModal from "@/components/EditProfileModal";
 
@@ -63,6 +64,7 @@ function getMenuGroups(role: string): MenuGroup[] {
           items: [
             { name: "Finance Overview",    href: "/dashboard/finance",    icon: DollarSign },
             { name: "Analytics & Reports", href: "/dashboard/analytics",  icon: BarChart3  },
+            { name: "Kenzo-Expense",       href: "https://kenzo-kore-expense.vercel.app/", icon: Receipt },
           ],
         },
         {
@@ -97,6 +99,7 @@ function getMenuGroups(role: string): MenuGroup[] {
           items: [
             { name: "Finance Dashboard", href: "/dashboard/finance",    icon: DollarSign },
             { name: "Analytics & KPIs",  href: "/dashboard/analytics",  icon: TrendingUp },
+            { name: "Kenzo-Expense",     href: "https://kenzo-kore-expense.vercel.app/", icon: Receipt },
           ],
         },
         {
@@ -124,6 +127,10 @@ function getMenuGroups(role: string): MenuGroup[] {
           ],
         },
         {
+          label: "Finance & Expenses",
+          items: [{ name: "Kenzo-Expense", href: "https://kenzo-kore-expense.vercel.app/", icon: Receipt }],
+        },
+        {
           label: "Communication",
           items: [{ name: "Notice Board", href: "/dashboard/notices", icon: Bell }],
         },
@@ -133,11 +140,15 @@ function getMenuGroups(role: string): MenuGroup[] {
         },
       ];
 
-    default: // DEVELOPER, PROJECT_MANAGER, EMPLOYEE
+    default: // DEVELOPER, PROJECT_MANAGER, EMPLOYEE, FINANCE, FIELD_SALES_EXECUTIVE, JAM_DEV
       return [
         { label: "My Workspace", items: [{ name: "My Dashboard",       href: "/dashboard",         icon: LayoutDashboard }] },
         { label: "My Work",      items: [{ name: "My Projects",         href: "/dashboard/projects", icon: FolderKanban   }] },
         { label: "My Records",   items: [{ name: "Attendance & Leave",  href: "/dashboard/hrms",     icon: Clock          }] },
+        {
+          label: "Finance & Expenses",
+          items: [{ name: "Kenzo-Expense", href: "https://kenzo-kore-expense.vercel.app/", icon: Receipt }],
+        },
         {
           label: "Company",
           items: [{ name: "Company Notices", href: "/dashboard/notices", icon: Bell }],
@@ -313,11 +324,42 @@ function SidebarContent({
               {group.items.map((item) => {
                 const Icon = item.icon;
                 const isNotices = item.href === "/dashboard/notices";
+                const isExternal = item.href.startsWith("http");
                 const active =
-                  item.href === "/dashboard"
+                  !isExternal &&
+                  (item.href === "/dashboard"
                     ? pathname === "/dashboard"
-                    : pathname.startsWith(item.href);
+                    : pathname.startsWith(item.href));
                 const showDot = isNotices && hasUnread && !active;
+
+                if (isExternal) {
+                  return (
+                    <a
+                      key={item.name + item.href}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => onLinkClick?.()}
+                      className="group flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[12.5px] font-semibold transition-all duration-200 cursor-pointer relative overflow-hidden"
+                      style={{ color: "var(--text-secondary)" }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = "var(--bg-hover)";
+                        (e.currentTarget as HTMLElement).style.color = "var(--text-primary)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.background = "";
+                        (e.currentTarget as HTMLElement).style.color = "var(--text-secondary)";
+                      }}
+                    >
+                      <Icon
+                        className="h-[15px] w-[15px] shrink-0 transition-transform duration-200 group-hover:scale-110"
+                        style={{ opacity: 0.7 }}
+                      />
+                      <span className="leading-none truncate flex-1">{item.name}</span>
+                      <ArrowUpRight className="h-3 w-3 ml-auto shrink-0 opacity-60 group-hover:opacity-100 transition-opacity" />
+                    </a>
+                  );
+                }
 
                 return (
                   <Link
