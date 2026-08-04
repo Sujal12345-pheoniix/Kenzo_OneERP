@@ -79,6 +79,13 @@ export async function PUT(
       govtIdNumber,
       medicalIssues,
       medication,
+      maritalStatus,
+      nomineeName,
+      nomineeDob,
+      highestQualification,
+      medicalHistory,
+      scoreCard,
+      documents,
     } = body;
 
     const updatedEmployee = await db.employee.update({
@@ -95,6 +102,13 @@ export async function PUT(
         govtIdNumber: govtIdNumber !== undefined ? String(govtIdNumber) : existingEmp.govtIdNumber,
         medicalIssues: medicalIssues !== undefined ? medicalIssues : existingEmp.medicalIssues,
         medication: medication !== undefined ? medication : existingEmp.medication,
+        maritalStatus: maritalStatus !== undefined ? maritalStatus : existingEmp.maritalStatus,
+        nomineeName: nomineeName !== undefined ? nomineeName : existingEmp.nomineeName,
+        nomineeDob: nomineeDob !== undefined ? nomineeDob : existingEmp.nomineeDob,
+        highestQualification: highestQualification !== undefined ? highestQualification : existingEmp.highestQualification,
+        medicalHistory: medicalHistory !== undefined ? medicalHistory : existingEmp.medicalHistory,
+        scoreCard: scoreCard !== undefined ? scoreCard : existingEmp.scoreCard,
+        documents: documents !== undefined ? documents : existingEmp.documents,
       },
     });
 

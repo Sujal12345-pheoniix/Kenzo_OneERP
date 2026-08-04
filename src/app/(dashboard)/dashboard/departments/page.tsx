@@ -123,6 +123,13 @@ function EmployeeProfileModal({
   const [govtIdNumber, setGovtIdNumber] = useState("");
   const [medicalIssues, setMedicalIssues] = useState("");
   const [medication, setMedication] = useState("");
+  const [maritalStatus, setMaritalStatus] = useState("Single");
+  const [nomineeName, setNomineeName] = useState("");
+  const [nomineeDob, setNomineeDob] = useState("");
+  const [highestQualification, setHighestQualification] = useState("");
+  const [medicalHistory, setMedicalHistory] = useState("");
+  const [scoreCard, setScoreCard] = useState("");
+  const [documents, setDocuments] = useState("");
   const [empInfoLoading, setEmpInfoLoading] = useState(false);
   const [empInfoError, setEmpInfoError] = useState("");
   const [empInfoSuccess, setEmpInfoSuccess] = useState("");
@@ -153,6 +160,13 @@ function EmployeeProfileModal({
       setGovtIdNumber(emp.govtIdNumber || "");
       setMedicalIssues(emp.medicalIssues || "");
       setMedication(emp.medication || "");
+      setMaritalStatus(emp.maritalStatus || "Single");
+      setNomineeName(emp.nomineeName || "");
+      setNomineeDob(emp.nomineeDob || "");
+      setHighestQualification(emp.highestQualification || "");
+      setMedicalHistory(emp.medicalHistory || "");
+      setScoreCard(emp.scoreCard || "");
+      setDocuments(emp.documents || "");
     }
   }, [emp]);
 
@@ -190,6 +204,13 @@ function EmployeeProfileModal({
           govtIdNumber,
           medicalIssues,
           medication,
+          maritalStatus,
+          nomineeName,
+          nomineeDob,
+          highestQualification,
+          medicalHistory,
+          scoreCard,
+          documents,
         }),
       });
       const data = await res.json();
@@ -402,7 +423,7 @@ function EmployeeProfileModal({
 
                 <form onSubmit={handleSaveEmpInfo} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="form-label">Name (String)</label>
+                    <label className="form-label">Name</label>
                     <input
                       type="text"
                       value={empName}
@@ -413,7 +434,7 @@ function EmployeeProfileModal({
                   </div>
 
                   <div>
-                    <label className="form-label">EMP_ID (String)</label>
+                    <label className="form-label">EMP_ID</label>
                     <input
                       type="text"
                       value={empCodeId}
@@ -424,7 +445,7 @@ function EmployeeProfileModal({
                   </div>
 
                   <div>
-                    <label className="form-label">Address (String)</label>
+                    <label className="form-label">Address</label>
                     <input
                       type="text"
                       value={empAddress}
@@ -435,7 +456,7 @@ function EmployeeProfileModal({
                   </div>
 
                   <div>
-                    <label className="form-label">Permanent Address (String)</label>
+                    <label className="form-label">Permanent Address</label>
                     <input
                       type="text"
                       value={empPermAddress}
@@ -446,7 +467,7 @@ function EmployeeProfileModal({
                   </div>
 
                   <div>
-                    <label className="form-label">Number (number)</label>
+                    <label className="form-label">Number</label>
                     <input
                       type="number"
                       value={empPhone}
@@ -457,7 +478,7 @@ function EmployeeProfileModal({
                   </div>
 
                   <div>
-                    <label className="form-label">Emergency Number (number)</label>
+                    <label className="form-label">Emergency Number</label>
                     <input
                       type="number"
                       value={empEmergPhone}
@@ -468,7 +489,7 @@ function EmployeeProfileModal({
                   </div>
 
                   <div>
-                    <label className="form-label">Personal Mail (mail)</label>
+                    <label className="form-label">Personal Mail</label>
                     <input
                       type="email"
                       value={empPersonalEmail}
@@ -485,16 +506,14 @@ function EmployeeProfileModal({
                       onChange={(e) => setGovtIdType(e.target.value)}
                       className="form-select font-semibold"
                     >
-                      <option value="Adhaar">Adhaar (number)</option>
-                      <option value="PAN">PAN (String)</option>
-                      <option value="Passport">Passport (String)</option>
+                      <option value="Adhaar">Adhaar</option>
+                      <option value="PAN">PAN</option>
+                      <option value="Passport">Passport</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="form-label">
-                      Govt_ID Value ({govtIdType === "Adhaar" ? "number" : "String"})
-                    </label>
+                    <label className="form-label">Govt_ID Value</label>
                     <input
                       type={govtIdType === "Adhaar" ? "number" : "text"}
                       value={govtIdNumber}
@@ -503,15 +522,72 @@ function EmployeeProfileModal({
                         govtIdType === "Adhaar"
                           ? "Enter 12-digit Adhaar number"
                           : govtIdType === "PAN"
-                          ? "Enter 10-character PAN string"
-                          : "Enter Passport string"
+                          ? "Enter 10-character PAN"
+                          : "Enter Passport number"
                       }
                       className="form-input"
                     />
                   </div>
 
                   <div>
-                    <label className="form-label">Medical Issues (String)</label>
+                    <label className="form-label">Marital Status</label>
+                    <select
+                      value={maritalStatus}
+                      onChange={(e) => setMaritalStatus(e.target.value)}
+                      className="form-select font-semibold"
+                    >
+                      <option value="Single">Single</option>
+                      <option value="Married">Married</option>
+                      <option value="Divorced">Divorced</option>
+                      <option value="Widowed">Widowed</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="form-label">Dependent Nominee Name</label>
+                    <input
+                      type="text"
+                      value={nomineeName}
+                      onChange={(e) => setNomineeName(e.target.value)}
+                      placeholder="e.g. Spouse / Parent / Child Name"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Dependent Nominee DOB</label>
+                    <input
+                      type="date"
+                      value={nomineeDob}
+                      onChange={(e) => setNomineeDob(e.target.value)}
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Highest Qualification</label>
+                    <input
+                      type="text"
+                      value={highestQualification}
+                      onChange={(e) => setHighestQualification(e.target.value)}
+                      placeholder="e.g. B.Tech / MBA / Ph.D"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Score Card</label>
+                    <input
+                      type="text"
+                      value={scoreCard}
+                      onChange={(e) => setScoreCard(e.target.value)}
+                      placeholder="e.g. Performance Score / Rating (95/100)"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="form-label">Medical Issues</label>
                     <input
                       type="text"
                       value={medicalIssues}
@@ -521,13 +597,36 @@ function EmployeeProfileModal({
                     />
                   </div>
 
-                  <div className="md:col-span-2">
-                    <label className="form-label">Medication (String)</label>
+                  <div>
+                    <label className="form-label">Medication</label>
                     <input
                       type="text"
                       value={medication}
                       onChange={(e) => setMedication(e.target.value)}
                       placeholder="Ongoing medication details"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="form-label">Medical History</label>
+                    <textarea
+                      value={medicalHistory}
+                      onChange={(e) => setMedicalHistory(e.target.value)}
+                      placeholder="Surgeries, chronic conditions, or medical history notes..."
+                      rows={2}
+                      className="form-input"
+                      style={{ resize: "none" }}
+                    />
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="form-label">Documents</label>
+                    <input
+                      type="text"
+                      value={documents}
+                      onChange={(e) => setDocuments(e.target.value)}
+                      placeholder="Link to employee document records / drive / verification IDs"
                       className="form-input"
                     />
                   </div>
